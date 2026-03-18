@@ -15,8 +15,6 @@ interface RoomStore {
   isConnected: boolean;
   theme: 'dark' | 'light';
   localFileUrl: string | null;
-  countdownValue: number | null;
-  countdownAction: 'play' | 'pause' | null;
   
   setRoomId: (id: string | null) => void;
   setNickname: (name: string) => void;
@@ -30,7 +28,6 @@ interface RoomStore {
   setIsConnected: (connected: boolean) => void;
   toggleTheme: () => void;
   setLocalFileUrl: (url: string | null) => void;
-  setCountdown: (value: number | null, action: 'play' | 'pause' | null) => void;
 }
 
 export const useRoomStore = create<RoomStore>((set) => ({
@@ -47,8 +44,6 @@ export const useRoomStore = create<RoomStore>((set) => ({
   isConnected: false,
   theme: (localStorage.getItem('theme') as 'dark'|'light') || 'dark',
   localFileUrl: null,
-  countdownValue: null,
-  countdownAction: null,
 
   setRoomId: (id) => set({ roomId: id }),
   setNickname: (name) => {
@@ -66,7 +61,6 @@ export const useRoomStore = create<RoomStore>((set) => ({
   }),
   setLatency: (ms) => set({ latencyMs: ms }),
   setIsConnected: (C) => set({ isConnected: C }),
-  setCountdown: (value, action) => set({ countdownValue: value, countdownAction: action }),
   toggleTheme: () => set((state) => {
     const next = state.theme === 'dark' ? 'light' : 'dark';
     localStorage.setItem('theme', next);

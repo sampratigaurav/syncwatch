@@ -1,7 +1,6 @@
 import { useRoomStore } from '../store/roomStore';
 import { socket } from '../hooks/useSocket';
-import { User, Wifi, WifiOff, Crown } from 'lucide-react';
-import { EVENTS } from '../../../shared/socketEvents';
+import { User, Wifi, WifiOff } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function ParticipantList() {
@@ -40,7 +39,7 @@ export default function ParticipantList() {
                 </div>
               </div>
               
-              <div className="flex flex-col items-end px-2 space-y-1">
+              <div className="flex flex-col items-end px-2">
                 {p.status === 'disconnected' ? (
                   <WifiOff className="w-4 h-4 text-red-500 opacity-80" />
                 ) : (
@@ -48,16 +47,6 @@ export default function ParticipantList() {
                     <Wifi className="w-3 h-3 mr-1 text-teal-600/70" />
                     {p.latencyMs}ms
                   </div>
-                )}
-                
-                {useRoomStore.getState().role === 'host' && !isMe && p.status !== 'disconnected' && (
-                  <button 
-                    onClick={() => socket.emit(EVENTS.TRANSFER_HOST, { targetId: p.id })}
-                    className="flex items-center text-[10px] font-medium text-amber-500 hover:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-1.5 py-0.5 rounded transition-colors"
-                  >
-                    <Crown className="w-3 h-3 mr-1" />
-                    Make Host
-                  </button>
                 )}
               </div>
             </div>

@@ -20,7 +20,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
   ({ src, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onTimeUpdate }, externalRef) => {
-    const { role, participants, countdownValue, countdownAction } = useRoomStore();
+    const { role, participants } = useRoomStore();
     const isHost = role === 'host';
     const hostName = participants.find(p => p.role === 'host')?.nickname || 'Host';
     
@@ -200,25 +200,6 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           onTimeUpdate={handleNativeTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
         />
-
-        {/* Countdown Overlay */}
-        {countdownValue !== null && (
-          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm pointer-events-none transition-all duration-200">
-            <div className="flex flex-col items-center animate-in zoom-in duration-300">
-              <span className="text-zinc-300 text-2xl uppercase tracking-widest font-bold mb-4">
-                 {countdownAction === 'play' ? 'Playing in' : 'Pausing in'}
-              </span>
-              <span className="text-white text-9xl font-black tabular-nums drop-shadow-[0_0_30px_rgba(20,184,166,0.5)]">
-                 {countdownValue}
-              </span>
-              {isHost && (
-                <span className="mt-8 text-zinc-400 text-sm bg-zinc-900/50 px-4 py-2 rounded-full border border-zinc-700/50">
-                   Click anywhere to cancel
-                </span>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Following Badge */}
         {!isHost && (
