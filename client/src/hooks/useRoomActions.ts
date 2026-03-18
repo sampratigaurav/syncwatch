@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRoomStore } from '../store/roomStore';
-import { SERVER_URL } from '../lib/config';
+
+const API_BASE = import.meta.env.DEV ? 'http://localhost:3001' : 'https://syncwatch-backend-vwk3.onrender.com';
 
 export const useRoomActions = () => {
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ export const useRoomActions = () => {
     setError('');
     setIsLoading(true);
     try {
-      const res = await fetch(`${SERVER_URL}/api/rooms`, { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/rooms`, { method: 'POST' });
       if (!res.ok) throw new Error('Failed to create room');
       const data = await res.json();
       setRoomId(data.roomId);
@@ -45,7 +46,7 @@ export const useRoomActions = () => {
     setIsLoading(true);
     try {
       const code = inputRoomId.trim().toUpperCase();
-      const res = await fetch(`${SERVER_URL}/api/rooms/${code}/exists`);
+      const res = await fetch(`${API_BASE}/api/rooms/${code}/exists`);
       if (!res.ok) throw new Error('Failed to check room');
       const data = await res.json();
       if (!data.exists) {
