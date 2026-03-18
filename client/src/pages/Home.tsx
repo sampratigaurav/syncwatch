@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Coffee, Copy, Check } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { SERVER_URL } from '../lib/config';
 
@@ -14,6 +15,13 @@ export default function Home() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [greeting, setGreeting] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyUPI = () => {
+    navigator.clipboard.writeText('sampratigaurav123@okaxis');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -74,7 +82,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-hidden selection:bg-teal-500/30">
+    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto py-12 selection:bg-teal-500/30">
         
       {/* Dynamic Background Glows */}
       <div className="absolute top-1/2 left-1/2 -translate-x-[120%] -translate-y-1/2 w-[500px] h-[500px] sm:w-[800px] sm:h-[800px] bg-teal-500/10 [.light_&]:bg-teal-400/20 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none" />
@@ -165,6 +173,49 @@ export default function Home() {
            )}
 
         </div>
+
+        {/* Support Section */}
+        <div className="w-full mt-16 pt-8 border-t border-white/5 [.light_&]:border-black/10 pb-4">
+          <div className="flex flex-col items-center text-center mb-6">
+            <p className="text-zinc-200 [.light_&]:text-zinc-700 font-medium mb-1 text-[15px]">
+              SyncWatch is free and open source.
+            </p>
+            <p className="text-[13px] text-zinc-500 [.light_&]:text-zinc-500">
+              If it made your movie night better, consider supporting the project.
+            </p>
+          </div>
+          
+          <div className="flex items-end justify-center gap-3">
+            {/* Ko-fi Button */}
+            <a 
+              href="https://ko-fi.com/sampratigaurav" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-4 py-3 font-medium transition-colors active:scale-[0.98]"
+            >
+              <Coffee size={18} color="#FF5E5B" />
+              <span className="text-sm">Support this project</span>
+            </a>
+
+            {/* UPI Element */}
+            <div className="flex-1 flex flex-col" title="UPI (India)">
+              <span className="text-[10px] text-zinc-500 [.light_&]:text-zinc-500 uppercase tracking-wider mb-1 ml-1 font-semibold">UPI (India)</span>
+              <div className="flex items-center justify-between bg-zinc-900/50 [.light_&]:bg-zinc-100/80 border border-zinc-800 [.light_&]:border-zinc-200 rounded-xl pl-3 pr-1 py-1">
+                <span className="font-mono text-xs text-zinc-400 [.light_&]:text-zinc-600 truncate mr-2">
+                  sampratigaurav123@okaxis
+                </span>
+                <button 
+                  onClick={handleCopyUPI}
+                  className="flex-shrink-0 p-2 rounded-lg hover:bg-zinc-800 [.light_&]:hover:bg-zinc-200 text-zinc-400 [.light_&]:text-zinc-600 transition-colors"
+                  title="Copy UPI ID"
+                >
+                  {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
