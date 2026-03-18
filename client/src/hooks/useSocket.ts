@@ -59,8 +59,13 @@ export const useSocket = () => {
     socket.on(EVENTS.ROOM_STATE, (roomState) => {
        setParticipants(roomState.participants);
        setPlayback(roomState.playback);
+       useRoomStore.getState().setControlPolicy(roomState.controlPolicy, roomState.controllerIds);
        const me = roomState.participants.find((p: Participant) => p.id === socket.id);
        if (me) setRole(me.role);
+    });
+
+    socket.on(EVENTS.CONTROL_POLICY_UPDATE, (payload: { policy: any, controllerIds: string[] }) => {
+       useRoomStore.getState().setControlPolicy(payload.policy, payload.controllerIds);
     });
 
     const pingInterval = setInterval(() => {
@@ -81,6 +86,7 @@ export const useSocket = () => {
       socket.off(EVENTS.CHAT_BROADCAST);
       socket.off(EVENTS.PARTICIPANT_UPDATE);
       socket.off(EVENTS.ROOM_STATE);
+      socket.off(EVENTS.CONTROL_POLICY_UPDATE);
       socket.off(EVENTS.PONG);
       socket.off(EVENTS.HOST_LEFT);
     };

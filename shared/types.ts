@@ -18,7 +18,11 @@ export interface PlaybackState {
   currentTime: number
   lastUpdatedAt: number
   hostId: string
+  lastActionBy?: string
+  lastActionNickname?: string
 }
+
+export type ControlPolicy = 'host_only' | 'everyone' | 'selected'
 
 export interface RoomState {
   id: string
@@ -29,6 +33,13 @@ export interface RoomState {
   fileHash: string | null
   fileName: string | null
   fileSize: number | null
+  controlPolicy: ControlPolicy
+  controllerIds: string[]
+}
+
+export interface SetControlPolicyPayload {
+  policy: ControlPolicy
+  controllerIds: string[]
 }
 
 export interface ChatMessage {
@@ -45,6 +56,8 @@ export interface PlaybackEvent {
   action: PlaybackAction
   currentTime: number
   timestamp: number
+  lastActionBy?: string
+  lastActionNickname?: string
 }
 
 export interface FileVerifyPayload {

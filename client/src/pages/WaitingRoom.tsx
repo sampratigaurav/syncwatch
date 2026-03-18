@@ -4,6 +4,7 @@ import { useSocket } from '../hooks/useSocket';
 import { useFileVerify } from '../hooks/useFileVerify';
 import { useNavigate, useParams } from 'react-router-dom';
 import ParticipantList from '../components/ParticipantList';
+import ControlPolicySelector from '../components/ControlPolicySelector';
 import { Copy, Check, Play, AlertTriangle, Loader2 } from 'lucide-react';
 
 export default function WaitingRoom() {
@@ -100,6 +101,13 @@ export default function WaitingRoom() {
                 </div>
                 <span className="text-xl font-medium text-white mb-2">Verified ✓</span>
                 <span className="text-sm text-zinc-400 mb-6">Your file matches the room.</span>
+                
+                {role === 'host' && (
+                  <div className="w-full text-left mb-8 pb-8 border-b border-zinc-800/50 border-t pt-8">
+                     <ControlPolicySelector />
+                  </div>
+                )}
+
                 <button
                   onClick={() => navigate(`/room/${roomId}/watch`)}
                   disabled={!canStart}

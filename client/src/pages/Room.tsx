@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRoomStore } from '../store/roomStore';
 import { useSocket, socket } from '../hooks/useSocket';
 import { useVideoSync } from '../hooks/useVideoSync';
@@ -8,7 +8,9 @@ import ParticipantList from '../components/ParticipantList';
 import { VideoPlayer } from '../components/VideoPlayer';
 import Chat from '../components/Chat';
 import SyncStatus from '../components/SyncStatus';
+import ControlPolicySelector from '../components/ControlPolicySelector';
 import { EVENTS } from '../../../shared/socketEvents';
+import { Settings } from 'lucide-react';
 
 export default function Room() {
   const { roomId, nickname, localFileUrl, role, participants } = useRoomStore();
@@ -20,6 +22,30 @@ export default function Room() {
   
   const { handlePlay, handlePause, handleSeeked, handleWaiting, handleCanPlay, handlePlaying } = useVideoSync(videoRef);
   useDriftCorrection(videoRef);
+
+  const [showSettings, setShowSettings] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  
+  const hasControl = useRoomStore(state => state.canIControl());
+  const prevHasControl = useRef(hasControl);
+  
+  useEffect(() => {
+    if (role !== 'host') {
+      if (!prevHasControl.current && hasControl) {
+        setToastMessage("You can now control playback");
+      } else if (prevHasControl.current && !hasControl) {
+        setToastMessage("Playback control removed");
+      }
+      prevHasControl.current = hasControl;
+    }
+  }, [hasControl, role]);
+
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => setToastMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
 
   useEffect(() => {
     if (!roomId || !nickname) {
@@ -66,9 +92,16 @@ export default function Room() {
       )}
 
       <div className="flex-grow relative bg-black flex flex-col">
+        {/* Toast Overlay */}
+        {toastMessage && (
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[60] bg-teal-900/90 backdrop-blur-md border border-teal-500/50 text-white px-6 py-3 rounded-full shadow-2xl animate-in slide-in-from-top-4 fade-in duration-300">
+             <span className="font-medium tracking-wide">{toastMessage}</span>
+          </div>
+        )}
+
         <div className="flex-grow flex items-center justify-center">
           {localFileUrl ? (
-            <div className={`w-full h-full relative ${role === 'viewer' ? 'pointer-events-none' : ''}`}>
+            <div className="w-full h-full relative">
               <VideoPlayer
                 ref={videoRef}
                 src={localFileUrl}
@@ -79,9 +112,6 @@ export default function Room() {
                 onCanPlay={handleCanPlay}
                 onPlaying={handlePlaying}
               />
-              {role === 'viewer' && (
-                <div className="absolute inset-0 z-10 hidden" />
-              )}
             </div>
           ) : (
             <div className="text-zinc-500 flex flex-col items-center">
@@ -99,11 +129,24 @@ export default function Room() {
         <div className="p-4 border-b border-zinc-900 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-white font-bold text-xl tracking-tight">Room: <span className="font-mono text-teal-500">{roomId}</span></h2>
-            {role && <span className="text-xs font-semibold px-2 py-1 bg-zinc-800 text-zinc-300 rounded uppercase tracking-wider">{role}</span>}
+            <div className="flex items-center gap-2">
+               {role === 'host' && (
+                 <button onClick={() => setShowSettings(!showSettings)} className="text-zinc-400 hover:text-white transition-colors p-1" title="Control Settings">
+                   <Settings className="w-5 h-5" />
+                 </button>
+               )}
+               {role && <span className="text-xs font-semibold px-2 py-1 bg-zinc-800 text-zinc-300 rounded uppercase tracking-wider">{role}</span>}
+            </div>
           </div>
           <SyncStatus />
         </div>
         
+        {showSettings && role === 'host' ? (
+          <div className="p-4 flex-shrink-0 border-b border-zinc-900 bg-zinc-950 overflow-y-auto max-h-[50vh]">
+            <ControlPolicySelector />
+          </div>
+        ) : null}
+
         <div className="p-4 flex-shrink-0">
           <ParticipantList />
         </div>

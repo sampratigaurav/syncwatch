@@ -1,10 +1,10 @@
 import { useRoomStore } from '../store/roomStore';
 import { socket } from '../hooks/useSocket';
-import { User, Wifi, WifiOff } from 'lucide-react';
+import { User, Wifi, WifiOff, Gamepad2, Crown } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function ParticipantList() {
-  const { participants } = useRoomStore();
+  const { participants, controlPolicy, controllerIds } = useRoomStore();
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl w-full max-w-sm overflow-hidden">
@@ -17,6 +17,13 @@ export default function ParticipantList() {
         )}
         {participants.map((p) => {
           const isMe = p.id === socket.id;
+          const isHost = p.role === 'host';
+          
+          let hasControl = false;
+          if (controlPolicy === 'everyone') hasControl = true;
+          if (controlPolicy === 'selected') hasControl = isHost || controllerIds.includes(p.id);
+          if (controlPolicy === 'host_only') hasControl = isHost;
+
           return (
             <div key={p.id} className="flex items-center justify-between p-2 rounded-lg bg-transparent hover:bg-zinc-800/30 transition-colors">
               <div className="flex items-center space-x-3">
@@ -34,6 +41,11 @@ export default function ParticipantList() {
                 <div>
                   <p className="text-sm font-medium text-white flex items-center">
                     {p.nickname} {isMe && <span className="bg-zinc-800 text-zinc-400 text-[10px] px-1.5 py-0.5 rounded ml-2">YOU</span>}
+                    {hasControl && (
+                       <span className="ml-2 text-teal-500 flex items-center justify-center" title="Has playback control">
+                         {isHost ? <Crown className="w-3.5 h-3.5" /> : <Gamepad2 className="w-3.5 h-3.5" />}
+                       </span>
+                    )}
                   </p>
                   <p className="text-xs text-zinc-500 capitalize">{p.role}</p>
                 </div>

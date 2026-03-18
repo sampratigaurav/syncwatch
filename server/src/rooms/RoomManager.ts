@@ -16,7 +16,9 @@ export const createRoom = (id: string): RoomState => {
     chatHistory: [],
     fileHash: null,
     fileName: null,
-    fileSize: null
+    fileSize: null,
+    controlPolicy: 'host_only',
+    controllerIds: []
   };
   rooms.set(id, newRoom);
   return newRoom;

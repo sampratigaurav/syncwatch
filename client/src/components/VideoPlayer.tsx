@@ -21,8 +21,8 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
   ({ src, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate }, externalRef) => {
-    const { role, participants } = useRoomStore();
-    const isHost = role === 'host';
+    const { participants, canIControl, controlPolicy } = useRoomStore();
+    const hasControl = canIControl();
     const hostName = participants.find(p => p.role === 'host')?.nickname || 'Host';
     
     // Internal refs
@@ -104,7 +104,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
 
     // UI Actions
     const togglePlay = () => {
-      if (!isHost) return;
+      if (!hasControl) return;
       if (internalVideoRef.current) {
         if (internalVideoRef.current.paused) {
           internalVideoRef.current.play();
@@ -115,18 +115,18 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     };
 
     const skipForward = () => {
-      if (!isHost || !internalVideoRef.current) return;
+      if (!hasControl || !internalVideoRef.current) return;
       internalVideoRef.current.currentTime = Math.min(internalVideoRef.current.duration, internalVideoRef.current.currentTime + 10);
       // Trigger seeked manually for broadcast or wait for native seeked event
     };
 
     const skipBackward = () => {
-      if (!isHost || !internalVideoRef.current) return;
+      if (!hasControl || !internalVideoRef.current) return;
       internalVideoRef.current.currentTime = Math.max(0, internalVideoRef.current.currentTime - 10);
     };
 
     const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!isHost || !internalVideoRef.current) return;
+      if (!hasControl || !internalVideoRef.current) return;
       const time = parseFloat(e.target.value);
       internalVideoRef.current.currentTime = time;
     };
@@ -203,16 +203,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           onLoadedMetadata={handleLoadedMetadata}
         />
 
-        {/* Following Badge */}
-        {!isHost && (
-          <div className={cn(
-            "absolute top-6 left-6 bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 px-4 py-2 rounded-full flex items-center shadow-lg transition-opacity duration-300",
-            showControls ? "opacity-100" : "opacity-0"
-          )}>
-             <div className="w-2 h-2 rounded-full bg-teal-500 mr-2 animate-pulse" />
-             <span className="text-white text-sm font-medium">Following {hostName}</span>
-          </div>
-        )}
+        {/* Following Badge Removed per request to move below controls */}
 
         {/* Controls Overlay */}
         <div 
@@ -230,7 +221,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               step="any"
               value={currentTime}
               onChange={handleSeek}
-              disabled={!isHost}
+              disabled={!hasControl}
               className="absolute inset-0 w-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
             />
             {/* Base track */}
@@ -252,10 +243,10 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               {/* Playback Toggle */}
               <button 
                 onClick={(e) => { e.stopPropagation(); togglePlay(); }}
-                disabled={!isHost}
+                disabled={!hasControl}
                 className={cn(
                   "text-white hover:text-teal-400 transition-colors focus:outline-none",
-                  !isHost && "opacity-50 hover:text-white cursor-not-allowed"
+                  !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
                 )}
               >
                 {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}
@@ -264,10 +255,10 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               {/* Skip Back */}
               <button 
                  onClick={skipBackward}
-                 disabled={!isHost}
+                 disabled={!hasControl}
                  className={cn(
                   "text-white hover:text-teal-400 transition-colors focus:outline-none",
-                  !isHost && "opacity-50 hover:text-white cursor-not-allowed"
+                  !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
                 )}
               >
                  <RotateCcw className="w-5 h-5" />
@@ -276,10 +267,10 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               {/* Skip Forward */}
               <button 
                  onClick={skipForward}
-                 disabled={!isHost}
+                 disabled={!hasControl}
                  className={cn(
                   "text-white hover:text-teal-400 transition-colors focus:outline-none",
-                  !isHost && "opacity-50 hover:text-white cursor-not-allowed"
+                  !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
                 )}
               >
                  <RotateCw className="w-5 h-5" />
@@ -319,6 +310,16 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               </button>
             </div>
           </div>
+          
+          {/* Subtle indicator below controls */}
+          {!hasControl && controlPolicy === 'host_only' && (
+            <div className="absolute -bottom-6 left-0 right-0 text-center pointer-events-none">
+              <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold flex items-center justify-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-teal-500 mr-2 pulse-slow" />
+                Following {hostName}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     );

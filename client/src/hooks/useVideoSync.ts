@@ -5,7 +5,8 @@ import { EVENTS } from '../../../shared/socketEvents';
 import type { PlaybackEvent } from '../../../shared/types';
 
 export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>) => {
-  const { role } = useRoomStore();
+  const { canIControl, setLastActionAt } = useRoomStore();
+  const hasControl = canIControl();
   const isApplyingRemoteEvent = useRef(false);
 
   useEffect(() => {
@@ -15,6 +16,17 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
 
       if (event.action !== 'sync_check') {
         isApplyingRemoteEvent.current = true;
+        
+        useRoomStore.getState().setLastActionAt();
+        const state = useRoomStore.getState();
+        const existingPlayback = state.playback || { isPlaying: false, currentTime: 0, lastUpdatedAt: Date.now(), hostId: '' };
+        state.setPlayback({
+          ...existingPlayback,
+          currentTime: event.currentTime,
+          isPlaying: event.action === 'play' ? true : event.action === 'pause' ? false : existingPlayback.isPlaying,
+          lastActionBy: event.lastActionBy,
+          lastActionNickname: event.lastActionNickname
+        });
       }
 
       if (event.action === 'play') {
@@ -53,8 +65,10 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
 
   // Expose these handlers to the native video element
   const handlePlay = () => {
-    if (role !== 'host') return;
+    if (!hasControl) return;
     if (isApplyingRemoteEvent.current) return;
+    
+    setLastActionAt();
     
     // Slight delay to prevent firing multiple rapid PLAY events on mount
     setTimeout(() => {
@@ -63,14 +77,28 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
   };
 
   const handlePause = () => {
-    if (role !== 'host') return;
+    if (!hasControl) return;
     if (isApplyingRemoteEvent.current) return;
+
+    setLastActionAt();
+
     socket.emit(EVENTS.PLAYBACK_EVENT, { action: 'pause', currentTime: videoRef.current?.currentTime || 0, timestamp: Date.now() });
   };
 
   const handleSeeked = () => {
-    if (role !== 'host') return;
+    if (!hasControl) return;
     if (isApplyingRemoteEvent.current) return;
+
+    setLastActionAt();
+    
+    // Proactive store sync
+    const state = useRoomStore.getState();
+    const existingPlayback = state.playback || { isPlaying: false, currentTime: 0, lastUpdatedAt: Date.now(), hostId: '' };
+    state.setPlayback({
+      ...existingPlayback,
+      currentTime: videoRef.current?.currentTime || 0
+    });
+
     socket.emit(EVENTS.PLAYBACK_EVENT, { action: 'seek', currentTime: videoRef.current?.currentTime || 0, timestamp: Date.now() });
   };
 

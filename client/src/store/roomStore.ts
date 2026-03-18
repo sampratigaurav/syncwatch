@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { ParticipantRole, Participant, PlaybackState, ChatMessage } from '../../../shared/types';
+import { socket } from '../hooks/useSocket';
 
 interface RoomStore {
   roomId: string | null;
@@ -15,7 +16,11 @@ interface RoomStore {
   isConnected: boolean;
   theme: 'dark' | 'light';
   localFileUrl: string | null;
+  controlPolicy: 'host_only' | 'everyone' | 'selected';
+  controllerIds: string[];
+  lastActionAt: number;
   
+  setLastActionAt: () => void;
   setRoomId: (id: string | null) => void;
   setNickname: (name: string) => void;
   setRole: (role: ParticipantRole | null) => void;
@@ -28,9 +33,11 @@ interface RoomStore {
   setIsConnected: (connected: boolean) => void;
   toggleTheme: () => void;
   setLocalFileUrl: (url: string | null) => void;
+  setControlPolicy: (policy: 'host_only' | 'everyone' | 'selected', ids: string[]) => void;
+  canIControl: () => boolean;
 }
 
-export const useRoomStore = create<RoomStore>((set) => ({
+export const useRoomStore = create<RoomStore>((set, get) => ({
   roomId: null,
   nickname: localStorage.getItem('nickname') || '',
   role: null,
@@ -44,7 +51,11 @@ export const useRoomStore = create<RoomStore>((set) => ({
   isConnected: false,
   theme: (localStorage.getItem('theme') as 'dark'|'light') || 'dark',
   localFileUrl: null,
+  controlPolicy: 'host_only',
+  controllerIds: [],
+  lastActionAt: 0,
 
+  setLastActionAt: () => set({ lastActionAt: Date.now() }),
   setRoomId: (id) => set({ roomId: id }),
   setNickname: (name) => {
     localStorage.setItem('nickname', name);
@@ -66,5 +77,17 @@ export const useRoomStore = create<RoomStore>((set) => ({
     localStorage.setItem('theme', next);
     return { theme: next };
   }),
-  setLocalFileUrl: (url) => set({ localFileUrl: url })
+  setLocalFileUrl: (url) => set({ localFileUrl: url }),
+  setControlPolicy: (policy, ids) => set({ controlPolicy: policy, controllerIds: ids }),
+  canIControl: () => {
+    const state = get();
+    if (state.controlPolicy === 'everyone') return true;
+    if (state.controlPolicy === 'host_only') {
+      return state.role === 'host';
+    }
+    if (state.controlPolicy === 'selected') {
+      return state.role === 'host' || state.controllerIds.includes(socket.id!);
+    }
+    return false;
+  }
 }));

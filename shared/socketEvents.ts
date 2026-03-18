@@ -6,6 +6,7 @@ export const EVENTS = {
   BUFFERING_STATE: 'buffering_state',
   CHAT_MESSAGE: 'chat_message',
   PING: 'ping',
+  SET_CONTROL_POLICY: 'set_control_policy',
 
   // server → client
   ROOM_STATE: 'room_state',
@@ -18,4 +19,5 @@ export const EVENTS = {
   RESUME_ALLOWED: 'resume_allowed',
   PONG: 'pong',
   HOST_LEFT: 'host_left',
+  CONTROL_POLICY_UPDATE: 'control_policy_update',
 } as const;

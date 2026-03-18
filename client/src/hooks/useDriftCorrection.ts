@@ -10,6 +10,9 @@ export const useDriftCorrection = (videoRef: React.RefObject<HTMLVideoElement | 
   useEffect(() => {
     if (role === 'host') {
       const interval = setInterval(() => {
+        const lastActionAt = useRoomStore.getState().lastActionAt;
+        if (Date.now() - lastActionAt < 8000) return;
+
         if (!videoRef.current || videoRef.current.paused) return;
         
         socket.emit(EVENTS.PLAYBACK_EVENT, {
@@ -28,6 +31,9 @@ export const useDriftCorrection = (videoRef: React.RefObject<HTMLVideoElement | 
 
     const handleSyncCheck = (event: PlaybackEvent) => {
       if (event.action !== 'sync_check') return;
+      
+      const lastActionAt = useRoomStore.getState().lastActionAt;
+      if (Date.now() - lastActionAt < 8000) return;
       
       const video = videoRef.current;
       if (!video) return;

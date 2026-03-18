@@ -6,6 +6,20 @@ import { Participant, RoomState } from '../../../shared/types';
 const disconnectTimers = new Map<string, NodeJS.Timeout>();
 const bufferingTimers = new Map<string, NodeJS.Timeout>();
 
+function canControl(room: RoomState, socketId: string): boolean {
+  if (room.controlPolicy === 'everyone') return true;
+  if (room.controlPolicy === 'host_only') {
+    return room.playback.hostId === socketId;
+  }
+  if (room.controlPolicy === 'selected') {
+    return (
+      room.playback.hostId === socketId ||
+      room.controllerIds.includes(socketId)
+    );
+  }
+  return false;
+}
+
 export const setupSocketHandlers = (io: Server) => {
   io.on('connection', (socket: Socket) => {
 
@@ -148,15 +162,46 @@ export const setupSocketHandlers = (io: Server) => {
       }
 
       if (!roomId || !participant) return;
-      if (participant.role !== 'host') return; // Server-side host validation
-
+      
       const room = rooms.get(roomId)!;
+      if (!canControl(room, socket.id)) return; // Validate against control policy
+
       if (payload.action === 'play') room.playback.isPlaying = true;
       if (payload.action === 'pause') room.playback.isPlaying = false;
       room.playback.currentTime = payload.currentTime;
       room.playback.lastUpdatedAt = Date.now();
+      room.playback.lastActionBy = socket.id;
+      room.playback.lastActionNickname = participant.nickname;
 
-      socket.to(roomId).emit(EVENTS.PLAYBACK_BROADCAST, payload);
+      socket.to(roomId).emit(EVENTS.PLAYBACK_BROADCAST, { 
+        ...payload, 
+        lastActionBy: socket.id, 
+        lastActionNickname: participant.nickname 
+      });
+    });
+
+    socket.on(EVENTS.SET_CONTROL_POLICY, (payload: { policy: any, controllerIds: string[] }) => {
+      let roomId = '';
+      let participant: Participant | undefined;
+      for (const [id, room] of rooms.entries()) {
+        if (room.participants.has(socket.id)) {
+          roomId = id;
+          participant = room.participants.get(socket.id);
+          break;
+        }
+      }
+
+      if (!roomId || !participant) return;
+      if (participant.role !== 'host') return;
+
+      const room = rooms.get(roomId)!;
+      room.controlPolicy = payload.policy;
+      room.controllerIds = payload.controllerIds;
+
+      io.to(roomId).emit(EVENTS.CONTROL_POLICY_UPDATE, {
+        policy: room.controlPolicy,
+        controllerIds: room.controllerIds
+      });
     });
 
     socket.on(EVENTS.BUFFERING_STATE, (payload: { isBuffering: boolean }) => {
