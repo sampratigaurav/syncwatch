@@ -75,12 +75,17 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
   };
 
   const handleWaiting = () => {
-    socket.emit(EVENTS.BUFFERING_STATE, { isBuffering: true });
+    // Disabled at user request to ensure instantaneous seeking
+    // socket.emit(EVENTS.BUFFERING_STATE, { isBuffering: true });
   };
 
   const handleCanPlay = () => {
     socket.emit(EVENTS.BUFFERING_STATE, { isBuffering: false });
   };
 
-  return { handlePlay, handlePause, handleSeeked, handleWaiting, handleCanPlay };
+  const handlePlaying = () => {
+    socket.emit(EVENTS.BUFFERING_STATE, { isBuffering: false });
+  };
+
+  return { handlePlay, handlePause, handleSeeked, handleWaiting, handleCanPlay, handlePlaying };
 };

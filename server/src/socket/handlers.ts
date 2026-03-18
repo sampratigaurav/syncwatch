@@ -4,6 +4,7 @@ import { EVENTS } from '../../../shared/socketEvents';
 import { Participant, RoomState } from '../../../shared/types';
 
 const disconnectTimers = new Map<string, NodeJS.Timeout>();
+const bufferingTimers = new Map<string, NodeJS.Timeout>();
 
 export const setupSocketHandlers = (io: Server) => {
   io.on('connection', (socket: Socket) => {
@@ -176,10 +177,24 @@ export const setupSocketHandlers = (io: Server) => {
       io.to(roomId).emit(EVENTS.PARTICIPANT_UPDATE, participant);
 
       const anyBuffering = Array.from(room.participants.values()).some(p => p.status === 'buffering');
+      
       if (anyBuffering) {
-        io.to(roomId).emit(EVENTS.FORCE_PAUSE);
+        if (!bufferingTimers.has(roomId)) {
+          const timer = setTimeout(() => {
+            const stillBuffering = Array.from(room.participants.values()).some(p => p.status === 'buffering');
+            if (stillBuffering) {
+              io.to(roomId).emit(EVENTS.FORCE_PAUSE);
+            }
+            bufferingTimers.delete(roomId);
+          }, 500);
+          bufferingTimers.set(roomId, timer);
+        }
       } else {
-        // Send RESUME_ALLOWED to host only
+        if (bufferingTimers.has(roomId)) {
+          clearTimeout(bufferingTimers.get(roomId));
+          bufferingTimers.delete(roomId);
+        }
+        
         const host = Array.from(room.participants.values()).find(p => p.role === 'host');
         if (host) {
           io.to(host.id).emit(EVENTS.RESUME_ALLOWED);

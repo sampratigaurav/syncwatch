@@ -16,8 +16,9 @@ export default function Room() {
   useSocket(); 
   
   const videoRef = useRef<HTMLVideoElement>(null);
+  const wasPlayingBeforeBuffer = useRef<boolean>(false);
   
-  const { handlePlay, handlePause, handleSeeked, handleWaiting, handleCanPlay } = useVideoSync(videoRef);
+  const { handlePlay, handlePause, handleSeeked, handleWaiting, handleCanPlay, handlePlaying } = useVideoSync(videoRef);
   useDriftCorrection(videoRef);
 
   useEffect(() => {
@@ -29,13 +30,17 @@ export default function Room() {
   useEffect(() => {
     const handleForcePause = () => {
       if (videoRef.current && !videoRef.current.paused) {
+         wasPlayingBeforeBuffer.current = true;
          videoRef.current.pause();
       }
     };
     
     const handleResumeAllowed = () => {
        if (role === 'host' && videoRef.current && videoRef.current.paused) {
-          // You could auto-resume, but here we just leave it paused so host can hit play
+          if (wasPlayingBeforeBuffer.current) {
+             videoRef.current.play().catch(console.error);
+             wasPlayingBeforeBuffer.current = false;
+          }
        }
     };
 
@@ -72,6 +77,7 @@ export default function Room() {
                 onSeeked={handleSeeked}
                 onWaiting={handleWaiting}
                 onCanPlay={handleCanPlay}
+                onPlaying={handlePlaying}
               />
               {role === 'viewer' && (
                 <div className="absolute inset-0 z-10 hidden" />

@@ -11,6 +11,7 @@ interface VideoPlayerProps {
   onSeeked: () => void;
   onWaiting: () => void;
   onCanPlay: () => void;
+  onPlaying?: () => void;
   onTimeUpdate?: () => void;
 }
 
@@ -19,7 +20,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 }
 
 export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
-  ({ src, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onTimeUpdate }, externalRef) => {
+  ({ src, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate }, externalRef) => {
     const { role, participants } = useRoomStore();
     const isHost = role === 'host';
     const hostName = participants.find(p => p.role === 'host')?.nickname || 'Host';
@@ -197,6 +198,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           onSeeked={onSeeked}
           onWaiting={onWaiting}
           onCanPlay={onCanPlay}
+          onPlaying={onPlaying}
           onTimeUpdate={handleNativeTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
         />
