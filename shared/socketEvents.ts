@@ -6,6 +6,9 @@ export const EVENTS = {
   BUFFERING_STATE: 'buffering_state',
   CHAT_MESSAGE: 'chat_message',
   PING: 'ping',
+  TRANSFER_HOST: 'transfer_host',
+  COUNTDOWN_START: 'countdown_start',
+  COUNTDOWN_CANCEL: 'countdown_cancel',
 
   // server → client
   ROOM_STATE: 'room_state',
@@ -18,4 +21,7 @@ export const EVENTS = {
   RESUME_ALLOWED: 'resume_allowed',
   PONG: 'pong',
   HOST_LEFT: 'host_left',
+  HOST_TRANSFERRED: 'host_transferred',
+  COUNTDOWN_BROADCAST: 'countdown_broadcast',
+  COUNTDOWN_CANCELLED: 'countdown_cancelled',
 } as const;
