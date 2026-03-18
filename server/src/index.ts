@@ -8,14 +8,17 @@ import { setupSocketHandlers } from './socket/handlers';
 const app = express();
 const server = createServer(app);
 
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5174";
+
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_ORIGIN || "*",
-    methods: ["GET", "POST"]
+    origin: CLIENT_ORIGIN,
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
-app.use(cors());
+app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
 app.use(express.json());
 app.use('/api/rooms', roomRouter);
 
