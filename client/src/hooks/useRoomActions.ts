@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRoomStore } from '../store/roomStore';
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || '';
+import { SERVER_URL } from '../lib/config';
 
 export const useRoomActions = () => {
   const navigate = useNavigate();

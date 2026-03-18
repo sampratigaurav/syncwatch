@@ -3,8 +3,7 @@ import { io, Socket } from 'socket.io-client';
 import { useRoomStore } from '../store/roomStore';
 import { EVENTS } from '../../../shared/socketEvents';
 import type { Participant } from '../../../shared/types';
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+import { SERVER_URL } from '../lib/config';
 
 export const socket: Socket = io(SERVER_URL, {
   autoConnect: false,
