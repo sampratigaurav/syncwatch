@@ -8,22 +8,34 @@ import { setupSocketHandlers } from './socket/handlers';
 const app = express();
 const server = createServer(app);
 
-const ALLOWED_ORIGINS = [
-  process.env.CLIENT_ORIGIN,
-  'http://localhost:5174',
-  'http://localhost:5173'
-].filter(Boolean) as string[];
+const ALLOWED_ORIGIN_PATTERNS = [
+  'localhost',
+  '127.0.0.1',
+  'syncwatch-eosin.vercel.app',
+  'vercel.app'
+];
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+    // Allow requests with no origin (e.g. mobile apps, curl)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // Check if the origin contains any of our allowed patterns or the env var
+    const envOrigin = process.env.CLIENT_ORIGIN || '';
+    const isAllowed = ALLOWED_ORIGIN_PATTERNS.some(pattern => origin.includes(pattern)) || 
+                     (envOrigin && origin.includes(envOrigin));
+                     
+    if (isAllowed) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // Pass false to politely reject CORS without throwing a 500 internal server error
+      callback(null, false);
     }
   },
   credentials: true,
-  methods: ["GET", "POST"]
+  methods: ["GET", "POST", "OPTIONS"]
 };
 
 // @ts-ignore - socket.io types don't fully match the function signature but it works
