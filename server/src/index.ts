@@ -8,17 +8,28 @@ import { setupSocketHandlers } from './socket/handlers';
 const app = express();
 const server = createServer(app);
 
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5174";
+const ALLOWED_ORIGINS = [
+  process.env.CLIENT_ORIGIN,
+  'http://localhost:5174',
+  'http://localhost:5173'
+].filter(Boolean) as string[];
 
-const io = new Server(server, {
-  cors: {
-    origin: CLIENT_ORIGIN,
-    methods: ["GET", "POST"],
-    credentials: true
-  }
-});
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST"]
+};
 
-app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
+// @ts-ignore - socket.io types don't fully match the function signature but it works
+const io = new Server(server, { cors: corsOptions });
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/api/rooms', roomRouter);
 

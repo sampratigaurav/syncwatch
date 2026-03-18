@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useRoomStore } from '../store/roomStore';
 import { Video } from 'lucide-react';
-
-const API_BASE = import.meta.env.DEV ? 'http://localhost:3001' : 'https://syncwatch-backend-vwk3.onrender.com';
+import { SERVER_URL } from '../lib/config';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -24,7 +23,7 @@ export default function Home() {
     setError('');
     setIsLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/rooms`, { method: 'POST' });
+      const res = await fetch(`${SERVER_URL}/api/rooms`, { method: 'POST' });
       if (!res.ok) throw new Error('Failed to create room');
       const data = await res.json();
       setRoomId(data.roomId);
@@ -50,7 +49,7 @@ export default function Home() {
     setIsLoading(true);
     try {
       const code = inputRoomId.trim().toUpperCase();
-      const res = await fetch(`${API_BASE}/api/rooms/${code}/exists`);
+      const res = await fetch(`${SERVER_URL}/api/rooms/${code}/exists`);
       if (!res.ok) throw new Error('Failed to check room');
       const data = await res.json();
       if (!data.exists) {
