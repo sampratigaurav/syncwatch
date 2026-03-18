@@ -14,7 +14,8 @@
     "dev": "npm run dev:server & npm run dev:client",
     "build:server": "npm run build -w server",
     "build:client": "npm run build -w client",
-    "build": "npm run build:server && npm run build:client"
+    "build": "npm run build:server && npm run build:client",
+    "start:server": "npm start -w server"
   },
   "dependencies": {
     "autoprefixer": "^10.4.27",
