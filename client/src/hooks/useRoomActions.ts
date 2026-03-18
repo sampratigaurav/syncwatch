@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRoomStore } from '../store/roomStore';
 
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || '';
+
 export const useRoomActions = () => {
   const navigate = useNavigate();
   const setRoomId = useRoomStore((s) => s.setRoomId);
@@ -18,7 +20,7 @@ export const useRoomActions = () => {
     setError('');
     setIsLoading(true);
     try {
-      const res = await fetch('/api/rooms', { method: 'POST' });
+      const res = await fetch(`${SERVER_URL}/api/rooms`, { method: 'POST' });
       if (!res.ok) throw new Error('Failed to create room');
       const data = await res.json();
       setRoomId(data.roomId);
@@ -44,7 +46,7 @@ export const useRoomActions = () => {
     setIsLoading(true);
     try {
       const code = inputRoomId.trim().toUpperCase();
-      const res = await fetch(`/api/rooms/${code}/exists`);
+      const res = await fetch(`${SERVER_URL}/api/rooms/${code}/exists`);
       if (!res.ok) throw new Error('Failed to check room');
       const data = await res.json();
       if (!data.exists) {
