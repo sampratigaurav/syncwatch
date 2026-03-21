@@ -13,6 +13,7 @@ export default function WaitingRoom() {
   const navigate = useNavigate();
   useSocket();
   const { verifyFile, mismatchError } = useFileVerify();
+  const fileName = useRoomStore(state => state.fileName);
 
   const [copied, setCopied] = useState(false);
 
@@ -64,13 +65,13 @@ export default function WaitingRoom() {
   if (!roomId) return null;
 
   return (
-    <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
-      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="min-h-screen p-4 tablet:p-8 flex flex-col items-center pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-x-hidden">
+      <div className="w-full max-w-5xl grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-6 tablet:gap-8">
         
-        <div className="md:col-span-2 space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 md:p-10 shadow-xl">
-            <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Waiting Room</h1>
-            <p className="text-zinc-400 mb-8">Select the video file you want to watch.</p>
+        <div className="tablet:col-span-1 desktop:col-span-2 space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 tablet:p-10 shadow-xl">
+            <h1 className="text-2xl tablet:text-3xl font-bold text-white mb-1 tablet:mb-2 tracking-tight">Waiting Room</h1>
+            <p className="text-sm tablet:text-base text-zinc-400 mb-6 tablet:mb-8">Select the video file you want to watch.</p>
             
             {fileVerifyStatus === 'computing' ? (
               <div className="bg-zinc-950/50 border border-teal-900/50 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
@@ -81,15 +82,33 @@ export default function WaitingRoom() {
                 <span className="text-sm text-zinc-400">Computing checksum to ensure sync</span>
               </div>
             ) : fileVerifyStatus === 'mismatch' ? (
-              <div className="bg-red-950/30 border border-red-900/50 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+              <div className="bg-red-950/30 border border-red-900/50 rounded-2xl p-6 tablet:p-8 flex flex-col items-center justify-center text-center">
                 <div className="w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center mb-4 border border-red-500/20">
                   <AlertTriangle className="w-8 h-8 text-red-500" />
                 </div>
                 <span className="text-xl font-medium text-white mb-2">File Mismatch</span>
-                <span className="text-sm text-red-400 mb-6">{mismatchError}</span>
-                <div className="relative">
+                <span className="text-sm text-red-400 mb-6 tablet:mb-8">{mismatchError}</span>
+                
+                {/* File Comparison Columns */}
+                <div className="w-full flex flex-col tablet:flex-row items-center justify-center gap-3 tablet:gap-6 mb-8 tablet:mb-10 px-2">
+                  <div className="bg-red-950/60 border border-red-900/50 rounded-xl p-4 w-full tablet:w-1/2 flex flex-col items-center text-center shadow-inner">
+                     <span className="text-[10px] text-red-400/80 font-bold uppercase tracking-widest mb-1.5">Your File</span>
+                     <span className="text-sm tablet:text-base text-red-200 truncate w-full px-2 font-medium">{fileName || 'Unknown File'}</span>
+                  </div>
+                  
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-950 border border-red-900/60 flex items-center justify-center text-[10px] font-bold text-red-500 shadow-md">
+                    VS
+                  </div>
+
+                  <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-xl p-4 w-full tablet:w-1/2 flex flex-col items-center text-center shadow-inner">
+                     <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest mb-1.5">Room File</span>
+                     <span className="text-sm tablet:text-base text-zinc-300 truncate w-full px-2 font-medium">Host's Original File</span>
+                  </div>
+                </div>
+
+                <div className="relative w-full tablet:w-auto">
                   <input type="file" accept="video/*" onChange={onFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Select Video" />
-                  <button className="bg-red-600 hover:bg-red-500 text-white font-medium rounded-lg px-8 py-3 transition-colors shadow-lg">
+                  <button className="w-full tablet:w-auto bg-red-600 hover:bg-red-500 text-white font-semibold tablet:font-medium rounded-xl tablet:rounded-lg px-8 py-3.5 tablet:py-3 transition-all shadow-[0_4px_14px_rgba(220,38,38,0.4)] active:scale-95 tablet:shadow-lg uppercase tracking-wide tablet:normal-case tablet:tracking-normal text-[15px] tablet:text-base">
                     Select a different file
                   </button>
                 </div>
@@ -103,38 +122,45 @@ export default function WaitingRoom() {
                 <span className="text-sm text-zinc-400 mb-6">Your file matches the room.</span>
                 
                 {role === 'host' && (
-                  <div className="w-full text-left mb-8 pb-8 border-b border-zinc-800/50 border-t pt-8">
+                  <div className="w-full text-left mb-6 tablet:mb-8 pb-6 tablet:pb-8 border-b border-zinc-800/50 border-t pt-6 tablet:pt-8">
                      <ControlPolicySelector />
                   </div>
                 )}
 
-                <button
-                  onClick={() => navigate(`/room/${roomId}/watch`)}
-                  disabled={!canStart}
-                  className="bg-teal-600 hover:bg-teal-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-medium rounded-lg px-8 py-3 transition-colors shadow-lg"
-                >
-                  {role === 'host' ? 'Start watching' : 'Enter Room'}
-                </button>
-                {role === 'host' && !canStart && (
-                  <p className="text-xs text-amber-500 mt-4 animate-pulse">Waiting for all participants to verify files...</p>
-                )}
+                <div className="fixed bottom-0 left-0 right-0 z-50 tablet:static tablet:mt-6 bg-zinc-950/90 tablet:bg-transparent backdrop-blur-lg tablet:backdrop-blur-none border-t border-white/5 tablet:border-none">
+                  {role === 'host' && !canStart && (
+                    <p className="text-xs text-amber-500 text-center mt-3 mb-2 tablet:mt-0 tablet:mb-4 animate-pulse font-medium">Waiting for all participants to verify files...</p>
+                  )}
+                  <button
+                    onClick={() => navigate(`/room/${roomId}/watch`)}
+                    disabled={!canStart}
+                    className="w-full h-[56px] tablet:h-auto tablet:w-auto bg-teal-600 hover:bg-teal-500 disabled:bg-zinc-900 tablet:disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-semibold tablet:font-medium tablet:rounded-lg tablet:px-8 tablet:py-3 transition-colors shadow-[0_-4px_20px_rgba(0,0,0,0.4)] tablet:shadow-lg flex items-center justify-center text-[17px] tablet:text-base uppercase tracking-wider tablet:normal-case tablet:tracking-normal active:bg-teal-700 disabled:opacity-90"
+                  >
+                    {role === 'host' ? 'Start Watching' : 'Enter Room'}
+                  </button>
+                  <div className="h-[env(safe-area-inset-bottom)] bg-zinc-900 tablet:hidden w-full"></div>
+                </div>
+                {/* mobile spacer */}
+                <div className="h-[90px] tablet:hidden w-full"></div>
+
               </div>
             ) : (
-              <div className="relative border-2 border-dashed border-zinc-700 hover:border-teal-500/50 rounded-2xl p-16 flex flex-col items-center justify-center text-center bg-zinc-950/50 hover:bg-zinc-800/30 transition-all cursor-pointer group">
+              <div className="relative border-2 border-dashed border-zinc-700 hover:border-teal-500/50 rounded-2xl h-40 tablet:h-auto tablet:p-16 flex flex-col items-center justify-center text-center bg-zinc-950/50 hover:bg-zinc-800/30 transition-all cursor-pointer group">
                 <input type="file" accept="video/*" onChange={onFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Select Video" />
-                <div className="w-20 h-20 bg-zinc-800 group-hover:bg-zinc-700/80 rounded-full flex items-center justify-center mb-6 transition-colors shadow-lg">
-                  <Play className="w-10 h-10 text-teal-500 ml-1.5" />
+                <div className="w-12 h-12 tablet:w-20 tablet:h-20 bg-zinc-800 group-hover:bg-zinc-700/80 rounded-full flex items-center justify-center mb-3 tablet:mb-6 transition-colors shadow-lg">
+                  <Play className="w-6 h-6 tablet:w-10 tablet:h-10 text-teal-500 ml-1 tablet:ml-1.5" />
                 </div>
-                <span className="text-xl font-medium text-white mb-2">Click to browse</span>
-                <span className="text-sm text-zinc-500">or drag and drop your local video file here</span>
+                <span className="block tablet:hidden text-lg font-medium text-white px-4">Tap to select your movie file</span>
+                <span className="hidden tablet:block text-xl font-medium text-white mb-2">Click to browse</span>
+                <span className="hidden tablet:block text-sm text-zinc-500">or drag and drop your local video file here</span>
               </div>
             )}
             
           </div>
         </div>
 
-        <div className="space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-xl flex items-center justify-between">
+        <div className="tablet:col-span-1 space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 tablet:p-5 shadow-xl flex items-center justify-between">
             <div>
               <p className="text-[11px] text-zinc-500 uppercase tracking-widest font-semibold mb-1">Room Code</p>
               <p className="text-2xl font-mono font-bold text-white tracking-widest leading-none">{roomId}</p>
@@ -147,7 +173,7 @@ export default function WaitingRoom() {
             </button>
           </div>
           
-          <ParticipantList />
+          <ParticipantList variant="waiting-room" />
           
           {!isConnected && (
             <div className="bg-amber-950/30 border border-amber-900/50 rounded-xl p-4 text-amber-400 text-sm animate-pulse flex items-center">

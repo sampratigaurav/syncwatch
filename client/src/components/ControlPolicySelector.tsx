@@ -29,7 +29,25 @@ export default function ControlPolicySelector() {
   return (
     <div className="flex flex-col gap-4 w-full">
       <h3 className="text-white/90 text-sm font-semibold tracking-wide uppercase">Control Policy</h3>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      
+      {/* Mobile Select */}
+      <div className="block tablet:hidden relative w-full mb-2">
+        <select
+          value={controlPolicy}
+          onChange={(e) => handlePolicyChange(e.target.value as ControlPolicy)}
+          className="w-full h-12 bg-zinc-900/80 border border-zinc-700 text-white rounded-xl px-4 appearance-none focus:outline-none focus:border-teal-500 font-medium tracking-wide shadow-lg"
+        >
+          <option value="host_only">Host Only (Only you control)</option>
+          <option value="everyone">Everyone (All participants can control)</option>
+          <option value="selected">Choose Who (Select specific people)</option>
+        </select>
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+      </div>
+
+      {/* Tablet/Desktop Grid */}
+      <div className="hidden tablet:grid grid-cols-3 gap-3">
         
         {/* Host Only */}
         <button

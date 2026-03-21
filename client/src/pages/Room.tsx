@@ -10,7 +10,13 @@ import Chat from '../components/Chat';
 import SyncStatus from '../components/SyncStatus';
 import ControlPolicySelector from '../components/ControlPolicySelector';
 import { EVENTS } from '../../../shared/socketEvents';
-import { Settings } from 'lucide-react';
+import { Settings, Users, MessageSquare, Info } from 'lucide-react';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: (string | undefined | null | false)[]) {
+  return twMerge(clsx(inputs));
+}
 
 export default function Room() {
   const { roomId, nickname, localFileUrl, role, participants } = useRoomStore();
@@ -25,9 +31,22 @@ export default function Room() {
 
   const [showSettings, setShowSettings] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'participants' | 'chat' | 'info' | null>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
   
   const hasControl = useRoomStore(state => state.canIControl());
   const prevHasControl = useRef(hasControl);
+
+  useEffect(() => {
+    const handleViewportResize = () => {
+      if (window.visualViewport) {
+        const diff = window.innerHeight - window.visualViewport.height;
+        setKeyboardHeight(diff > 50 ? diff : 0);
+      }
+    };
+    window.visualViewport?.addEventListener('resize', handleViewportResize);
+    return () => window.visualViewport?.removeEventListener('resize', handleViewportResize);
+  }, []);
   
   useEffect(() => {
     if (role !== 'host') {
@@ -82,26 +101,24 @@ export default function Room() {
   const showBuffering = !!bufferingParticipant;
 
   return (
-    <div className="h-screen w-full bg-black flex flex-col md:flex-row overflow-hidden relative">
+    <div 
+      className="h-[100dvh] w-full bg-black flex flex-col tablet:flex-row overflow-hidden relative"
+      style={{ paddingBottom: keyboardHeight > 0 && !activeTab ? undefined : 0 }} 
+    >
       
-      {showBuffering && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-black/80 backdrop-blur-md border border-amber-500/50 text-amber-500 px-6 py-3 rounded-full flex items-center shadow-2xl">
-           <div className="w-4 h-4 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mr-3"></div>
-           {bufferingParticipant.id === socket.id ? "Catching up... everyone is waiting." : `Waiting for ${bufferingParticipant.nickname} to buffer...`}
-        </div>
-      )}
+      {/* Removed old top overlay buffering UI */}
 
-      <div className="flex-grow relative bg-black flex flex-col">
+      <div className="flex-grow flex flex-col relative bg-black z-10 w-full tablet:w-auto">
         {/* Toast Overlay */}
         {toastMessage && (
           <div className="absolute top-20 left-1/2 -translate-x-1/2 z-[60] bg-teal-900/90 backdrop-blur-md border border-teal-500/50 text-white px-6 py-3 rounded-full shadow-2xl animate-in slide-in-from-top-4 fade-in duration-300">
-             <span className="font-medium tracking-wide">{toastMessage}</span>
+             <span className="font-medium tracking-wide text-sm tablet:text-base">{toastMessage}</span>
           </div>
         )}
 
-        <div className="flex-grow flex items-center justify-center">
+        <div className="w-full flex-none tablet:flex-grow tablet:flex tablet:items-center tablet:justify-center relative bg-black pt-[env(safe-area-inset-top)] tablet:pt-0 landscape:h-[100dvh] tablet:landscape:h-auto z-10">
           {localFileUrl ? (
-            <div className="w-full h-full relative">
+            <div className="w-full h-auto tablet:h-full relative flex flex-col">
               <VideoPlayer
                 ref={videoRef}
                 src={localFileUrl}
@@ -112,6 +129,23 @@ export default function Room() {
                 onCanPlay={handleCanPlay}
                 onPlaying={handlePlaying}
               />
+              {/* Floating button for landscape mobile */}
+              <button 
+                onClick={() => setActiveTab(activeTab ? null : 'chat')}
+                className="hidden mobile:landscape:block tablet:hidden absolute top-[calc(1rem+env(safe-area-inset-top))] right-[calc(1rem+env(safe-area-inset-right))] z-[60] bg-zinc-950/80 backdrop-blur-md p-3 rounded-full text-white/80 hover:text-white border border-white/10 shadow-xl"
+              >
+                <MessageSquare size={22} />
+              </button>
+
+              {/* Responsive subtle Buffering Banner BELOW video content */}
+              {showBuffering && (
+                <div className="absolute inset-x-0 bottom-[-3rem] z-40 mx-auto w-max max-w-[90%] bg-amber-950/80 backdrop-blur-md border border-amber-500/40 text-amber-500 px-4 py-2 rounded-xl flex items-center shadow-xl animate-in fade-in slide-in-from-top-2">
+                  <div className="w-3.5 h-3.5 tablet:w-4 tablet:h-4 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mr-2.5 tablet:mr-3 flex-shrink-0"></div>
+                  <span className="text-xs tablet:text-sm font-medium tracking-wide">
+                    {bufferingParticipant.id === socket.id ? "Catching up to host..." : `Waiting for ${bufferingParticipant.nickname}...`}
+                  </span>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-zinc-500 flex flex-col items-center">
@@ -122,16 +156,61 @@ export default function Room() {
             </div>
           )}
         </div>
+
+        {/* Mobile Persistent Bottom Bar */}
+        <div className="mt-auto tablet:hidden w-full h-[64px] bg-zinc-950/95 backdrop-blur border-t border-zinc-900 pb-[env(safe-area-inset-bottom)] flex items-center justify-around absolute bottom-0 z-30 landscape:hidden pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]">
+          <button onClick={() => setActiveTab(activeTab === 'participants' ? null : 'participants')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeTab === 'participants' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
+            <Users size={22} className="mb-0.5" />
+            <span className="text-[10px] font-medium tracking-wider uppercase">People</span>
+          </button>
+          <button onClick={() => setActiveTab(activeTab === 'chat' ? null : 'chat')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeTab === 'chat' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
+            <MessageSquare size={22} className="mb-0.5" />
+            <span className="text-[10px] font-medium tracking-wider uppercase">Chat</span>
+          </button>
+          <button onClick={() => setActiveTab(activeTab === 'info' ? null : 'info')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeTab === 'info' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
+             <Info size={22} className="mb-0.5" />
+             <span className="text-[10px] font-medium tracking-wider uppercase">Info</span>
+          </button>
+        </div>
       </div>
 
-      {/* Side Panel */}
-      <div className="w-full md:w-96 flex-shrink-0 bg-zinc-950 border-l border-zinc-900 flex flex-col h-[50vh] md:h-screen">
-        <div className="p-4 border-b border-zinc-900 space-y-4">
+      {/* Sheet Modal Backdrop (Mobile only) */}
+      <div 
+        className={cn(
+          "fixed inset-0 bg-black/50 z-10 transition-opacity duration-300 tablet:hidden landscape:hidden",
+          activeTab ? "opacity-100" : "opacity-0 pointer-events-none"
+        )} 
+        onClick={() => setActiveTab(null)}
+      />
+
+      {/* Side Panel (Desktop) / Bottom Sheet (Mobile) */}
+      <div 
+        className={cn(
+          "bg-zinc-950 flex flex-col transition-transform duration-300 z-20 overflow-hidden pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]",
+          // Desktop specific overrides
+          "tablet:relative tablet:w-80 desktop:w-96 tablet:flex-shrink-0 tablet:h-screen tablet:border-l tablet:border-zinc-900 tablet:translate-y-0",
+          // Mobile specific overrides
+          "fixed left-0 right-0 rounded-t-3xl shadow-[0_-15px_40px_rgba(0,0,0,0.8)] pb-[calc(1rem+env(safe-area-inset-bottom))] tablet:rounded-none tablet:shadow-none tablet:pb-0 landscape:hidden tablet:landscape:flex",
+          "h-[65dvh] tablet:h-screen",
+          activeTab ? "translate-y-0" : "translate-y-[120%] tablet:translate-y-0"
+        )}
+        style={{
+           bottom: keyboardHeight > 0 ? keyboardHeight : 'calc(64px + env(safe-area-inset-bottom))',
+           // Override structural inline CSS exclusively mapping Tablet states towards auto resolution.
+           ...(window.innerWidth >= 481 ? { bottom: 0, height: '100vh', paddingBottom: 0 } : {})
+        }}
+      >
+        {/* Drag Handle (Mobile only) */}
+        <div className="w-full flex justify-center pt-3 pb-2 flex-shrink-0 tablet:hidden cursor-pointer" onClick={() => setActiveTab(null)}>
+           <div className="w-12 h-1.5 bg-zinc-800 rounded-full"></div>
+        </div>
+
+        <div className={cn("p-4 border-b border-zinc-900 space-y-4 flex-shrink-0", activeTab === 'info' || !activeTab ? "block" : "hidden tablet:block")}>
           <div className="flex items-center justify-between">
-            <h2 className="text-white font-bold text-xl tracking-tight">Room: <span className="font-mono text-teal-500">{roomId}</span></h2>
+            <h2 className="text-white font-bold text-xl tracking-tight">Room <span className="font-mono text-teal-500 ml-1">{roomId}</span></h2>
             <div className="flex items-center gap-2">
                {role === 'host' && (
-                 <button onClick={() => setShowSettings(!showSettings)} className="text-zinc-400 hover:text-white transition-colors p-1" title="Control Settings">
+                 <button onClick={() => setShowSettings(!showSettings)} className="text-zinc-400 hover:text-white transition-colors p-2 -mr-2 bg-zinc-900/50 rounded-full active:scale-95" title="Control Settings">
                    <Settings className="w-5 h-5" />
                  </button>
                )}
@@ -142,16 +221,16 @@ export default function Room() {
         </div>
         
         {showSettings && role === 'host' ? (
-          <div className="p-4 flex-shrink-0 border-b border-zinc-900 bg-zinc-950 overflow-y-auto max-h-[50vh]">
+          <div className={cn("p-4 flex-shrink-0 border-b border-zinc-900 overflow-y-auto max-h-[50vh]", activeTab === 'info' || !activeTab ? "block" : "hidden tablet:block")}>
             <ControlPolicySelector />
           </div>
         ) : null}
 
-        <div className="p-4 flex-shrink-0">
+        <div className={cn("p-4 flex-shrink-0", activeTab === 'participants' || !activeTab ? "block" : "hidden tablet:block")}>
           <ParticipantList />
         </div>
 
-        <div className="flex-grow p-4 min-h-0">
+        <div className={cn("flex-grow p-4 min-h-0", activeTab === 'chat' || !activeTab ? "flex flex-col h-full" : "hidden tablet:flex tablet:flex-col")}>
           <Chat />
         </div>
       </div>

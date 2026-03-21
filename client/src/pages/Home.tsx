@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Coffee, Copy, Check } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
@@ -13,9 +13,12 @@ export default function Home() {
   const [inputRoomId, setInputRoomId] = useState(urlRoomId || '');
   const [inputName, setInputName] = useState(nickname);
   const [error, setError] = useState('');
+  const [showExpiredError, setShowExpiredError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [greeting, setGreeting] = useState('');
   const [copied, setCopied] = useState(false);
+
+  const nicknameInputRef = useRef<HTMLInputElement>(null);
 
   const handleCopyUPI = () => {
     navigator.clipboard.writeText('sampratigaurav123@okaxis');
@@ -29,6 +32,16 @@ export default function Home() {
     else if (hour < 18) setGreeting('Good afternoon,');
     else setGreeting('Good evening,');
   }, []);
+
+  useEffect(() => {
+    if (urlRoomId) {
+      setInputRoomId(urlRoomId);
+      // Wait a tick for render then focus
+      setTimeout(() => {
+        nicknameInputRef.current?.focus();
+      }, 50);
+    }
+  }, [urlRoomId]);
 
   const handleCreateRoom = async () => {
     if (!inputName.trim()) {
@@ -54,13 +67,16 @@ export default function Home() {
   const handleJoinRoom = async () => {
     if (!inputName.trim()) {
       setError('Nickname is required');
+      setShowExpiredError(false);
       return;
     }
     if (!inputRoomId.trim()) {
       setError('Room ID is required');
+      setShowExpiredError(false);
       return;
     }
     setError('');
+    setShowExpiredError(false);
     setIsLoading(true);
     try {
       const code = inputRoomId.trim().toUpperCase();
@@ -68,7 +84,11 @@ export default function Home() {
       if (!res.ok) throw new Error('Failed to check room');
       const data = await res.json();
       if (!data.exists) {
-        setError('Room not found');
+        if (urlRoomId) {
+          setShowExpiredError(true);
+        } else {
+          setError('Room not found');
+        }
         return;
       }
       setRoomId(code);
@@ -85,15 +105,15 @@ export default function Home() {
     <div className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto py-12 selection:bg-teal-500/30">
         
       {/* Dynamic Background Glows */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-[120%] -translate-y-1/2 w-[500px] h-[500px] sm:w-[800px] sm:h-[800px] bg-teal-500/10 [.light_&]:bg-teal-400/20 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 translate-x-[20%] -translate-y-1/2 w-[500px] h-[500px] sm:w-[800px] sm:h-[800px] bg-amber-500/10 [.light_&]:bg-amber-400/20 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-[120%] -translate-y-1/2 w-[400px] h-[400px] tablet:w-[600px] tablet:h-[600px] desktop:w-[800px] desktop:h-[800px] bg-teal-500/10 [.light_&]:bg-teal-400/20 rounded-full blur-[80px] tablet:blur-[120px] desktop:blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 translate-x-[20%] -translate-y-1/2 w-[400px] h-[400px] tablet:w-[600px] tablet:h-[600px] desktop:w-[800px] desktop:h-[800px] bg-amber-500/10 [.light_&]:bg-amber-400/20 rounded-full blur-[80px] tablet:blur-[120px] desktop:blur-[140px] pointer-events-none" />
       
       {/* Content Container */}
-      <div className="relative z-10 w-full max-w-[440px] flex flex-col items-center px-6">
+      <div className="relative z-10 w-full max-w-[900px] flex flex-col items-center px-4 tablet:px-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
           
         {/* Logo Section */}
-        <div className="flex flex-col items-center mb-16 relative w-full">
-           <h1 className="text-6xl sm:text-7xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-400 [.light_&]:from-zinc-800 [.light_&]:to-zinc-500 pb-2 text-center drop-shadow-xl" style={{ WebkitTextStroke: '1px rgba(128,128,128,0.2)' }}>
+        <div className="flex flex-col items-center mb-8 tablet:mb-12 desktop:mb-16 relative w-full">
+           <h1 className="text-5xl tablet:text-6xl desktop:text-7xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-400 [.light_&]:from-zinc-800 [.light_&]:to-zinc-500 pb-2 text-center drop-shadow-xl" style={{ WebkitTextStroke: '1px rgba(128,128,128,0.2)' }}>
              SyncWatch
            </h1>
            <div className="flex items-center gap-4 w-full justify-center opacity-60 mt-1 text-zinc-300 [.light_&]:text-zinc-600">
@@ -106,110 +126,127 @@ export default function Home() {
         <div className="w-full flex flex-col items-center space-y-8">
            
            {/* Greeting */}
-           <h2 className="text-2xl font-normal text-zinc-300 [.light_&]:text-zinc-600 tracking-wide text-center">
+           <h2 className="text-xl tablet:text-2xl font-normal text-zinc-300 [.light_&]:text-zinc-600 tracking-wide text-center">
              {greeting}
            </h2>
 
-           {/* Create Room Section */}
-           <div className="w-full space-y-4">
-             <div className="relative group w-full">
-               {/* Glowing border effect */}
-               <div className="absolute -inset-[2px] bg-gradient-to-r from-teal-400/50 via-cyan-400/40 to-emerald-400/50 rounded-xl blur-[4px] opacity-80 group-hover:opacity-100 transition duration-500"></div>
-               {/* The Input */}
-               <input 
-                 type="text"
-                 value={inputName}
-                 onChange={e => setInputName(e.target.value)}
-                 className="relative w-full bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 backdrop-blur-xl border border-white/10 [.light_&]:border-white/60 rounded-xl px-5 py-4 text-white [.light_&]:text-zinc-900 focus:outline-none placeholder-zinc-500 transition-all font-medium text-lg leading-none shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)] [.light_&]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
-                 placeholder="Enter your nickname"
-                 maxLength={20}
-               />
+           {/* Create / Join Container */}
+           <div className="w-full flex flex-col tablet:flex-row items-stretch justify-center gap-4 tablet:gap-6">
+
+             {/* Create Room Card */}
+             <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-950/60 [.light_&]:bg-zinc-100/60 backdrop-blur-xl border border-white/10 [.light_&]:border-black/5 rounded-2xl p-5 tablet:p-6 flex flex-col gap-4 shadow-xl">
+               <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg">Start a New Room</h3>
+               <div className="relative group w-full">
+                 <div className="absolute -inset-[2px] bg-gradient-to-r from-teal-400/50 via-cyan-400/40 to-emerald-400/50 rounded-xl blur-[4px] opacity-80 group-hover:opacity-100 transition duration-500"></div>
+                 <input 
+                   ref={nicknameInputRef}
+                   type="text"
+                   value={inputName}
+                   onChange={e => setInputName(e.target.value)}
+                   className="relative w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 backdrop-blur-xl border border-white/10 [.light_&]:border-white/60 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)] [.light_&]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
+                   placeholder="Enter your nickname"
+                   maxLength={20}
+                 />
+               </div>
+               <button 
+                 onClick={handleCreateRoom}
+                 disabled={isLoading}
+                 className="relative w-full h-12 tablet:h-[52px] min-h-[48px] overflow-hidden rounded-xl font-medium px-5 transition-all disabled:opacity-50 active:scale-[0.98] shadow-xl group bg-gradient-to-b from-[#358d86] to-[#1a5a54] [.light_&]:from-[#40A89F] [.light_&]:to-[#277D76] border border-[#42b5ab]/20 [.light_&]:border-[#48BDB3]/30"
+               >
+                 <div className="absolute top-0 left-0 right-0 h-[48%] bg-gradient-to-b from-white/30 to-transparent opacity-60"></div>
+                 <div className="absolute inset-0 rounded-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)] pointer-events-none"></div>
+                 <span className="relative drop-shadow-sm text-base tablet:text-lg text-[#fff] font-semibold tracking-wide block text-center">Create Room</span>
+               </button>
              </div>
 
-             <button 
-               onClick={handleCreateRoom}
-               disabled={isLoading}
-               className="relative w-full overflow-hidden rounded-xl font-medium px-5 py-4 transition-all disabled:opacity-50 active:scale-[0.98] shadow-xl group bg-gradient-to-b from-[#358d86] to-[#1a5a54] [.light_&]:from-[#40A89F] [.light_&]:to-[#277D76] border border-[#42b5ab]/20 [.light_&]:border-[#48BDB3]/30"
-             >
-               {/* Button shine reflection */}
-               <div className="absolute top-0 left-0 right-0 h-[48%] bg-gradient-to-b from-white/30 to-transparent opacity-60"></div>
-               {/* Inner glow */}
-               <div className="absolute inset-0 rounded-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)] pointer-events-none"></div>
-               <span className="relative drop-shadow-sm text-lg text-[#fff] font-semibold tracking-wide block text-center">Start a New Room</span>
-             </button>
-           </div>
+             {/* Join Room Card */}
+             <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-950/60 [.light_&]:bg-zinc-100/60 backdrop-blur-xl border border-white/10 [.light_&]:border-black/5 rounded-2xl p-5 tablet:p-6 flex flex-col gap-4 shadow-xl">
+               <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg">Join Existing</h3>
+               <input 
+                 type="text"
+                 value={inputRoomId}
+                 onChange={e => setInputRoomId(e.target.value.toUpperCase())}
+                 className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/80 [.light_&]:bg-[#fcfbf9]/80 border border-zinc-700 [.light_&]:border-zinc-300 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:border-zinc-500 [.light_&]:focus:border-zinc-400 placeholder-zinc-500 font-mono tracking-widest uppercase transition-colors text-base tablet:text-lg"
+                 placeholder="ROOM CODE"
+                 maxLength={6}
+               />
+               <button 
+                 onClick={handleJoinRoom}
+                 disabled={isLoading}
+                 className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-6 font-medium transition-colors active:scale-[0.98] disabled:opacity-50 text-center text-base tablet:text-lg"
+               >
+                 Join Room
+               </button>
+             </div>
 
-           {/* OR Divider */}
-           <div className="relative flex items-center w-full py-2 opacity-40 [.light_&]:opacity-50 text-zinc-300 [.light_&]:text-zinc-600">
-             <div className="flex-grow h-[1px] bg-gradient-to-r from-transparent to-current"></div>
-             <span className="flex-shrink-0 mx-4 text-sm font-medium tracking-wide">or</span>
-             <div className="flex-grow h-[1px] bg-gradient-to-l from-transparent to-current"></div>
-           </div>
-
-           {/* Join Room Section */}
-           <div className="flex w-full gap-3">
-             <input 
-               type="text"
-               value={inputRoomId}
-               onChange={e => setInputRoomId(e.target.value.toUpperCase())}
-               className="flex-grow w-2/3 bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 rounded-xl px-5 py-3.5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:border-zinc-500 [.light_&]:focus:border-zinc-400 placeholder-zinc-500 font-mono tracking-widest uppercase transition-colors"
-               placeholder="ROOM CODE"
-               maxLength={6}
-             />
-             <button 
-               onClick={handleJoinRoom}
-               disabled={isLoading}
-               className="w-1/3 bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-6 py-3.5 font-medium transition-colors active:scale-[0.98] disabled:opacity-50 text-center"
-             >
-               Join
-             </button>
            </div>
 
            {/* Error Display */}
-           {error && (
-             <div className="w-full text-red-400 [.light_&]:text-red-600 text-sm mt-4 text-center bg-red-500/20 [.light_&]:bg-red-500/10 py-3 rounded-lg border border-red-500/20 font-medium tracking-wide">
-               {error}
+           {(error || showExpiredError) && (
+             <div className="w-full max-w-[440px] mx-auto mt-4">
+               {showExpiredError ? (
+                 <div className="flex flex-col items-center p-4 bg-zinc-900/80 [.light_&]:bg-zinc-100/80 backdrop-blur-md rounded-xl border border-white/10 [.light_&]:border-black/5 shadow-lg">
+                   <p className="text-zinc-300 [.light_&]:text-zinc-700 text-center mb-4 text-sm tablet:text-base font-medium">
+                     This room has expired or does not exist. Create a new room to start watching together.
+                   </p>
+                   <button 
+                     onClick={() => {
+                       setShowExpiredError(false);
+                       setInputRoomId('');
+                       navigate('/');
+                       nicknameInputRef.current?.focus();
+                     }}
+                     className="px-5 py-2.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 [.light_&]:text-teal-600 rounded-lg transition-colors font-semibold text-sm"
+                   >
+                     Create a new room
+                   </button>
+                 </div>
+               ) : (
+                 <div className="text-red-400 [.light_&]:text-red-600 text-sm text-center bg-red-500/20 [.light_&]:bg-red-500/10 py-3 rounded-lg border border-red-500/20 font-medium tracking-wide">
+                   {error}
+                 </div>
+               )}
              </div>
            )}
 
         </div>
 
         {/* Support Section */}
-        <div className="w-full mt-16 pt-8 border-t border-white/5 [.light_&]:border-black/10 pb-4">
-          <div className="flex flex-col items-center text-center mb-6">
-            <p className="text-zinc-200 [.light_&]:text-zinc-700 font-medium mb-1 text-[15px]">
+        <div className="w-full max-w-[440px] tablet:max-w-full mt-12 tablet:mt-16 pt-8 border-t border-white/5 [.light_&]:border-black/10 pb-4">
+          <div className="flex flex-col items-center text-center mb-6 px-4">
+            <p className="text-zinc-200 [.light_&]:text-zinc-700 font-medium mb-1 text-[15px] tablet:text-[16px]">
               SyncWatch is free and open source.
             </p>
-            <p className="text-[13px] text-zinc-500 [.light_&]:text-zinc-500">
+            <p className="text-[13px] tablet:text-[14px] text-zinc-500 [.light_&]:text-zinc-500">
               If it made your movie night better, consider supporting the project.
             </p>
           </div>
           
-          <div className="flex items-end justify-center gap-3">
+          <div className="flex flex-col tablet:flex-row items-stretch tablet:items-end justify-center gap-3 tablet:gap-4 max-w-lg mx-auto">
             {/* Ko-fi Button */}
             <a 
               href="https://ko-fi.com/sampratigaurav" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-2 bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-4 py-3 font-medium transition-colors active:scale-[0.98]"
+              className="flex-1 min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-4 py-3 font-medium transition-colors active:scale-[0.98]"
             >
               <Coffee size={18} color="#FF5E5B" />
-              <span className="text-sm">Support this project</span>
+              <span className="text-sm tablet:text-base">Support this project</span>
             </a>
 
             {/* UPI Element */}
             <div className="flex-1 flex flex-col" title="UPI (India)">
-              <span className="text-[10px] text-zinc-500 [.light_&]:text-zinc-500 uppercase tracking-wider mb-1 ml-1 font-semibold">UPI (India)</span>
-              <div className="flex items-center justify-between bg-zinc-900/50 [.light_&]:bg-zinc-100/80 border border-zinc-800 [.light_&]:border-zinc-200 rounded-xl pl-3 pr-1 py-1">
-                <span className="font-mono text-xs text-zinc-400 [.light_&]:text-zinc-600 truncate mr-2">
+              <span className="text-[10px] tablet:text-[11px] text-zinc-500 [.light_&]:text-zinc-500 uppercase tracking-wider mb-1 ml-1 font-semibold text-center tablet:text-left">UPI (India)</span>
+              <div className="min-h-[48px] tablet:min-h-[44px] flex items-center justify-between bg-zinc-900/50 [.light_&]:bg-zinc-100/80 border border-zinc-800 [.light_&]:border-zinc-200 rounded-xl pl-4 pr-2 tablet:pl-3 tablet:pr-1 py-1">
+                <span className="font-mono text-sm tablet:text-xs text-zinc-400 [.light_&]:text-zinc-600 truncate mr-2">
                   sampratigaurav123@okaxis
                 </span>
                 <button 
                   onClick={handleCopyUPI}
-                  className="flex-shrink-0 p-2 rounded-lg hover:bg-zinc-800 [.light_&]:hover:bg-zinc-200 text-zinc-400 [.light_&]:text-zinc-600 transition-colors"
+                  className="w-10 h-10 tablet:w-8 tablet:h-8 flex-shrink-0 flex items-center justify-center rounded-lg hover:bg-zinc-800 [.light_&]:hover:bg-zinc-200 text-zinc-400 [.light_&]:text-zinc-600 transition-colors"
                   title="Copy UPI ID"
                 >
-                  {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                  {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
                 </button>
               </div>
             </div>

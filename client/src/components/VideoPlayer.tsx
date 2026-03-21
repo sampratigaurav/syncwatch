@@ -59,7 +59,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
       controlsTimeoutRef.current = setTimeout(() => {
         if (isPlaying) setShowControls(false);
-      }, 2000);
+      }, 3000);
     }, [isPlaying]);
 
     useEffect(() => {
@@ -177,7 +177,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     return (
       <div 
         ref={containerRef} 
-        className="relative w-full h-full bg-black group overflow-hidden"
+        className="relative w-full aspect-video tablet:aspect-auto tablet:h-full bg-black group overflow-hidden"
         onMouseMove={resetControlsTimeout}
         onMouseLeave={() => isPlaying ? setShowControls(false) : null}
         onClick={() => {
@@ -203,17 +203,32 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           onLoadedMetadata={handleLoadedMetadata}
         />
 
-        {/* Following Badge Removed per request to move below controls */}
+        {/* Following Badge */}
+        {!hasControl && controlPolicy === 'host_only' && (
+          <div className="absolute top-4 left-4 z-40 bg-zinc-950/80 backdrop-blur-md border border-zinc-800 shadow-xl rounded-full px-3 py-1.5 flex items-center pointer-events-none">
+            <div className="w-2 h-2 rounded-full bg-teal-500 mr-2 animate-pulse" />
+            <span className="text-[11px] tablet:text-xs text-zinc-300 uppercase tracking-widest font-semibold flex items-center justify-center">
+              Following {hostName}
+            </span>
+          </div>
+        )}
 
         {/* Controls Overlay */}
         <div 
           className={cn(
-            "absolute bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-zinc-950/90 via-zinc-950/40 to-transparent transition-opacity duration-300 flex flex-col gap-4",
+            "absolute bottom-0 left-0 right-0 p-2 tablet:p-6 bg-gradient-to-t from-zinc-950/90 via-zinc-950/40 to-transparent transition-opacity duration-300 flex flex-col tablet:gap-4",
             showControls ? "opacity-100" : "opacity-0 pointer-events-none"
           )}
         >
+          
+          {/* Time display (Mobile Only: Above Progress Bar) */}
+          <div className="flex tablet:hidden items-center justify-between text-xs font-medium text-white/90 px-2 mb-1 drop-shadow-md">
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
+
           {/* Progress Bar (scrubber) */}
-          <div className="relative group/scrubber flex items-center w-full h-4 cursor-pointer">
+          <div className="relative group/scrubber flex items-center w-full h-10 tablet:h-4 cursor-pointer">
             <input 
               type="range"
               min={0}
@@ -225,61 +240,61 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               className="absolute inset-0 w-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
             />
             {/* Base track */}
-            <div className="absolute w-full h-[3px] bg-white/20 rounded-full group-hover/scrubber:h-[5px] transition-all" />
+            <div className="absolute w-full h-[6px] tablet:h-[3px] bg-white/30 tablet:bg-white/20 rounded-full group-hover/scrubber:h-[12px] tablet:group-hover/scrubber:h-[5px] transition-all" />
             {/* Fill track */}
             <div 
-              className="absolute h-[3px] bg-teal-500 rounded-full group-hover/scrubber:h-[5px] transition-all" 
+              className="absolute h-[6px] tablet:h-[3px] bg-teal-500 rounded-full group-hover/scrubber:h-[12px] tablet:group-hover/scrubber:h-[5px] transition-all" 
               style={{ width: `${progressPercentage}%` }}
             />
             {/* Scrubber dot */}
             <div 
-              className="absolute h-3 w-3 bg-white rounded-full scale-0 group-hover/scrubber:scale-100 transition-transform -ml-1.5 z-0" 
+              className="absolute h-5 w-5 tablet:h-3 tablet:w-3 bg-white rounded-full tablet:scale-0 group-hover/scrubber:scale-100 transition-transform -ml-2.5 tablet:-ml-1.5 z-0 shadow-lg" 
               style={{ left: `${progressPercentage}%` }}
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between mt-1 tablet:mt-0 px-1 tablet:px-0">
+            <div className="flex items-center gap-1 tablet:gap-4">
+              {/* Skip Back */}
+              <button 
+                 onClick={(e) => { e.stopPropagation(); skipBackward(); }}
+                 disabled={!hasControl}
+                 className={cn(
+                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none",
+                  !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
+                )}
+              >
+                 <RotateCcw className="w-6 h-6 tablet:w-5 tablet:h-5" />
+              </button>
+
               {/* Playback Toggle */}
               <button 
                 onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                 disabled={!hasControl}
                 className={cn(
-                  "text-white hover:text-teal-400 transition-colors focus:outline-none",
+                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
                 )}
               >
-                {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}
-              </button>
-
-              {/* Skip Back */}
-              <button 
-                 onClick={skipBackward}
-                 disabled={!hasControl}
-                 className={cn(
-                  "text-white hover:text-teal-400 transition-colors focus:outline-none",
-                  !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
-                )}
-              >
-                 <RotateCcw className="w-5 h-5" />
+                {isPlaying ? <Pause className="w-8 h-8 tablet:w-6 tablet:h-6 fill-current" /> : <Play className="w-8 h-8 tablet:w-6 tablet:h-6 fill-current pl-1 tablet:pl-0" />}
               </button>
 
               {/* Skip Forward */}
               <button 
-                 onClick={skipForward}
+                 onClick={(e) => { e.stopPropagation(); skipForward(); }}
                  disabled={!hasControl}
                  className={cn(
-                  "text-white hover:text-teal-400 transition-colors focus:outline-none",
+                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
                 )}
               >
-                 <RotateCw className="w-5 h-5" />
+                 <RotateCw className="w-6 h-6 tablet:w-5 tablet:h-5" />
               </button>
 
               {/* Volume Slider - Unlocked for Viewer */}
-              <div className="flex items-center gap-2 group/volume relative">
-                <button onClick={toggleMute} className="text-white hover:text-teal-400 transition-colors focus:outline-none">
-                  {isMuted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+              <div className="flex items-center gap-2 group/volume relative ml-1 tablet:ml-0">
+                <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none">
+                  {isMuted || volume === 0 ? <VolumeX className="w-6 h-6 tablet:w-5 tablet:h-5" /> : <Volume2 className="w-6 h-6 tablet:w-5 tablet:h-5" />}
                 </button>
                 <input 
                   type="range"
@@ -288,38 +303,30 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                   step={0.01}
                   value={isMuted ? 0 : volume}
                   onChange={handleVolume}
-                  className="w-0 opacity-0 group-hover/volume:w-20 group-hover/volume:opacity-100 transition-all duration-300 origin-left accent-teal-500 cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-0 opacity-0 group-hover/volume:w-20 group-hover/volume:opacity-100 transition-all duration-300 origin-left accent-teal-500 cursor-pointer hidden tablet:block"
                 />
               </div>
 
-              {/* Time display */}
-              <span className="text-white/80 text-sm font-medium tabular-nums shadow-sm">
+              {/* Time display (Tablet/Desktop) */}
+              <span className="hidden tablet:block text-white/80 text-sm font-medium tabular-nums shadow-sm ml-2">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </span>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 tablet:gap-4">
               {/* CC Button Placeholder */}
-              <button className="text-white hover:text-teal-400 transition-colors focus:outline-none">
-                <Subtitles className="w-5 h-5" />
+              <button className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none max-[360px]:hidden">
+                <Subtitles className="w-6 h-6 tablet:w-5 tablet:h-5" />
               </button>
 
               {/* Fullscreen Toggle */}
-              <button onClick={toggleFullscreen} className="text-white hover:text-teal-400 transition-colors focus:outline-none">
-                {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+              <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none pr-2 tablet:pr-0">
+                {isFullscreen ? <Minimize className="w-6 h-6 tablet:w-5 tablet:h-5" /> : <Maximize className="w-6 h-6 tablet:w-5 tablet:h-5" />}
               </button>
             </div>
           </div>
           
-          {/* Subtle indicator below controls */}
-          {!hasControl && controlPolicy === 'host_only' && (
-            <div className="absolute -bottom-6 left-0 right-0 text-center pointer-events-none">
-              <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold flex items-center justify-center">
-                <div className="w-1.5 h-1.5 rounded-full bg-teal-500 mr-2 pulse-slow" />
-                Following {hostName}
-              </span>
-            </div>
-          )}
         </div>
       </div>
     );
