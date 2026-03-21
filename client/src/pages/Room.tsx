@@ -8,6 +8,7 @@ import ParticipantList from '../components/ParticipantList';
 import { VideoPlayer } from '../components/VideoPlayer';
 import Chat from '../components/Chat';
 import SyncStatus from '../components/SyncStatus';
+import SubtitleLoader from '../components/SubtitleLoader';
 import ControlPolicySelector from '../components/ControlPolicySelector';
 import { EVENTS } from '../../../shared/socketEvents';
 import { Settings, Users, MessageSquare, Info, Loader2, WifiOff } from 'lucide-react';
@@ -19,7 +20,12 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 }
 
 export default function Room() {
-  const { roomId, nickname, localFileUrl, role, participants, connectionStatus, reconnectAttempt, clearRoomState } = useRoomStore();
+  const { 
+    roomId, nickname, localFileUrl, role, participants, 
+    connectionStatus, reconnectAttempt, clearRoomState,
+    subtitleBlobUrl, setSubtitleBlobUrl,
+    subtitleEnabled, setSubtitleEnabled
+  } = useRoomStore();
   const navigate = useNavigate();
   useSocket(); 
   
@@ -172,6 +178,20 @@ export default function Room() {
                 onWaiting={handleWaiting}
                 onCanPlay={handleCanPlay}
                 onPlaying={handlePlaying}
+                subtitleBlobUrl={subtitleBlobUrl}
+                subtitleEnabled={subtitleEnabled}
+                onSubtitleToggle={() => {
+                  const newState = !subtitleEnabled;
+                  setSubtitleEnabled(newState);
+                  if (hasControl) {
+                    socket.emit(EVENTS.PLAYBACK_EVENT, { 
+                      action: 'subtitle_toggle', 
+                      currentTime: videoRef.current?.currentTime || 0, 
+                      timestamp: Date.now(),
+                      subtitleState: { isEnabled: newState, trackIndex: 0 }
+                    });
+                  }
+                }}
               />
               {/* Floating button for landscape mobile */}
               <button 
@@ -262,6 +282,7 @@ export default function Room() {
             </div>
           </div>
           <SyncStatus />
+          <SubtitleLoader onSubtitleLoaded={setSubtitleBlobUrl} onSubtitleCleared={() => setSubtitleBlobUrl(null)} />
         </div>
         
         {showSettings && role === 'host' ? (

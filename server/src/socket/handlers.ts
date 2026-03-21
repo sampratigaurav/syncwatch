@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { rooms } from '../rooms/RoomManager';
 import { EVENTS } from '../../../shared/socketEvents';
-import { Participant, RoomState } from '../../../shared/types';
+import { Participant, RoomState, PlaybackEvent } from '../../../shared/types';
 
 const disconnectTimers = new Map<string, NodeJS.Timeout>();
 const bufferingTimers = new Map<string, NodeJS.Timeout>();
@@ -151,7 +151,7 @@ export const setupSocketHandlers = (io: Server) => {
       }
     });
 
-    socket.on(EVENTS.PLAYBACK_EVENT, (payload: { action: string, currentTime: number, timestamp: number }) => {
+    socket.on(EVENTS.PLAYBACK_EVENT, (payload: PlaybackEvent) => {
       let roomId = '';
       let participant: Participant | undefined;
       for (const [id, room] of rooms.entries()) {
@@ -169,6 +169,18 @@ export const setupSocketHandlers = (io: Server) => {
 
       if (payload.action === 'play') room.playback.isPlaying = true;
       if (payload.action === 'pause') room.playback.isPlaying = false;
+      
+      if (payload.action === 'subtitle_toggle' || payload.action === 'subtitle_track_change') {
+        if (payload.subtitleState) {
+          room.subtitleState = payload.subtitleState;
+        }
+        socket.to(roomId).emit(EVENTS.SUBTITLE_STATE_BROADCAST, {
+           isEnabled: room.subtitleState.isEnabled,
+           trackIndex: room.subtitleState.trackIndex
+        });
+        return; // Complete routing exclusively for subtitles without altering video engine blocks
+      }
+
       room.playback.currentTime = payload.currentTime;
       room.playback.lastUpdatedAt = Date.now();
       room.playback.lastActionBy = socket.id;

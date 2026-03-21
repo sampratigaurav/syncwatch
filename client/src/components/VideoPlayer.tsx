@@ -13,6 +13,9 @@ interface VideoPlayerProps {
   onCanPlay: () => void;
   onPlaying?: () => void;
   onTimeUpdate?: () => void;
+  subtitleBlobUrl: string | null;
+  subtitleEnabled: boolean;
+  onSubtitleToggle: () => void;
 }
 
 function cn(...inputs: (string | undefined | null | false)[]) {
@@ -20,7 +23,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 }
 
 export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
-  ({ src, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate }, externalRef) => {
+  ({ src, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate, subtitleBlobUrl, subtitleEnabled, onSubtitleToggle }, externalRef) => {
     const { participants, canIControl, controlPolicy } = useRoomStore();
     const hasControl = canIControl();
     const hostName = participants.find(p => p.role === 'host')?.nickname || 'Host';
@@ -28,6 +31,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     // Internal refs
     const containerRef = useRef<HTMLDivElement>(null);
     const internalVideoRef = useRef<HTMLVideoElement | null>(null);
+    const trackRef = useRef<HTMLTrackElement>(null);
     
     // Sync external ref
     const setRefs = useCallback(
@@ -68,6 +72,13 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
         if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
       };
     }, [resetControlsTimeout]);
+
+    // Track mode controller
+    useEffect(() => {
+      if (trackRef.current) {
+        trackRef.current.track.mode = subtitleEnabled ? 'showing' : 'hidden';
+      }
+    }, [subtitleEnabled, subtitleBlobUrl]);
 
     // Handle native video events to update UI
     const handleNativeTimeUpdate = () => {
@@ -189,6 +200,17 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           }
         }}
       >
+        <style>{`
+          video::cue {
+            font-size: 1.1rem;
+            font-family: var(--font);
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            border-radius: 4px;
+            padding: 2px 6px;
+            line-height: 1.5;
+          }
+        `}</style>
         <video
           ref={setRefs}
           src={src}
@@ -201,7 +223,16 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           onPlaying={onPlaying}
           onTimeUpdate={handleNativeTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
-        />
+        >
+          {subtitleBlobUrl && (
+            <track
+              ref={trackRef}
+              kind="subtitles"
+              src={subtitleBlobUrl}
+              default
+            />
+          )}
+        </video>
 
         {/* Following Badge */}
         {!hasControl && controlPolicy === 'host_only' && (
@@ -315,9 +346,23 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
             </div>
 
             <div className="flex items-center gap-1 tablet:gap-4">
-              {/* CC Button Placeholder */}
-              <button className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none max-[360px]:hidden">
+              <button 
+                onClick={(e) => { 
+                   e.stopPropagation(); 
+                   if (subtitleBlobUrl) onSubtitleToggle(); 
+                }}
+                disabled={!subtitleBlobUrl}
+                title={!subtitleBlobUrl ? "Load a subtitle file in the sidebar to enable captions" : "Toggle Captions"}
+                className={cn(
+                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center transition-colors focus:outline-none max-[360px]:hidden group relative",
+                  !subtitleBlobUrl ? "text-white/30 [.light_&]:text-zinc-400 cursor-not-allowed" :
+                  subtitleEnabled ? "text-teal-400" : "text-white [.light_&]:text-zinc-600 hover:text-teal-400 [.light_&]:hover:text-teal-500"
+                )}
+              >
                 <Subtitles className="w-6 h-6 tablet:w-5 tablet:h-5" />
+                {subtitleEnabled && (
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-400 rounded-full tablet:hidden" />
+                )}
               </button>
 
               {/* Fullscreen Toggle */}

@@ -24,10 +24,16 @@ export interface PlaybackState {
 
 export type ControlPolicy = 'host_only' | 'everyone' | 'selected'
 
+export interface SubtitleState {
+  isEnabled: boolean
+  trackIndex: number
+}
+
 export interface RoomState {
   id: string
   createdAt: number
   playback: PlaybackState
+  subtitleState: SubtitleState
   participants: Map<string, Participant>
   chatHistory: ChatMessage[]
   fileHash: string | null
@@ -50,7 +56,7 @@ export interface ChatMessage {
   timestamp: number
 }
 
-export type PlaybackAction = 'play' | 'pause' | 'seek' | 'sync_check'
+export type PlaybackAction = 'play' | 'pause' | 'seek' | 'sync_check' | 'subtitle_toggle' | 'subtitle_track_change'
 
 export interface PlaybackEvent {
   action: PlaybackAction
@@ -58,6 +64,7 @@ export interface PlaybackEvent {
   timestamp: number
   lastActionBy?: string
   lastActionNickname?: string
+  subtitleState?: SubtitleState
 }
 
 export interface FileVerifyPayload {

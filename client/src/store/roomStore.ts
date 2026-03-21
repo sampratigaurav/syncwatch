@@ -23,6 +23,8 @@ interface RoomStore {
   lastActionAt: number;
   connectionStatus: ConnectionStatus;
   reconnectAttempt: number;
+  subtitleBlobUrl: string | null;
+  subtitleEnabled: boolean;
   
   setLastActionAt: () => void;
   setRoomId: (id: string | null) => void;
@@ -40,6 +42,8 @@ interface RoomStore {
   clearRoomState: () => void;
   toggleTheme: () => void;
   setLocalFileUrl: (url: string | null) => void;
+  setSubtitleBlobUrl: (url: string | null) => void;
+  setSubtitleEnabled: (enabled: boolean) => void;
   setControlPolicy: (policy: 'host_only' | 'everyone' | 'selected', ids: string[]) => void;
   canIControl: () => boolean;
 }
@@ -63,6 +67,8 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   lastActionAt: 0,
   connectionStatus: 'connecting',
   reconnectAttempt: 0,
+  subtitleBlobUrl: null,
+  subtitleEnabled: false,
 
   setLastActionAt: () => set({ lastActionAt: Date.now() }),
   setRoomId: (id) => set({ roomId: id }),
@@ -83,29 +89,39 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   setIsConnected: (C) => set({ isConnected: C }),
   setConnectionStatus: (status) => set({ connectionStatus: status }),
   setReconnectAttempt: (attempt) => set({ reconnectAttempt: attempt }),
-  clearRoomState: () => set({
-    roomId: null,
-    role: null,
-    participants: [],
-    playback: null,
-    fileHash: null,
-    fileName: null,
-    fileVerifyStatus: 'idle',
-    chatMessages: [],
-    latencyMs: 0,
-    localFileUrl: null,
-    controlPolicy: 'host_only',
-    controllerIds: [],
-    lastActionAt: 0,
-    connectionStatus: 'connecting',
-    reconnectAttempt: 0
-  }),
+  clearRoomState: () => {
+    const state = get();
+    if (state.subtitleBlobUrl) {
+      URL.revokeObjectURL(state.subtitleBlobUrl);
+    }
+    set({
+      roomId: null,
+      role: null,
+      participants: [],
+      playback: null,
+      fileHash: null,
+      fileName: null,
+      fileVerifyStatus: 'idle',
+      chatMessages: [],
+      latencyMs: 0,
+      localFileUrl: null,
+      controlPolicy: 'host_only',
+      controllerIds: [],
+      lastActionAt: 0,
+      connectionStatus: 'connecting',
+      reconnectAttempt: 0,
+      subtitleBlobUrl: null,
+      subtitleEnabled: false
+    });
+  },
   toggleTheme: () => set((state) => {
     const next = state.theme === 'dark' ? 'light' : 'dark';
     localStorage.setItem('theme', next);
     return { theme: next };
   }),
   setLocalFileUrl: (url) => set({ localFileUrl: url }),
+  setSubtitleBlobUrl: (url) => set({ subtitleBlobUrl: url }),
+  setSubtitleEnabled: (enabled) => set({ subtitleEnabled: enabled }),
   setControlPolicy: (policy, ids) => set({ controlPolicy: policy, controllerIds: ids }),
   canIControl: () => {
     const state = get();

@@ -56,10 +56,16 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
       }, 50);
     };
 
+    const handleSubtitleBroadcast = (event: { isEnabled: boolean, trackIndex: number }) => {
+      useRoomStore.getState().setSubtitleEnabled(event.isEnabled);
+    };
+
     socket.on(EVENTS.PLAYBACK_BROADCAST, handleRemoteBroadcast);
+    socket.on(EVENTS.SUBTITLE_STATE_BROADCAST, handleSubtitleBroadcast);
 
     return () => {
       socket.off(EVENTS.PLAYBACK_BROADCAST, handleRemoteBroadcast);
+      socket.off(EVENTS.SUBTITLE_STATE_BROADCAST, handleSubtitleBroadcast);
     };
   }, [videoRef]);
 

@@ -12,6 +12,10 @@ export const createRoom = (id: string): RoomState => {
       lastUpdatedAt: Date.now(),
       hostId: ''
     },
+    subtitleState: {
+      isEnabled: false,
+      trackIndex: 0
+    },
     participants: new Map<string, Participant>(),
     chatHistory: [],
     fileHash: null,
