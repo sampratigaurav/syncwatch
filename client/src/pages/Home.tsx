@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Coffee, Copy, Check, Loader2 } from 'lucide-react';
+import { Coffee, Copy, Check } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { SERVER_URL } from '../lib/config';
 
@@ -10,7 +10,6 @@ export default function Home() {
   const setRoomId = useRoomStore((s) => s.setRoomId);
   const { setNickname } = useRoomStore();
 
-  const connectionStatus = useRoomStore(s => s.connectionStatus);
   const savedNickname = localStorage.getItem('syncwatch_nickname') || '';
   const [inputRoomId, setInputRoomId] = useState(urlRoomId || '');
   const [createNickname, setCreateNickname] = useState(savedNickname);
@@ -18,7 +17,6 @@ export default function Home() {
   const [createError, setCreateError] = useState('');
   const [joinError, setJoinError] = useState('');
   const [showExpiredError, setShowExpiredError] = useState(false);
-  const [showWakingUp, setShowWakingUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [greeting, setGreeting] = useState('');
   const [copied, setCopied] = useState(false);
@@ -30,16 +28,6 @@ export default function Home() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-    if (connectionStatus === 'connecting') {
-      timer = setTimeout(() => setShowWakingUp(true), 3000);
-    } else {
-      setShowWakingUp(false);
-    }
-    return () => clearTimeout(timer);
-  }, [connectionStatus]);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -237,17 +225,6 @@ export default function Home() {
              </div>
 
            </div>
-
-           {/* Waking up banner */}
-           {showWakingUp && (
-             <div className="w-full max-w-[440px] tablet:max-w-[900px] mt-6 mx-auto bg-amber-950/40 [.light_&]:bg-amber-100/60 border border-amber-500/30 rounded-xl p-4 flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 shadow-lg backdrop-blur-md">
-               <Loader2 className="w-5 h-5 text-amber-500 animate-spin mr-3 flex-shrink-0" />
-               <div className="flex flex-col text-left">
-                 <span className="text-amber-400 [.light_&]:text-amber-700 font-medium text-sm tablet:text-base">Waking up the server, please wait...</span>
-                 <span className="text-amber-500/70 [.light_&]:text-amber-600/80 text-xs hidden tablet:block mt-0.5">Free tier servers sleep after inactivity. This takes up to 30 seconds.</span>
-               </div>
-             </div>
-           )}
 
            {/* Expired Room Error */}
            {showExpiredError && (
