@@ -75,7 +75,11 @@ export default function Home() {
       setNickname(trimmed);
       navigate(`/room/${data.roomId}/waiting`);
     } catch (err: unknown) {
-      setCreateError(err instanceof Error ? err.message : 'Error creating room');
+      if (err instanceof TypeError) {
+         setCreateError('Could not reach the server. Please try again in a moment.');
+      } else {
+         setCreateError(err instanceof Error ? err.message : 'Error creating room');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -114,7 +118,11 @@ export default function Home() {
       setNickname(trimmed);
       navigate(`/room/${code}/waiting`);
     } catch (err: unknown) {
-      setJoinError(err instanceof Error ? err.message : 'Error joining room');
+      if (err instanceof TypeError) {
+         setJoinError('Could not reach the server. Please try again in a moment.');
+      } else {
+         setJoinError(err instanceof Error ? err.message : 'Error joining room');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -176,18 +184,13 @@ export default function Home() {
                </div>
                <button 
                  onClick={handleCreateRoom}
-                 disabled={isLoading || connectionStatus !== 'connected'}
+                 disabled={isLoading}
                  className="relative w-full h-12 tablet:h-[52px] min-h-[48px] overflow-hidden rounded-xl font-medium px-5 transition-all disabled:opacity-50 active:scale-[0.98] shadow-xl group bg-gradient-to-b from-[#358d86] to-[#1a5a54] [.light_&]:from-[#40A89F] [.light_&]:to-[#277D76] border border-[#42b5ab]/20 [.light_&]:border-[#48BDB3]/30"
                >
                  <div className="absolute top-0 left-0 right-0 h-[48%] bg-gradient-to-b from-white/30 to-transparent opacity-60"></div>
                  <div className="absolute inset-0 rounded-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)] pointer-events-none"></div>
                  <span className="relative drop-shadow-sm text-base tablet:text-lg text-[#fff] font-semibold tracking-wide flex items-center justify-center">
-                   {connectionStatus !== 'connected' ? (
-                     <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Connecting...
-                     </>
-                   ) : 'Create Room'}
+                   Create Room
                  </span>
                </button>
              </div>
@@ -226,15 +229,10 @@ export default function Home() {
                )}
                <button 
                  onClick={handleJoinRoom}
-                 disabled={isLoading || connectionStatus !== 'connected'}
+                 disabled={isLoading}
                  className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-6 font-medium transition-colors active:scale-[0.98] disabled:opacity-50 flex items-center justify-center text-base tablet:text-lg"
                >
-                 {connectionStatus !== 'connected' ? (
-                   <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Connecting...
-                   </>
-                 ) : 'Join Room'}
+                 Join Room
                </button>
              </div>
 
