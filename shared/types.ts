@@ -82,3 +82,10 @@ export interface FileVerifyPayload {
   name: string
   size: number
 }
+
+export interface ReactionPayload {
+  emoji: string
+  senderId: string
+  senderNickname: string
+  id: string
+}

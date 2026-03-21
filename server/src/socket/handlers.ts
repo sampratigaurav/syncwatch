@@ -6,6 +6,7 @@ import { Participant, RoomState, PlaybackEvent } from '../../../shared/types';
 
 const disconnectTimers = new Map<string, NodeJS.Timeout>();
 const bufferingTimers = new Map<string, NodeJS.Timeout>();
+const lastReactionTimes = new Map<string, number>();
 
 function canControl(room: RoomState, socketId: string): boolean {
   if (room.controlPolicy === 'everyone') return true;
@@ -465,6 +466,37 @@ export const setupSocketHandlers = (io: Server) => {
       }, 30000);
 
       disconnectTimers.set(socket.id, timer);
+      lastReactionTimes.delete(socket.id);
+    });
+
+    socket.on(EVENTS.SEND_REACTION, (payload: { emoji: string }) => {
+      const ALLOWED_EMOJIS = ['😂', '❤️', '😮', '😭', '🔥', '👏', '😍', '💀', '🤯', '👀'];
+      if (!ALLOWED_EMOJIS.includes(payload.emoji)) return;
+
+      const now = Date.now();
+      const lastTime = lastReactionTimes.get(socket.id) || 0;
+      if (now - lastTime < 2000) return;
+
+      let roomId = '';
+      let participant: Participant | undefined;
+      for (const [id, room] of rooms.entries()) {
+        if (room.participants.has(socket.id)) {
+          roomId = id;
+          participant = room.participants.get(socket.id);
+          break;
+        }
+      }
+
+      if (!roomId || !participant) return;
+
+      lastReactionTimes.set(socket.id, now);
+
+      io.to(roomId).emit(EVENTS.REACTION_BROADCAST, {
+        emoji: payload.emoji,
+        senderId: socket.id,
+        senderNickname: participant.nickname,
+        id: crypto.randomUUID()
+      });
     });
   });
 };

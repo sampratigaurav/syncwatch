@@ -5,31 +5,32 @@ import { EVENTS } from '../../../shared/socketEvents';
 import type { PlaybackEvent } from '../../../shared/types';
 
 export const useDriftCorrection = (videoRef: React.RefObject<HTMLVideoElement | null>) => {
-  const { role, latencyMs } = useRoomStore();
+  // No reactive bindings needed here
 
   useEffect(() => {
-    if (role === 'host') {
-      const interval = setInterval(() => {
-        const lastActionAt = useRoomStore.getState().lastActionAt;
-        if (Date.now() - lastActionAt < 8000) return;
+    const interval = setInterval(() => {
+      const state = useRoomStore.getState();
+      if (state.role !== 'host') return;
+      
+      const lastActionAt = state.lastActionAt;
+      if (Date.now() - lastActionAt < 8000) return;
 
-        if (!videoRef.current || videoRef.current.paused) return;
-        
-        socket.emit(EVENTS.PLAYBACK_EVENT, {
-          action: 'sync_check',
-          currentTime: videoRef.current.currentTime,
-          timestamp: Date.now()
-        });
-      }, 5000);
+      if (!videoRef.current || videoRef.current.paused) return;
+      
+      socket.emit(EVENTS.PLAYBACK_EVENT, {
+        action: 'sync_check',
+        currentTime: videoRef.current.currentTime,
+        timestamp: Date.now()
+      });
+    }, 5000);
 
-      return () => clearInterval(interval);
-    }
-  }, [role, videoRef]);
+    return () => clearInterval(interval);
+  }, []); // Empty deps - register once
 
   useEffect(() => {
-    if (role !== 'viewer') return;
-
     const handleSyncCheck = (event: PlaybackEvent) => {
+      const state = useRoomStore.getState();
+      if (state.role !== 'viewer') return;
       if (event.action !== 'sync_check') return;
       
       const lastActionAt = useRoomStore.getState().lastActionAt;
@@ -42,7 +43,7 @@ export const useDriftCorrection = (videoRef: React.RefObject<HTMLVideoElement | 
       // Threshold 0.5 seconds
       if (diff > 0.5) {
         // compute offset with latency
-        const targetTime = event.currentTime + (latencyMs / 2000);
+        const targetTime = event.currentTime + (state.latencyMs / 2000);
         video.currentTime = targetTime;
       }
     };
@@ -52,5 +53,5 @@ export const useDriftCorrection = (videoRef: React.RefObject<HTMLVideoElement | 
     return () => {
       socket.off(EVENTS.PLAYBACK_BROADCAST, handleSyncCheck);
     };
-  }, [role, latencyMs, videoRef]);
+  }, []); // Empty deps - register exactly once
 };

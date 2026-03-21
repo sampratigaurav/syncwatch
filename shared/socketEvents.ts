@@ -34,4 +34,8 @@ export const EVENTS = {
   VOICE_STATE_UPDATE: 'voice_state_update',
   VOICE_MUTE_TOGGLE: 'voice_mute_toggle',
   VOICE_SPEAKING: 'voice_speaking',
+
+  // Reactions
+  SEND_REACTION: 'send_reaction',
+  REACTION_BROADCAST: 'reaction_broadcast',
 } as const;

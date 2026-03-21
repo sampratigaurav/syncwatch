@@ -67,7 +67,7 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
       socket.off(EVENTS.PLAYBACK_BROADCAST, handleRemoteBroadcast);
       socket.off(EVENTS.SUBTITLE_STATE_BROADCAST, handleSubtitleBroadcast);
     };
-  }, [videoRef]);
+  }, []); // Empty deps to register exactly once
 
   // Expose these handlers to the native video element
   const handlePlay = () => {

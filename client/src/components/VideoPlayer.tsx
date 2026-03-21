@@ -1,6 +1,9 @@
 import { forwardRef, useState, useEffect, useRef, useCallback } from 'react';
 import { useRoomStore } from '../store/roomStore';
 import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Minimize, Subtitles } from 'lucide-react';
+import { socket } from '../hooks/useSocket';
+import { EVENTS } from '../../../shared/socketEvents';
+import { ReactionButton } from './ReactionButton';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -364,6 +367,10 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                   <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-400 rounded-full tablet:hidden" />
                 )}
               </button>
+
+              <ReactionButton 
+                 onSend={(emoji) => socket.emit(EVENTS.SEND_REACTION, { emoji })}
+              />
 
               {/* Fullscreen Toggle */}
               <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none pr-2 tablet:pr-0">

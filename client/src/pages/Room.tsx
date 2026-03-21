@@ -11,6 +11,7 @@ import SyncStatus from '../components/SyncStatus';
 import SubtitleLoader from '../components/SubtitleLoader';
 import ControlPolicySelector from '../components/ControlPolicySelector';
 import { VoiceChat } from '../components/VoiceChat';
+import { ReactionOverlay } from '../components/ReactionOverlay';
 import { EVENTS } from '../../../shared/socketEvents';
 import { Settings, Users, MessageSquare, Info, Loader2, WifiOff } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -194,6 +195,8 @@ export default function Room() {
                   }
                 }}
               />
+              <ReactionOverlay />
+
               {/* Floating button for landscape mobile */}
               <button 
                 onClick={() => setActiveTab(activeTab ? null : 'chat')}
