@@ -7,14 +7,24 @@ import { SERVER_URL } from '../lib/config';
 
 export const socket: Socket = io(SERVER_URL, {
   autoConnect: false,
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 2000,
+  reconnectionDelayMax: 10000,
+  timeout: 20000,
 });
 
 export const useSocket = () => {
-  const { setIsConnected, setLatency, addChatMessage, setParticipants, setPlayback, setRole } = useRoomStore();
+  const { 
+    setIsConnected, setLatency, addChatMessage, setParticipants, 
+    setPlayback, setRole, setConnectionStatus, setReconnectAttempt 
+  } = useRoomStore();
 
   useEffect(() => {
     const onConnect = () => {
       setIsConnected(true);
+      setConnectionStatus('connected');
+      setReconnectAttempt(0);
       if (useRoomStore.getState().roomId && useRoomStore.getState().nickname) {
         socket.emit(EVENTS.JOIN_ROOM, { roomId: useRoomStore.getState().roomId, nickname: useRoomStore.getState().nickname });
       }
@@ -28,8 +38,42 @@ export const useSocket = () => {
 
     socket.on('connect', onConnect);
 
-    socket.on('disconnect', () => {
+    socket.on('disconnect', (reason) => {
       setIsConnected(false);
+      if (reason === 'io server disconnect' || reason === 'io client disconnect') {
+        setConnectionStatus('disconnected');
+      } else {
+        setConnectionStatus('reconnecting');
+      }
+    });
+
+    socket.on('connect_error', () => {
+      const state = useRoomStore.getState();
+      if (state.connectionStatus !== 'reconnecting') {
+        setConnectionStatus('failed');
+      }
+    });
+
+    socket.on('reconnect_attempt', (attempt) => {
+      setConnectionStatus('reconnecting');
+      setReconnectAttempt(attempt);
+    });
+
+    socket.on('reconnect', () => {
+      setConnectionStatus('connected');
+      setReconnectAttempt(0);
+      const state = useRoomStore.getState();
+      if (state.roomId && state.nickname) {
+        socket.emit(EVENTS.JOIN_ROOM, { roomId: state.roomId, nickname: state.nickname });
+      }
+    });
+
+    socket.on('reconnect_failed', () => {
+      setConnectionStatus('failed');
+    });
+
+    socket.on(EVENTS.ROOM_NOT_FOUND, () => {
+      setConnectionStatus('room_not_found');
     });
 
     socket.on(EVENTS.HOST_LEFT, () => {
@@ -83,6 +127,11 @@ export const useSocket = () => {
       clearInterval(pingInterval);
       socket.off('connect');
       socket.off('disconnect');
+      socket.off('connect_error');
+      socket.off('reconnect_attempt');
+      socket.off('reconnect');
+      socket.off('reconnect_failed');
+      socket.off(EVENTS.ROOM_NOT_FOUND);
       socket.off(EVENTS.CHAT_BROADCAST);
       socket.off(EVENTS.PARTICIPANT_UPDATE);
       socket.off(EVENTS.ROOM_STATE);
@@ -90,7 +139,7 @@ export const useSocket = () => {
       socket.off(EVENTS.PONG);
       socket.off(EVENTS.HOST_LEFT);
     };
-  }, [setIsConnected, setLatency, addChatMessage, setParticipants, setPlayback, setRole]);
+  }, [setIsConnected, setLatency, addChatMessage, setParticipants, setPlayback, setRole, setConnectionStatus, setReconnectAttempt]);
 
   return socket;
 };

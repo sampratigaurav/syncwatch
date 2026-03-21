@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Coffee, Copy, Check } from 'lucide-react';
+import { Coffee, Copy, Check, Loader2 } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { SERVER_URL } from '../lib/config';
 
@@ -10,6 +10,7 @@ export default function Home() {
   const setRoomId = useRoomStore((s) => s.setRoomId);
   const { setNickname } = useRoomStore();
 
+  const connectionStatus = useRoomStore(s => s.connectionStatus);
   const savedNickname = localStorage.getItem('syncwatch_nickname') || '';
   const [inputRoomId, setInputRoomId] = useState(urlRoomId || '');
   const [createNickname, setCreateNickname] = useState(savedNickname);
@@ -17,6 +18,7 @@ export default function Home() {
   const [createError, setCreateError] = useState('');
   const [joinError, setJoinError] = useState('');
   const [showExpiredError, setShowExpiredError] = useState(false);
+  const [showWakingUp, setShowWakingUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [greeting, setGreeting] = useState('');
   const [copied, setCopied] = useState(false);
@@ -28,6 +30,16 @@ export default function Home() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (connectionStatus === 'connecting') {
+      timer = setTimeout(() => setShowWakingUp(true), 3000);
+    } else {
+      setShowWakingUp(false);
+    }
+    return () => clearTimeout(timer);
+  }, [connectionStatus]);
 
   useEffect(() => {
     const hour = new Date().getHours();
@@ -164,12 +176,19 @@ export default function Home() {
                </div>
                <button 
                  onClick={handleCreateRoom}
-                 disabled={isLoading}
+                 disabled={isLoading || connectionStatus !== 'connected'}
                  className="relative w-full h-12 tablet:h-[52px] min-h-[48px] overflow-hidden rounded-xl font-medium px-5 transition-all disabled:opacity-50 active:scale-[0.98] shadow-xl group bg-gradient-to-b from-[#358d86] to-[#1a5a54] [.light_&]:from-[#40A89F] [.light_&]:to-[#277D76] border border-[#42b5ab]/20 [.light_&]:border-[#48BDB3]/30"
                >
                  <div className="absolute top-0 left-0 right-0 h-[48%] bg-gradient-to-b from-white/30 to-transparent opacity-60"></div>
                  <div className="absolute inset-0 rounded-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)] pointer-events-none"></div>
-                 <span className="relative drop-shadow-sm text-base tablet:text-lg text-[#fff] font-semibold tracking-wide block text-center">Create Room</span>
+                 <span className="relative drop-shadow-sm text-base tablet:text-lg text-[#fff] font-semibold tracking-wide flex items-center justify-center">
+                   {connectionStatus !== 'connected' ? (
+                     <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Connecting...
+                     </>
+                   ) : 'Create Room'}
+                 </span>
                </button>
              </div>
 
@@ -207,14 +226,30 @@ export default function Home() {
                )}
                <button 
                  onClick={handleJoinRoom}
-                 disabled={isLoading}
-                 className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-6 font-medium transition-colors active:scale-[0.98] disabled:opacity-50 text-center text-base tablet:text-lg"
+                 disabled={isLoading || connectionStatus !== 'connected'}
+                 className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-6 font-medium transition-colors active:scale-[0.98] disabled:opacity-50 flex items-center justify-center text-base tablet:text-lg"
                >
-                 Join Room
+                 {connectionStatus !== 'connected' ? (
+                   <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Connecting...
+                   </>
+                 ) : 'Join Room'}
                </button>
              </div>
 
            </div>
+
+           {/* Waking up banner */}
+           {showWakingUp && (
+             <div className="w-full max-w-[440px] tablet:max-w-[900px] mt-6 mx-auto bg-amber-950/40 [.light_&]:bg-amber-100/60 border border-amber-500/30 rounded-xl p-4 flex items-center justify-center animate-in fade-in slide-in-from-bottom-4 shadow-lg backdrop-blur-md">
+               <Loader2 className="w-5 h-5 text-amber-500 animate-spin mr-3 flex-shrink-0" />
+               <div className="flex flex-col text-left">
+                 <span className="text-amber-400 [.light_&]:text-amber-700 font-medium text-sm tablet:text-base">Waking up the server, please wait...</span>
+                 <span className="text-amber-500/70 [.light_&]:text-amber-600/80 text-xs hidden tablet:block mt-0.5">Free tier servers sleep after inactivity. This takes up to 30 seconds.</span>
+               </div>
+             </div>
+           )}
 
            {/* Expired Room Error */}
            {showExpiredError && (

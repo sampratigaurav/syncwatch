@@ -27,6 +27,7 @@ export const setupSocketHandlers = (io: Server) => {
       const { roomId, nickname } = payload;
       const room = rooms.get(roomId);
       if (!room) {
+        socket.emit(EVENTS.ROOM_NOT_FOUND, { roomId });
         return; // handle error or emit not found
       }
       

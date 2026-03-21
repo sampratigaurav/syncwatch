@@ -20,4 +20,5 @@ export const EVENTS = {
   PONG: 'pong',
   HOST_LEFT: 'host_left',
   CONTROL_POLICY_UPDATE: 'control_policy_update',
+  ROOM_NOT_FOUND: 'room_not_found',
 } as const;

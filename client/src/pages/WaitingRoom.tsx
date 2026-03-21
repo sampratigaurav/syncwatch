@@ -5,10 +5,10 @@ import { useFileVerify } from '../hooks/useFileVerify';
 import { useNavigate, useParams } from 'react-router-dom';
 import ParticipantList from '../components/ParticipantList';
 import ControlPolicySelector from '../components/ControlPolicySelector';
-import { Copy, Check, Play, AlertTriangle, Loader2 } from 'lucide-react';
+import { Copy, Check, Play, AlertTriangle, Loader2, WifiOff } from 'lucide-react';
 
 export default function WaitingRoom() {
-  const { roomId, participants, isConnected, role, fileVerifyStatus } = useRoomStore();
+  const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState } = useRoomStore();
   const { roomId: urlId } = useParams();
   const navigate = useNavigate();
   useSocket();
@@ -62,11 +62,58 @@ export default function WaitingRoom() {
   const allVerified = participants.length > 0 && participants.every(p => p.status === 'ready');
   const canStart = role === 'host' ? allVerified : fileVerifyStatus === 'verified';
 
+  const handleGoHome = () => {
+    clearRoomState();
+    navigate('/');
+  };
+
+  if (connectionStatus === 'failed' || connectionStatus === 'room_not_found') {
+    return (
+      <div className="fixed inset-0 z-[100] bg-black [.light_&]:bg-[#fdfdfc] flex flex-col items-center justify-center p-6 text-center">
+        <WifiOff className="w-16 h-16 text-zinc-600 [.light_&]:text-zinc-400 mb-6" />
+        <h2 className="text-2xl tablet:text-3xl font-bold text-white [.light_&]:text-zinc-900 tracking-tight mb-3">
+          {connectionStatus === 'room_not_found' ? 'Room no longer exists' : 'Connection lost'}
+        </h2>
+        <p className="text-zinc-400 [.light_&]:text-zinc-600 max-w-sm mb-8">
+          {connectionStatus === 'room_not_found' 
+            ? 'The room expired while you were disconnected. Server restarts clear all active rooms.'
+            : 'The server restarted and your room no longer exists. This can happen after a period of inactivity.'}
+        </p>
+        <div className="flex flex-col gap-3 w-full max-w-[280px]">
+          <button 
+            onClick={handleGoHome}
+            className="w-full py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-medium rounded-xl transition-colors shadow-lg active:scale-[0.98]"
+          >
+            Create a new room
+          </button>
+          <button 
+            onClick={handleGoHome}
+            className="w-full py-3.5 bg-transparent border border-zinc-700 hover:border-zinc-500 [.light_&]:border-zinc-300 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-700 font-medium rounded-xl transition-colors active:scale-[0.98]"
+          >
+            Go home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!roomId) return null;
 
   return (
-    <div className="min-h-screen p-4 tablet:p-8 flex flex-col items-center pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-x-hidden">
-      <div className="w-full max-w-5xl grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-6 tablet:gap-8">
+    <div className="min-h-screen p-4 tablet:p-8 flex flex-col items-center pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-x-hidden relative">
+      
+      {connectionStatus === 'reconnecting' && (
+        <div className="absolute top-0 left-0 right-0 z-[90] bg-black/80 backdrop-blur-lg border-b border-white/10 flex flex-col items-center justify-center py-3 shadow-2xl animate-in slide-in-from-top-full duration-300">
+          <div className="flex items-center gap-3">
+             <Loader2 className="w-5 h-5 text-teal-500 animate-spin" />
+             <span className="text-white font-medium">Reconnecting...</span>
+             <span className="text-teal-500 font-mono text-xs ml-2 bg-teal-500/10 px-2 py-0.5 rounded-full">Attempt {reconnectAttempt} of 5</span>
+          </div>
+          <span className="text-zinc-400 text-[11px] tablet:text-xs mt-1">Lost connection to the server. Trying to reconnect automatically.</span>
+        </div>
+      )}
+
+      <div className="w-full max-w-5xl grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-6 tablet:gap-8 mt-4 font-sans">
         
         <div className="tablet:col-span-1 desktop:col-span-2 space-y-6">
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 tablet:p-10 shadow-xl">
@@ -174,13 +221,6 @@ export default function WaitingRoom() {
           </div>
           
           <ParticipantList variant="waiting-room" />
-          
-          {!isConnected && (
-            <div className="bg-amber-950/30 border border-amber-900/50 rounded-xl p-4 text-amber-400 text-sm animate-pulse flex items-center">
-              <div className="w-2 h-2 rounded-full bg-amber-500 mr-3"></div>
-              Connecting to server...
-            </div>
-          )}
         </div>
       </div>
     </div>
