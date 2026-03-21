@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Coffee, Copy, Check, Lock, Unlock } from 'lucide-react';
+import { Coffee, Copy, Check, Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { SERVER_URL } from '../lib/config';
 import { socket } from '../hooks/useSocket';
@@ -11,6 +11,29 @@ import { twMerge } from 'tailwind-merge';
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
+
+const STEPS = [
+  {
+    icon: Link2,
+    title: "Create or join a room",
+    desc: "Share a 6-character room code with whoever you want to watch with. No account needed."
+  },
+  {
+    icon: FileVideo,
+    title: "Select your local file",
+    desc: "Each person picks their own copy of the video from their device. Nothing is uploaded."
+  },
+  {
+    icon: ShieldCheck,
+    title: "File verified instantly",
+    desc: "A quick hash check confirms you both have the same file. Takes under a second."
+  },
+  {
+    icon: Play,
+    title: "Watch in perfect sync",
+    desc: "Press play once. SyncWatch keeps everyone at the exact same moment automatically."
+  }
+];
 
 export default function Home() {
   const navigate = useNavigate();
@@ -36,6 +59,16 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
 
   const joinNicknameInputRef = useRef<HTMLInputElement>(null);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setIsVisible(true);
+    }, { threshold: 0.2 });
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const handleCopyUPI = () => {
     navigator.clipboard.writeText('sampratigaurav123@okaxis');
@@ -389,6 +422,79 @@ export default function Home() {
              </div>
            )}
 
+        </div>
+
+        {/* How it works section */}
+        <div ref={sectionRef} className="w-full mt-12 tablet:mt-16 pt-8 tablet:pt-12 border-t border-white/5 [.light_&]:border-black/5 flex flex-col items-center">
+          
+          <div className={cn(
+            "text-center transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0",
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
+          )}>
+            <h2 className="text-3xl tablet:text-4xl font-bold tracking-tight text-white [.light_&]:text-zinc-900 mb-2">How it works</h2>
+            <p className="text-sm tablet:text-base text-zinc-400 [.light_&]:text-zinc-600 font-medium tracking-wide">From your file to in sync — in under 30 seconds</p>
+          </div>
+
+          <div className="relative w-full mt-10 tablet:mt-12 max-w-[900px]">
+            {/* Mobile Vertical Timeline Line */}
+            <div className={cn(
+              "absolute left-[20px] top-6 bottom-6 w-[2px] border-l-2 border-dashed border-teal-500/20 tablet:hidden transition-opacity duration-700 ease-out delay-300",
+              isVisible ? "opacity-100" : "opacity-0"
+            )} />
+
+            <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-4 gap-6 desktop:gap-4 relative w-full">
+              {STEPS.map((step, i) => (
+                <div 
+                  key={i} 
+                  className={cn(
+                    "relative flex pl-12 tablet:pl-0 transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0",
+                    isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
+                  )}
+                  style={{ transitionDelay: `${(i + 1) * 150}ms` }}
+                >
+                  {/* Mobile Timeline Dot */}
+                  <div className="absolute left-[15px] top-[26px] w-[12px] h-[12px] rounded-full bg-teal-500 tablet:hidden shadow-[0_0_8px_rgba(29,158,117,0.5)]" />
+
+                  {/* Desktop/Tablet Horizontal Connector */}
+                  {(i === 0 || i === 1 || i === 2) && (
+                    <div className={cn(
+                      "hidden absolute top-[38px] -right-[12px] text-teal-500/30 z-10",
+                      i === 0 || i === 2 ? "tablet:block desktop:block" : "desktop:block"
+                    )}>
+                      <ArrowRight size={20} className="animate-pulse" />
+                    </div>
+                  )}
+
+                  {/* Card */}
+                  <div className="w-full bg-zinc-950/60 [.light_&]:bg-white/60 backdrop-blur-xl border border-white/10 [.light_&]:border-black/5 rounded-2xl p-5 tablet:p-6 relative overflow-hidden group hover:border-teal-500/30 [.light_&]:hover:border-teal-400/50 transition-colors shadow-lg [.light_&]:shadow-sm">
+                    <div className="absolute top-1 right-3 text-[56px] font-light text-white/[0.04] [.light_&]:text-black/[0.04] leading-none select-none pointer-events-none">
+                      0{i + 1}
+                    </div>
+
+                    <step.icon className="text-[#1D9E75] w-[28px] h-[28px] mb-4 transition-transform duration-300 group-hover:scale-110" />
+                    <h4 className="text-white [.light_&]:text-zinc-900 font-semibold text-[15px] mb-1.5 relative z-10">{step.title}</h4>
+                    <p className="text-zinc-400 [.light_&]:text-zinc-600 text-[13px] font-light leading-[1.6] relative z-10">
+                      {step.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Key Differentiator Pill */}
+          <div 
+            className={cn(
+              "mt-10 tablet:mt-12 bg-zinc-900/80 [.light_&]:bg-teal-50/80 border border-white/5 [.light_&]:border-teal-200 backdrop-blur-md rounded-2xl py-3 px-5 tablet:px-6 flex items-center gap-3 shadow-xl transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0",
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
+            )}
+            style={{ transitionDelay: '750ms' }}
+          >
+            <Shield className="text-teal-500 flex-shrink-0" size={18} fill="rgba(29, 158, 117, 0.2)" />
+            <p className="text-[13px] tablet:text-sm text-zinc-300 [.light_&]:text-teal-900 font-medium tracking-wide">
+              Your video file never leaves your device. Only play, pause, and seek signals are sent over the internet.
+            </p>
+          </div>
         </div>
 
         {/* Support Section */}
