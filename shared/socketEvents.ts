@@ -24,4 +24,14 @@ export const EVENTS = {
   SUBTITLE_STATE_BROADCAST: 'subtitle_state_broadcast',
   WRONG_PASSWORD: 'wrong_password',
   ROOM_REQUIRES_PASSWORD: 'room_requires_password',
+
+  // WebRTC Voice Chat Signalling
+  WEBRTC_OFFER: 'webrtc_offer',
+  WEBRTC_ANSWER: 'webrtc_answer',
+  WEBRTC_ICE_CANDIDATE: 'webrtc_ice_candidate',
+  VOICE_JOIN: 'voice_join',
+  VOICE_LEAVE: 'voice_leave',
+  VOICE_STATE_UPDATE: 'voice_state_update',
+  VOICE_MUTE_TOGGLE: 'voice_mute_toggle',
+  VOICE_SPEAKING: 'voice_speaking',
 } as const;

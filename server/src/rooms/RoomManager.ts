@@ -24,7 +24,8 @@ export const createRoom = (id: string, passwordHash: string | null = null): Room
     fileName: null,
     fileSize: null,
     controlPolicy: 'host_only',
-    controllerIds: []
+    controllerIds: [],
+    voiceParticipants: []
   };
   rooms.set(id, newRoom);
   return newRoom;

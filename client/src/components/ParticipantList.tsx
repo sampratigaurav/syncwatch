@@ -1,10 +1,12 @@
 import { useRoomStore } from '../store/roomStore';
 import { socket } from '../hooks/useSocket';
-import { User, Wifi, WifiOff, Gamepad2, Crown } from 'lucide-react';
+import { User, Wifi, WifiOff, Gamepad2, Crown, MicOff } from 'lucide-react';
+import { useVoiceChat } from '../hooks/useVoiceChat';
 import clsx from 'clsx';
 
 export default function ParticipantList({ variant = 'default' }: { variant?: 'default' | 'waiting-room' }) {
   const { participants, controlPolicy, controllerIds } = useRoomStore();
+  const { voiceParticipants } = useVoiceChat();
 
   const isWaitingRoom = variant === 'waiting-room';
 
@@ -66,6 +68,8 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
           if (controlPolicy === 'selected') hasControl = isHost || controllerIds.includes(p.id);
           if (controlPolicy === 'host_only') hasControl = isHost;
 
+          const vp = voiceParticipants.find(v => v.id === p.id);
+
           return (
             <div key={p.id} className="flex items-center justify-between p-2 rounded-lg bg-transparent hover:bg-zinc-800/30 transition-colors">
               <div className="flex items-center space-x-3">
@@ -87,6 +91,16 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
                        <span className="ml-2 text-teal-500 flex items-center justify-center" title="Has playback control">
                          {isHost ? <Crown className="w-3.5 h-3.5" /> : <Gamepad2 className="w-3.5 h-3.5" />}
                        </span>
+                    )}
+                    {vp && vp.isMuted && (
+                      <MicOff className="w-[14px] h-[14px] text-red-500 ml-2" />
+                    )}
+                    {vp && vp.isSpeaking && !vp.isMuted && (
+                      <div className="flex items-center gap-[2px] h-3 ml-2 flex-shrink-0">
+                        <div className="w-1 h-1.5 bg-teal-400 rounded-full animate-[pulse_0.8s_ease-in-out_infinite]" />
+                        <div className="w-1 h-2.5 bg-teal-400 rounded-full animate-[pulse_0.8s_ease-in-out_0.2s_infinite]" />
+                        <div className="w-1 h-1.5 bg-teal-400 rounded-full animate-[pulse_0.8s_ease-in-out_0.4s_infinite]" />
+                      </div>
                     )}
                   </p>
                   <p className="text-xs text-zinc-500 capitalize">{p.role}</p>

@@ -29,6 +29,13 @@ export interface SubtitleState {
   trackIndex: number
 }
 
+export interface VoiceParticipant {
+  id: string
+  nickname: string
+  isMuted: boolean
+  isSpeaking: boolean
+}
+
 export interface RoomState {
   id: string
   createdAt: number
@@ -43,6 +50,7 @@ export interface RoomState {
   fileSize: number | null
   controlPolicy: ControlPolicy
   controllerIds: string[]
+  voiceParticipants: VoiceParticipant[]
 }
 
 export interface SetControlPolicyPayload {

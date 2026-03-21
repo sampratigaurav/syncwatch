@@ -10,6 +10,7 @@ import Chat from '../components/Chat';
 import SyncStatus from '../components/SyncStatus';
 import SubtitleLoader from '../components/SubtitleLoader';
 import ControlPolicySelector from '../components/ControlPolicySelector';
+import { VoiceChat } from '../components/VoiceChat';
 import { EVENTS } from '../../../shared/socketEvents';
 import { Settings, Users, MessageSquare, Info, Loader2, WifiOff } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -291,8 +292,12 @@ export default function Room() {
           </div>
         ) : null}
 
-        <div className={cn("p-4 flex-shrink-0", activeTab === 'participants' || !activeTab ? "block" : "hidden tablet:block")}>
+        <div className={cn("p-4 flex-shrink-0 border-b border-zinc-900", activeTab === 'participants' || !activeTab ? "block" : "hidden tablet:block")}>
           <ParticipantList />
+        </div>
+
+        <div className={cn("border-b border-zinc-900", activeTab === 'participants' || !activeTab ? "block" : "hidden tablet:block")}>
+          <VoiceChat />
         </div>
 
         <div className={cn("flex-grow p-4 min-h-0", activeTab === 'chat' || !activeTab ? "flex flex-col h-full" : "hidden tablet:flex tablet:flex-col")}>

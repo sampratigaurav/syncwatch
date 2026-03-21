@@ -311,6 +311,116 @@ export const setupSocketHandlers = (io: Server) => {
       io.to(roomId).emit(EVENTS.CHAT_BROADCAST, message);
     });
 
+    socket.on(EVENTS.VOICE_JOIN, () => {
+      let roomId = '';
+      let participant: Participant | undefined;
+      for (const [id, room] of rooms.entries()) {
+        if (room.participants.has(socket.id)) {
+          roomId = id;
+          participant = room.participants.get(socket.id);
+          break;
+        }
+      }
+      if (!roomId || !participant) return;
+      
+      const room = rooms.get(roomId)!;
+      if (!room.voiceParticipants) room.voiceParticipants = [];
+      if (room.voiceParticipants.some(p => p.id === socket.id)) return;
+      
+      const vp = {
+        id: socket.id,
+        nickname: participant.nickname,
+        isMuted: false,
+        isSpeaking: false
+      };
+      
+      room.voiceParticipants.push(vp);
+      io.to(roomId).emit(EVENTS.VOICE_STATE_UPDATE, room.voiceParticipants);
+      socket.to(roomId).emit(EVENTS.VOICE_JOIN, vp);
+    });
+
+    socket.on(EVENTS.VOICE_LEAVE, () => {
+      let roomId = '';
+      for (const [id, room] of rooms.entries()) {
+        if (room.participants.has(socket.id)) {
+          roomId = id;
+          break;
+        }
+      }
+      if (!roomId) return;
+      
+      const room = rooms.get(roomId)!;
+      if (!room.voiceParticipants) return;
+      
+      const prevLen = room.voiceParticipants.length;
+      room.voiceParticipants = room.voiceParticipants.filter(p => p.id !== socket.id);
+      
+      if (room.voiceParticipants.length !== prevLen) {
+        io.to(roomId).emit(EVENTS.VOICE_STATE_UPDATE, room.voiceParticipants);
+      }
+    });
+
+    socket.on(EVENTS.VOICE_MUTE_TOGGLE, (payload: { isMuted: boolean }) => {
+      let roomId = '';
+      for (const [id, room] of rooms.entries()) {
+        if (room.participants.has(socket.id)) {
+          roomId = id;
+          break;
+        }
+      }
+      if (!roomId) return;
+      
+      const room = rooms.get(roomId)!;
+      if (!room.voiceParticipants) return;
+      
+      const vp = room.voiceParticipants.find(p => p.id === socket.id);
+      if (vp) {
+        vp.isMuted = payload.isMuted;
+        io.to(roomId).emit(EVENTS.VOICE_STATE_UPDATE, room.voiceParticipants);
+      }
+    });
+
+    socket.on(EVENTS.VOICE_SPEAKING, (payload: { isSpeaking: boolean }) => {
+      let roomId = '';
+      for (const [id, room] of rooms.entries()) {
+        if (room.participants.has(socket.id)) {
+          roomId = id;
+          break;
+        }
+      }
+      if (!roomId) return;
+      
+      const room = rooms.get(roomId)!;
+      if (!room.voiceParticipants) return;
+      
+      const vp = room.voiceParticipants.find(p => p.id === socket.id);
+      if (vp && vp.isSpeaking !== payload.isSpeaking) {
+        vp.isSpeaking = payload.isSpeaking;
+        socket.to(roomId).emit(EVENTS.VOICE_SPEAKING, { isSpeaking: payload.isSpeaking, fromId: socket.id });
+      }
+    });
+
+    socket.on(EVENTS.WEBRTC_OFFER, (payload: { offer: any, targetId: string }) => {
+      io.to(payload.targetId).emit(EVENTS.WEBRTC_OFFER, {
+        offer: payload.offer,
+        fromId: socket.id
+      });
+    });
+
+    socket.on(EVENTS.WEBRTC_ANSWER, (payload: { answer: any, targetId: string }) => {
+      io.to(payload.targetId).emit(EVENTS.WEBRTC_ANSWER, {
+        answer: payload.answer,
+        fromId: socket.id
+      });
+    });
+
+    socket.on(EVENTS.WEBRTC_ICE_CANDIDATE, (payload: { candidate: any, targetId: string }) => {
+      io.to(payload.targetId).emit(EVENTS.WEBRTC_ICE_CANDIDATE, {
+        candidate: payload.candidate,
+        fromId: socket.id
+      });
+    });
+
     socket.on('disconnect', () => {
       // Find which room this socket belongs to
       let roomId = '';
@@ -328,6 +438,15 @@ export const setupSocketHandlers = (io: Server) => {
 
       const room = rooms.get(roomId)!;
       disconnectedParticipant.status = 'disconnected';
+      
+      if (room.voiceParticipants) {
+        const prevLen = room.voiceParticipants.length;
+        room.voiceParticipants = room.voiceParticipants.filter(p => p.id !== socket.id);
+        if (room.voiceParticipants.length !== prevLen) {
+           io.to(roomId).emit(EVENTS.VOICE_STATE_UPDATE, room.voiceParticipants);
+        }
+      }
+
       io.to(roomId).emit(EVENTS.PARTICIPANT_UPDATE, disconnectedParticipant);
 
       const timer = setTimeout(() => {
