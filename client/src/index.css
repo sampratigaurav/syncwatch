@@ -23,3 +23,64 @@ html.light .text-zinc-400 { @apply text-zinc-500; }
 html.light .text-zinc-500 { @apply text-zinc-400; }
 html.light .text-white { @apply text-zinc-900; }
 html.light .bg-zinc-800 { @apply bg-zinc-100; }
+
+@layer utilities {
+  .bg-noise {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+  }
+}
+
+@keyframes orb-float-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(5%, 5%) scale(1.05); }
+  66% { transform: translate(-2%, 8%) scale(0.95); }
+}
+
+@keyframes orb-float-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-5%, -5%) scale(0.95); }
+  66% { transform: translate(5%, -2%) scale(1.05); }
+}
+
+@keyframes orb-float-3 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(5%, -5%) scale(1.05); }
+  66% { transform: translate(-5%, 5%) scale(0.95); }
+}
+
+@keyframes shimmer-sweep {
+  0% { transform: translateX(-150%) skewX(-15deg); }
+  100% { transform: translateX(250%) skewX(-15deg); }
+}
+
+@keyframes dash-flow {
+  to { stroke-dashoffset: -24; }
+}
+
+@keyframes wordmark-reveal {
+  0% { opacity: 0; transform: translateY(10px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.animate-orb-1 { animation: orb-float-1 20s ease-in-out infinite; }
+.animate-orb-2 { animation: orb-float-2 25s ease-in-out infinite; }
+.animate-orb-3 { animation: orb-float-3 30s ease-in-out infinite; }
+.animate-shimmer { animation: shimmer-sweep 4s ease-in-out infinite; }
+.animate-dash { animation: dash-flow 2s linear infinite; }
+.animate-wordmark { animation: wordmark-reveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.animate-pulse-scale { animation: pulse-scale 3s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-orb-1, .animate-orb-2, .animate-orb-3, 
+  .animate-shimmer, .animate-dash, 
+  .animate-wordmark, .animate-pulse-scale {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}

@@ -12,6 +12,60 @@ function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
 
+const Particles = () => {
+  const [particles, setParticles] = useState<Array<{ id: number, x: number, y: number, duration: number, delay: number, size: number, isTeal: boolean }>>([]);
+  
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    
+    const newParticles = Array.from({ length: 18 }).map((_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      duration: 5 + Math.random() * 8, 
+      delay: Math.random() * -10, 
+      size: Math.random() > 0.6 ? 2 : 1, 
+      isTeal: Math.random() > 0.8 
+    }));
+    setParticles(newParticles);
+  }, []);
+
+  if (particles.length === 0) return null;
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 hidden tablet:block mix-blend-screen [.light_&]:mix-blend-multiply">
+      {particles.map(p => (
+        <div
+          key={p.id}
+          className={cn(
+            "absolute rounded-full",
+            p.isTeal ? "bg-teal-400/20 [.light_&]:bg-teal-600/20" : "bg-white/10 [.light_&]:bg-black/10"
+          )}
+          style={{
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            animationDuration: `${p.duration}s`,
+            animationDelay: `${p.delay}s`,
+            animationIterationCount: 'infinite',
+            animationName: 'particleFloat',
+            animationTimingFunction: 'linear'
+          }}
+        />
+      ))}
+      <style>{`
+        @keyframes particleFloat {
+          0% { transform: translateY(10vh); opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { transform: translateY(-40vh); opacity: 0; }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 const STEPS = [
   {
     icon: Link2,
@@ -227,32 +281,44 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto py-12 selection:bg-teal-500/30">
+    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto pt-16 tablet:pt-20 pb-12 selection:bg-teal-500/30 bg-[#080810] [.light_&]:bg-[#FAFAF8] transition-colors duration-500 bg-noise animate-in fade-in duration-500">
         
-      {/* Dynamic Background Glows */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-[120%] -translate-y-1/2 w-[400px] h-[400px] tablet:w-[600px] tablet:h-[600px] desktop:w-[800px] desktop:h-[800px] bg-teal-500/10 [.light_&]:bg-teal-400/20 rounded-full blur-[80px] tablet:blur-[120px] desktop:blur-[140px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 translate-x-[20%] -translate-y-1/2 w-[400px] h-[400px] tablet:w-[600px] tablet:h-[600px] desktop:w-[800px] desktop:h-[800px] bg-amber-500/10 [.light_&]:bg-amber-400/20 rounded-full blur-[80px] tablet:blur-[120px] desktop:blur-[140px] pointer-events-none" />
+      {/* Cinematic Background Orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute -top-[10%] -left-[10%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] bg-[#1D9E75]/[0.06] [.light_&]:bg-teal-500/[0.1] rounded-full blur-[140px] mix-blend-screen [.light_&]:mix-blend-multiply animate-orb-1" />
+        <div className="absolute -bottom-[20%] -right-[10%] w-[70vw] h-[70vw] max-w-[900px] max-h-[900px] bg-[#d97706]/[0.04] [.light_&]:bg-amber-600/[0.08] rounded-full blur-[160px] mix-blend-screen [.light_&]:mix-blend-multiply animate-orb-2" />
+        <div className="absolute top-[20%] left-[30%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] bg-[#7F77DD]/[0.03] [.light_&]:bg-[#7F77DD]/[0.08] rounded-full blur-[120px] mix-blend-screen [.light_&]:mix-blend-multiply animate-orb-3" />
+      </div>
+
+      <Particles />
       
       {/* Content Container */}
       <div className="relative z-10 w-full max-w-[900px] flex flex-col items-center px-4 tablet:px-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
           
         {/* Logo Section */}
-        <div className="flex flex-col items-center mb-8 tablet:mb-12 desktop:mb-16 relative w-full">
-           <h1 className="text-5xl tablet:text-6xl desktop:text-7xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-400 [.light_&]:from-zinc-800 [.light_&]:to-zinc-500 pb-2 text-center drop-shadow-xl" style={{ WebkitTextStroke: '1px rgba(128,128,128,0.2)' }}>
+        <div className="flex flex-col items-center mb-10 tablet:mb-14 desktop:mb-20 relative w-full">
+           <h1 className="text-5xl tablet:text-6xl desktop:text-7xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-400 [.light_&]:from-zinc-800 [.light_&]:to-zinc-500 pb-2 text-center drop-shadow-[0_0_15px_rgba(29,158,117,0.05)] animate-wordmark animate-cinematic-glow delay-[200ms]" style={{ WebkitTextStroke: '1px rgba(128,128,128,0.2)' }}>
              SyncWatch
            </h1>
-           <div className="flex items-center gap-4 w-full justify-center opacity-60 mt-1 text-zinc-300 [.light_&]:text-zinc-600">
-             <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-current"></div>
-             <p className="text-sm font-medium tracking-wide">Same movie. Same moment.</p>
-             <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-current"></div>
+           <div className="flex items-center gap-4 w-full justify-center opacity-60 mt-1 text-zinc-300 [.light_&]:text-zinc-600 animate-in fade-in fill-mode-both duration-700 delay-[500ms]">
+             <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-current relative overflow-hidden"><div className="absolute inset-0 bg-white/50 animate-shimmer" /></div>
+             <p className="text-sm tablet:text-base font-medium tracking-wider uppercase relative overflow-hidden">
+               Same movie. Same moment.
+               <span className="absolute inset-0 -translate-x-[150%] animate-shimmer fill-mode-both delay-1000 bg-gradient-to-r from-transparent via-white/50 [.light_&]:via-black/20 to-transparent mix-blend-overlay" />
+             </p>
+             <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-current relative overflow-hidden"><div className="absolute inset-0 bg-white/50 animate-shimmer" /></div>
            </div>
         </div>
 
-        <div className="w-full flex flex-col items-center space-y-8">
+        <div className="w-full flex flex-col items-center space-y-10 animate-in fade-in fill-mode-both duration-700 delay-[700ms]">
            
            {/* Greeting */}
-           <h2 className="text-xl tablet:text-2xl font-normal text-zinc-300 [.light_&]:text-zinc-600 tracking-wide text-center">
-             {greeting}
+           <h2 className="text-xl tablet:text-[22px] desktop:text-2xl font-light text-zinc-300 [.light_&]:text-zinc-600 tracking-wide text-center">
+             {greeting.replace(/(morning|afternoon|evening)/, '')}
+             <span className="font-medium text-white [.light_&]:text-zinc-800 tracking-wider">
+               {greeting.match(/(morning|afternoon|evening)/)?.[0]}
+             </span>
+             {greeting.slice(greeting.indexOf(',') || greeting.length)}
            </h2>
 
            {/* Create / Join Container */}
@@ -334,9 +400,12 @@ export default function Home() {
              </div>
 
              {/* Join Room Card */}
-             <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-950/60 [.light_&]:bg-zinc-100/60 backdrop-blur-xl border border-white/10 [.light_&]:border-black/5 rounded-2xl p-5 tablet:p-6 flex flex-col gap-4 shadow-xl">
-               <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg">Join Existing</h3>
-               <div className="flex flex-col gap-4">
+             <div className="group/card relative w-full tablet:w-1/2 max-w-[440px] mx-auto bg-white/[0.02] [.light_&]:bg-white/80 backdrop-blur-xl border border-white/[0.06] [.light_&]:border-black/[0.08] hover:border-white/[0.12] [.light_&]:hover:border-black/[0.15] rounded-2xl p-5 tablet:p-6 flex flex-col justify-between gap-4 shadow-[0_20px_60px_rgba(0,0,0,0.4)] [.light_&]:shadow-[0_20px_60px_rgba(0,0,0,0.08)] transition-all duration-300 z-10">
+               <div className="absolute inset-0 rounded-2xl border-t border-white/[0.08] [.light_&]:border-black/[0.05] pointer-events-none mix-blend-overlay"></div>
+               <div className="absolute -inset-4 bg-[#7F77DD]/20 [.light_&]:bg-[#7F77DD]/10 rounded-[2rem] blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 pointer-events-none -z-10"></div>
+               
+               <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg relative z-10">Join Existing</h3>
+               <div className="flex flex-col gap-4 relative z-10">
                  <input 
                    ref={joinNicknameInputRef}
                    type="text"
@@ -345,7 +414,7 @@ export default function Home() {
                      setJoinNickname(e.target.value);
                      if (joinError === 'Please enter a nickname to continue') setJoinError('');
                    }}
-                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/80 [.light_&]:bg-[#fcfbf9]/80 border border-zinc-700 [.light_&]:border-zinc-300 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:border-zinc-500 [.light_&]:focus:border-zinc-400 placeholder-zinc-500 transition-colors text-base tablet:text-lg"
+                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 backdrop-blur-xl border border-white/10 [.light_&]:border-black/10 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:shadow-[0_0_0_3px_rgba(29,158,117,0.15)] focus:border-teal-500 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)] [.light_&]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
                    placeholder="Enter your nickname"
                    maxLength={20}
                  />
@@ -356,7 +425,7 @@ export default function Home() {
                      setInputRoomId(e.target.value.toUpperCase());
                      if (joinError === 'Please enter a room code') setJoinError('');
                    }}
-                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/80 [.light_&]:bg-[#fcfbf9]/80 border border-zinc-700 [.light_&]:border-zinc-300 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:border-zinc-500 [.light_&]:focus:border-zinc-400 placeholder-zinc-500 font-mono tracking-widest uppercase transition-colors text-base tablet:text-lg"
+                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 backdrop-blur-xl border border-white/10 [.light_&]:border-black/10 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:shadow-[0_0_0_3px_rgba(29,158,117,0.15)] focus:border-teal-500 placeholder-zinc-500 font-mono tracking-widest uppercase transition-all text-base tablet:text-lg shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)] [.light_&]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
                    placeholder="ROOM CODE"
                    maxLength={6}
                    disabled={requiresPin}
@@ -377,7 +446,7 @@ export default function Home() {
                          if (joinError) setJoinError('');
                        }}
                        autoFocus
-                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 border border-zinc-700 [.light_&]:border-zinc-300 rounded-xl px-4 tablet:px-5 text-teal-400 [.light_&]:text-teal-600 focus:outline-none focus:border-teal-500 placeholder-zinc-600 transition-colors font-mono tracking-widest text-lg shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
+                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 backdrop-blur-xl border border-white/10 [.light_&]:border-black/10 rounded-xl px-4 tablet:px-5 text-teal-400 [.light_&]:text-teal-600 focus:outline-none focus:shadow-[0_0_0_3px_rgba(29,158,117,0.15)] focus:border-teal-500 placeholder-zinc-600 transition-all font-mono tracking-widest text-lg shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)] [.light_&]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
                        placeholder="Enter PIN"
                        maxLength={4}
                        pattern="\d*"
@@ -387,12 +456,12 @@ export default function Home() {
                </div>
                
                {joinError && (
-                 <div className="text-red-400 [.light_&]:text-red-600 text-sm font-medium px-1 leading-tight mt-[-4px]">{joinError}</div>
+                 <div className="text-red-400 [.light_&]:text-red-600 text-sm font-medium px-1 leading-tight mt-[-4px] relative z-10">{joinError}</div>
                )}
                <button 
                  onClick={handleJoinRoom}
                  disabled={isLoading}
-                 className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-6 font-medium transition-colors active:scale-[0.98] disabled:opacity-50 flex items-center justify-center text-base tablet:text-lg"
+                 className="relative w-full h-12 tablet:h-[52px] min-h-[48px] overflow-hidden rounded-xl font-medium px-5 transition-all duration-300 disabled:opacity-50 hover:brightness-110 shadow-xl group/btn bg-zinc-800/80 hover:bg-zinc-700/80 [.light_&]:bg-white [.light_&]:hover:bg-zinc-50 text-white [.light_&]:text-zinc-900 border border-white/10 [.light_&]:border-zinc-200 active:scale-[0.98] hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(127,119,221,0.2)] z-10 flex items-center justify-center text-base tablet:text-lg"
                >
                  Join Room
                </button>
