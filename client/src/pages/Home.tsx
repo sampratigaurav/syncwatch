@@ -8,17 +8,20 @@ export default function Home() {
   const navigate = useNavigate();
   const { roomId: urlRoomId } = useParams();
   const setRoomId = useRoomStore((s) => s.setRoomId);
-  const { nickname, setNickname } = useRoomStore();
+  const { setNickname } = useRoomStore();
 
+  const savedNickname = localStorage.getItem('syncwatch_nickname') || '';
   const [inputRoomId, setInputRoomId] = useState(urlRoomId || '');
-  const [inputName, setInputName] = useState(nickname);
-  const [error, setError] = useState('');
+  const [createNickname, setCreateNickname] = useState(savedNickname);
+  const [joinNickname, setJoinNickname] = useState(savedNickname);
+  const [createError, setCreateError] = useState('');
+  const [joinError, setJoinError] = useState('');
   const [showExpiredError, setShowExpiredError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [greeting, setGreeting] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const nicknameInputRef = useRef<HTMLInputElement>(null);
+  const joinNicknameInputRef = useRef<HTMLInputElement>(null);
 
   const handleCopyUPI = () => {
     navigator.clipboard.writeText('sampratigaurav123@okaxis');
@@ -38,46 +41,50 @@ export default function Home() {
       setInputRoomId(urlRoomId);
       // Wait a tick for render then focus
       setTimeout(() => {
-        nicknameInputRef.current?.focus();
+        joinNicknameInputRef.current?.focus();
       }, 50);
     }
   }, [urlRoomId]);
 
   const handleCreateRoom = async () => {
-    if (!inputName.trim()) {
-      setError('Nickname is required');
+    const trimmed = createNickname.trim();
+    if (!trimmed || trimmed.length < 2) {
+      setCreateError('Please enter a nickname to continue');
       return;
     }
-    setError('');
+    setCreateError('');
     setIsLoading(true);
+    localStorage.setItem('syncwatch_nickname', trimmed);
     try {
       const res = await fetch(`${SERVER_URL}/api/rooms`, { method: 'POST' });
       if (!res.ok) throw new Error('Failed to create room');
       const data = await res.json();
       setRoomId(data.roomId);
-      setNickname(inputName);
+      setNickname(trimmed);
       navigate(`/room/${data.roomId}/waiting`);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error creating room');
+      setCreateError(err instanceof Error ? err.message : 'Error creating room');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleJoinRoom = async () => {
-    if (!inputName.trim()) {
-      setError('Nickname is required');
+    const trimmed = joinNickname.trim();
+    if (!trimmed || trimmed.length < 2) {
+      setJoinError('Please enter a nickname to continue');
       setShowExpiredError(false);
       return;
     }
     if (!inputRoomId.trim()) {
-      setError('Room ID is required');
+      setJoinError('Please enter a room code');
       setShowExpiredError(false);
       return;
     }
-    setError('');
+    setJoinError('');
     setShowExpiredError(false);
     setIsLoading(true);
+    localStorage.setItem('syncwatch_nickname', trimmed);
     try {
       const code = inputRoomId.trim().toUpperCase();
       const res = await fetch(`${SERVER_URL}/api/rooms/${code}/exists`);
@@ -87,15 +94,15 @@ export default function Home() {
         if (urlRoomId) {
           setShowExpiredError(true);
         } else {
-          setError('Room not found');
+          setJoinError('Room not found');
         }
         return;
       }
       setRoomId(code);
-      setNickname(inputName);
+      setNickname(trimmed);
       navigate(`/room/${code}/waiting`);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error joining room');
+      setJoinError(err instanceof Error ? err.message : 'Error joining room');
     } finally {
       setIsLoading(false);
     }
@@ -134,19 +141,26 @@ export default function Home() {
            <div className="w-full flex flex-col tablet:flex-row items-stretch justify-center gap-4 tablet:gap-6">
 
              {/* Create Room Card */}
-             <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-950/60 [.light_&]:bg-zinc-100/60 backdrop-blur-xl border border-white/10 [.light_&]:border-black/5 rounded-2xl p-5 tablet:p-6 flex flex-col gap-4 shadow-xl">
+              <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-950/60 [.light_&]:bg-zinc-100/60 backdrop-blur-xl border border-white/10 [.light_&]:border-black/5 rounded-2xl p-5 tablet:p-6 flex flex-col gap-4 shadow-xl">
                <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg">Start a New Room</h3>
-               <div className="relative group w-full">
-                 <div className="absolute -inset-[2px] bg-gradient-to-r from-teal-400/50 via-cyan-400/40 to-emerald-400/50 rounded-xl blur-[4px] opacity-80 group-hover:opacity-100 transition duration-500"></div>
-                 <input 
-                   ref={nicknameInputRef}
-                   type="text"
-                   value={inputName}
-                   onChange={e => setInputName(e.target.value)}
-                   className="relative w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 backdrop-blur-xl border border-white/10 [.light_&]:border-white/60 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)] [.light_&]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
-                   placeholder="Enter your nickname"
-                   maxLength={20}
-                 />
+               <div className="flex flex-col gap-2">
+                 <div className="relative group w-full">
+                   <div className="absolute -inset-[2px] bg-gradient-to-r from-teal-400/50 via-cyan-400/40 to-emerald-400/50 rounded-xl blur-[4px] opacity-80 group-hover:opacity-100 transition duration-500"></div>
+                   <input 
+                     type="text"
+                     value={createNickname}
+                     onChange={e => {
+                       setCreateNickname(e.target.value);
+                       if (createError) setCreateError('');
+                     }}
+                     className="relative w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 backdrop-blur-xl border border-white/10 [.light_&]:border-white/60 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)] [.light_&]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
+                     placeholder="Enter your nickname"
+                     maxLength={20}
+                   />
+                 </div>
+                 {createError && (
+                   <div className="text-red-400 [.light_&]:text-red-600 text-sm font-medium px-1 leading-tight">{createError}</div>
+                 )}
                </div>
                <button 
                  onClick={handleCreateRoom}
@@ -162,14 +176,35 @@ export default function Home() {
              {/* Join Room Card */}
              <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-950/60 [.light_&]:bg-zinc-100/60 backdrop-blur-xl border border-white/10 [.light_&]:border-black/5 rounded-2xl p-5 tablet:p-6 flex flex-col gap-4 shadow-xl">
                <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg">Join Existing</h3>
-               <input 
-                 type="text"
-                 value={inputRoomId}
-                 onChange={e => setInputRoomId(e.target.value.toUpperCase())}
-                 className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/80 [.light_&]:bg-[#fcfbf9]/80 border border-zinc-700 [.light_&]:border-zinc-300 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:border-zinc-500 [.light_&]:focus:border-zinc-400 placeholder-zinc-500 font-mono tracking-widest uppercase transition-colors text-base tablet:text-lg"
-                 placeholder="ROOM CODE"
-                 maxLength={6}
-               />
+               <div className="flex flex-col gap-4">
+                 <input 
+                   ref={joinNicknameInputRef}
+                   type="text"
+                   value={joinNickname}
+                   onChange={e => {
+                     setJoinNickname(e.target.value);
+                     if (joinError === 'Please enter a nickname to continue') setJoinError('');
+                   }}
+                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/80 [.light_&]:bg-[#fcfbf9]/80 border border-zinc-700 [.light_&]:border-zinc-300 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:border-zinc-500 [.light_&]:focus:border-zinc-400 placeholder-zinc-500 transition-colors text-base tablet:text-lg"
+                   placeholder="Enter your nickname"
+                   maxLength={20}
+                 />
+                 <input 
+                   type="text"
+                   value={inputRoomId}
+                   onChange={e => {
+                     setInputRoomId(e.target.value.toUpperCase());
+                     if (joinError === 'Please enter a room code') setJoinError('');
+                   }}
+                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/80 [.light_&]:bg-[#fcfbf9]/80 border border-zinc-700 [.light_&]:border-zinc-300 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:border-zinc-500 [.light_&]:focus:border-zinc-400 placeholder-zinc-500 font-mono tracking-widest uppercase transition-colors text-base tablet:text-lg"
+                   placeholder="ROOM CODE"
+                   maxLength={6}
+                 />
+               </div>
+               
+               {joinError && (
+                 <div className="text-red-400 [.light_&]:text-red-600 text-sm font-medium px-1 leading-tight mt-[-4px]">{joinError}</div>
+               )}
                <button 
                  onClick={handleJoinRoom}
                  disabled={isLoading}
@@ -181,31 +216,25 @@ export default function Home() {
 
            </div>
 
-           {/* Error Display */}
-           {(error || showExpiredError) && (
+           {/* Expired Room Error */}
+           {showExpiredError && (
              <div className="w-full max-w-[440px] mx-auto mt-4">
-               {showExpiredError ? (
-                 <div className="flex flex-col items-center p-4 bg-zinc-900/80 [.light_&]:bg-zinc-100/80 backdrop-blur-md rounded-xl border border-white/10 [.light_&]:border-black/5 shadow-lg">
-                   <p className="text-zinc-300 [.light_&]:text-zinc-700 text-center mb-4 text-sm tablet:text-base font-medium">
-                     This room has expired or does not exist. Create a new room to start watching together.
-                   </p>
-                   <button 
-                     onClick={() => {
-                       setShowExpiredError(false);
-                       setInputRoomId('');
-                       navigate('/');
-                       nicknameInputRef.current?.focus();
-                     }}
-                     className="px-5 py-2.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 [.light_&]:text-teal-600 rounded-lg transition-colors font-semibold text-sm"
-                   >
-                     Create a new room
-                   </button>
-                 </div>
-               ) : (
-                 <div className="text-red-400 [.light_&]:text-red-600 text-sm text-center bg-red-500/20 [.light_&]:bg-red-500/10 py-3 rounded-lg border border-red-500/20 font-medium tracking-wide">
-                   {error}
-                 </div>
-               )}
+               <div className="flex flex-col items-center p-4 bg-zinc-900/80 [.light_&]:bg-zinc-100/80 backdrop-blur-md rounded-xl border border-white/10 [.light_&]:border-black/5 shadow-lg">
+                 <p className="text-zinc-300 [.light_&]:text-zinc-700 text-center mb-4 text-sm tablet:text-base font-medium">
+                   This room has expired or does not exist. Create a new room to start watching together.
+                 </p>
+                 <button 
+                   onClick={() => {
+                     setShowExpiredError(false);
+                     setInputRoomId('');
+                     navigate('/');
+                     joinNicknameInputRef.current?.focus();
+                   }}
+                   className="px-5 py-2.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 [.light_&]:text-teal-600 rounded-lg transition-colors font-semibold text-sm"
+                 >
+                   Create a new room
+                 </button>
+               </div>
              </div>
            )}
 
