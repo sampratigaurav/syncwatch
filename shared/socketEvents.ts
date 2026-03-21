@@ -22,4 +22,6 @@ export const EVENTS = {
   CONTROL_POLICY_UPDATE: 'control_policy_update',
   ROOM_NOT_FOUND: 'room_not_found',
   SUBTITLE_STATE_BROADCAST: 'subtitle_state_broadcast',
+  WRONG_PASSWORD: 'wrong_password',
+  ROOM_REQUIRES_PASSWORD: 'room_requires_password',
 } as const;

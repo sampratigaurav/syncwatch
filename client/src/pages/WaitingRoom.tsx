@@ -5,7 +5,7 @@ import { useFileVerify } from '../hooks/useFileVerify';
 import { useNavigate, useParams } from 'react-router-dom';
 import ParticipantList from '../components/ParticipantList';
 import ControlPolicySelector from '../components/ControlPolicySelector';
-import { Copy, Check, Play, AlertTriangle, Loader2, WifiOff } from 'lucide-react';
+import { Copy, Check, Play, AlertTriangle, Loader2, WifiOff, Lock } from 'lucide-react';
 
 export default function WaitingRoom() {
   const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState } = useRoomStore();
@@ -209,7 +209,15 @@ export default function WaitingRoom() {
         <div className="tablet:col-span-1 space-y-6">
           <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 tablet:p-5 shadow-xl flex items-center justify-between">
             <div>
-              <p className="text-[11px] text-zinc-500 uppercase tracking-widest font-semibold mb-1">Room Code</p>
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-[11px] text-zinc-500 uppercase tracking-widest font-semibold leading-none">Room Code</p>
+                {useRoomStore.getState().roomHasPassword && (
+                  <div className="flex items-center gap-1 text-zinc-500 bg-zinc-800/50 px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
+                    <Lock size={10} className="mb-[1px]" />
+                    <span>Private</span>
+                  </div>
+                )}
+              </div>
               <p className="text-2xl font-mono font-bold text-white tracking-widest leading-none">{roomId}</p>
             </div>
             <button 

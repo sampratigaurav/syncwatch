@@ -25,8 +25,12 @@ interface RoomStore {
   reconnectAttempt: number;
   subtitleBlobUrl: string | null;
   subtitleEnabled: boolean;
+  roomPassword: string | null;
+  roomHasPassword: boolean;
   
   setLastActionAt: () => void;
+  setRoomPassword: (pass: string | null) => void;
+  setRoomHasPassword: (has: boolean) => void;
   setRoomId: (id: string | null) => void;
   setNickname: (name: string) => void;
   setRole: (role: ParticipantRole | null) => void;
@@ -69,8 +73,12 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   reconnectAttempt: 0,
   subtitleBlobUrl: null,
   subtitleEnabled: false,
+  roomPassword: null,
+  roomHasPassword: false,
 
   setLastActionAt: () => set({ lastActionAt: Date.now() }),
+  setRoomPassword: (pass) => set({ roomPassword: pass }),
+  setRoomHasPassword: (has) => set({ roomHasPassword: has }),
   setRoomId: (id) => set({ roomId: id }),
   setNickname: (name) => {
     localStorage.setItem('nickname', name);
@@ -111,7 +119,9 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
       connectionStatus: 'connecting',
       reconnectAttempt: 0,
       subtitleBlobUrl: null,
-      subtitleEnabled: false
+      subtitleEnabled: false,
+      roomPassword: null,
+      roomHasPassword: false
     });
   },
   toggleTheme: () => set((state) => {

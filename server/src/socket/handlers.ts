@@ -1,4 +1,5 @@
 import { Server, Socket } from 'socket.io';
+import crypto from 'crypto';
 import { rooms } from '../rooms/RoomManager';
 import { EVENTS } from '../../../shared/socketEvents';
 import { Participant, RoomState, PlaybackEvent } from '../../../shared/types';
@@ -23,12 +24,25 @@ function canControl(room: RoomState, socketId: string): boolean {
 export const setupSocketHandlers = (io: Server) => {
   io.on('connection', (socket: Socket) => {
 
-    socket.on(EVENTS.JOIN_ROOM, (payload: { roomId: string, nickname: string }) => {
-      const { roomId, nickname } = payload;
+    socket.on(EVENTS.JOIN_ROOM, (payload: { roomId: string, nickname: string, password?: string }) => {
+      const { roomId, nickname, password } = payload;
       const room = rooms.get(roomId);
       if (!room) {
         socket.emit(EVENTS.ROOM_NOT_FOUND, { roomId });
         return; // handle error or emit not found
+      }
+
+      if (room.hasPassword) {
+        if (!password) {
+          socket.emit(EVENTS.ROOM_REQUIRES_PASSWORD, { roomId });
+          return;
+        }
+        const hash = crypto.createHash('sha256').update(password).digest('hex');
+        if (hash !== room.password) {
+          // TODO: add rate limiting on wrong PIN attempts before production
+          socket.emit(EVENTS.WRONG_PASSWORD, { message: 'Incorrect PIN' });
+          return;
+        }
       }
       
       // cancel disconnect timer if rejoining
@@ -90,6 +104,9 @@ export const setupSocketHandlers = (io: Server) => {
         ...room,
         participants: Array.from(room.participants.values())
       };
+      
+      // CRITICAL: Ensure password is never transmitted implicitly via room state objects
+      delete (roomStatePayload as any).password;
 
       socket.emit(EVENTS.ROOM_STATE, roomStatePayload);
       socket.to(roomId).emit(EVENTS.PARTICIPANT_UPDATE, participant);

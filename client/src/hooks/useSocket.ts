@@ -25,8 +25,13 @@ export const useSocket = () => {
       setIsConnected(true);
       setConnectionStatus('connected');
       setReconnectAttempt(0);
-      if (useRoomStore.getState().roomId && useRoomStore.getState().nickname) {
-        socket.emit(EVENTS.JOIN_ROOM, { roomId: useRoomStore.getState().roomId, nickname: useRoomStore.getState().nickname });
+      const state = useRoomStore.getState();
+      if (state.roomId && state.nickname) {
+        socket.emit(EVENTS.JOIN_ROOM, { 
+          roomId: state.roomId, 
+          nickname: state.nickname,
+          password: state.roomPassword || undefined
+        });
       }
     };
 
@@ -64,7 +69,11 @@ export const useSocket = () => {
       setReconnectAttempt(0);
       const state = useRoomStore.getState();
       if (state.roomId && state.nickname) {
-        socket.emit(EVENTS.JOIN_ROOM, { roomId: state.roomId, nickname: state.nickname });
+        socket.emit(EVENTS.JOIN_ROOM, { 
+          roomId: state.roomId, 
+          nickname: state.nickname,
+          password: state.roomPassword || undefined
+        });
       }
     });
 
@@ -74,6 +83,16 @@ export const useSocket = () => {
 
     socket.on(EVENTS.ROOM_NOT_FOUND, () => {
       setConnectionStatus('room_not_found');
+    });
+
+    socket.on(EVENTS.ROOM_REQUIRES_PASSWORD, () => {
+      alert('Room requires a PIN.');
+      window.location.href = '/';
+    });
+    
+    socket.on(EVENTS.WRONG_PASSWORD, () => {
+      alert('Incorrect room PIN.');
+      window.location.href = '/';
     });
 
     socket.on(EVENTS.HOST_LEFT, () => {
@@ -104,6 +123,7 @@ export const useSocket = () => {
        setParticipants(roomState.participants);
        setPlayback(roomState.playback);
        useRoomStore.getState().setControlPolicy(roomState.controlPolicy, roomState.controllerIds);
+       useRoomStore.getState().setRoomHasPassword(roomState.hasPassword);
        const me = roomState.participants.find((p: Participant) => p.id === socket.id);
        if (me) setRole(me.role);
     });
@@ -132,6 +152,8 @@ export const useSocket = () => {
       socket.off('reconnect');
       socket.off('reconnect_failed');
       socket.off(EVENTS.ROOM_NOT_FOUND);
+      socket.off(EVENTS.ROOM_REQUIRES_PASSWORD);
+      socket.off(EVENTS.WRONG_PASSWORD);
       socket.off(EVENTS.CHAT_BROADCAST);
       socket.off(EVENTS.PARTICIPANT_UPDATE);
       socket.off(EVENTS.ROOM_STATE);

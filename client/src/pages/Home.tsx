@@ -1,8 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Coffee, Copy, Check } from 'lucide-react';
+import { Coffee, Copy, Check, Lock, Unlock } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { SERVER_URL } from '../lib/config';
+import { socket } from '../hooks/useSocket';
+import { EVENTS } from '../../../shared/socketEvents';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: (string | undefined | null | false)[]) {
+  return twMerge(clsx(inputs));
+}
 
 export default function Home() {
   const navigate = useNavigate();
@@ -16,6 +24,12 @@ export default function Home() {
   const [joinNickname, setJoinNickname] = useState(savedNickname);
   const [createError, setCreateError] = useState('');
   const [joinError, setJoinError] = useState('');
+  
+  const [lockRoom, setLockRoom] = useState(false);
+  const [createPin, setCreatePin] = useState('');
+  const [requiresPin, setRequiresPin] = useState(false);
+  const [joinPin, setJoinPin] = useState('');
+
   const [showExpiredError, setShowExpiredError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [greeting, setGreeting] = useState('');
@@ -52,13 +66,29 @@ export default function Home() {
       setCreateError('Please enter a nickname to continue');
       return;
     }
+    if (lockRoom) {
+      if (!createPin) {
+        setCreateError('Please enter a 4-digit PIN');
+        return;
+      }
+      if (!/^\d{4}$/.test(createPin)) {
+        setCreateError('PIN must be exactly 4 digits');
+        return;
+      }
+    }
     setCreateError('');
     setIsLoading(true);
     localStorage.setItem('syncwatch_nickname', trimmed);
     try {
-      const res = await fetch(`${SERVER_URL}/api/rooms`, { method: 'POST' });
+      const res = await fetch(`${SERVER_URL}/api/rooms`, { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(lockRoom ? { password: createPin } : {})
+      });
       if (!res.ok) throw new Error('Failed to create room');
       const data = await res.json();
+      
+      useRoomStore.getState().setRoomPassword(lockRoom ? createPin : null);
       setRoomId(data.roomId);
       setNickname(trimmed);
       navigate(`/room/${data.roomId}/waiting`);
@@ -85,33 +115,80 @@ export default function Home() {
       setShowExpiredError(false);
       return;
     }
+    if (requiresPin) {
+      if (!joinPin || !/^\d{4}$/.test(joinPin)) {
+        setJoinError('PIN must be exactly 4 digits');
+        return;
+      }
+    }
     setJoinError('');
     setShowExpiredError(false);
     setIsLoading(true);
     localStorage.setItem('syncwatch_nickname', trimmed);
+    
     try {
       const code = inputRoomId.trim().toUpperCase();
-      const res = await fetch(`${SERVER_URL}/api/rooms/${code}/exists`);
-      if (!res.ok) throw new Error('Failed to check room');
-      const data = await res.json();
-      if (!data.exists) {
-        if (urlRoomId) {
-          setShowExpiredError(true);
-        } else {
-          setJoinError('Room not found');
+      
+      if (!requiresPin) {
+        const res = await fetch(`${SERVER_URL}/api/rooms/${code}/exists`);
+        if (!res.ok) throw new Error('Failed to check room');
+        const data = await res.json();
+        
+        if (!data.exists) {
+          if (urlRoomId) {
+            setShowExpiredError(true);
+          } else {
+            setJoinError('Room not found');
+          }
+          setIsLoading(false);
+          return;
         }
-        return;
+        
+        if (data.hasPassword) {
+          setRequiresPin(true);
+          setIsLoading(false);
+          return;
+        }
       }
-      setRoomId(code);
-      setNickname(trimmed);
-      navigate(`/room/${code}/waiting`);
+
+      if (requiresPin) {
+        const handleWrongPassword = () => {
+          setJoinError('Incorrect PIN. Please try again.');
+          setJoinPin('');
+          setIsLoading(false);
+          cleanup();
+        };
+        
+        const handleRoomState = () => {
+          useRoomStore.getState().setRoomPassword(joinPin);
+          setRoomId(code);
+          setNickname(trimmed);
+          cleanup();
+          navigate(`/room/${code}/waiting`);
+        };
+
+        const cleanup = () => {
+          socket.off(EVENTS.WRONG_PASSWORD, handleWrongPassword);
+          socket.off(EVENTS.ROOM_STATE, handleRoomState);
+        };
+
+        socket.once(EVENTS.WRONG_PASSWORD, handleWrongPassword);
+        socket.once(EVENTS.ROOM_STATE, handleRoomState);
+        
+        if (!socket.connected) socket.connect();
+        socket.emit(EVENTS.JOIN_ROOM, { roomId: code, nickname: trimmed, password: joinPin });
+      } else {
+        useRoomStore.getState().setRoomPassword(null);
+        setRoomId(code);
+        setNickname(trimmed);
+        navigate(`/room/${code}/waiting`);
+      }
     } catch (err: unknown) {
       if (err instanceof TypeError) {
          setJoinError('Could not reach the server. Please try again in a moment.');
       } else {
          setJoinError(err instanceof Error ? err.message : 'Error joining room');
       }
-    } finally {
       setIsLoading(false);
     }
   };
@@ -150,7 +227,10 @@ export default function Home() {
 
              {/* Create Room Card */}
               <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-950/60 [.light_&]:bg-zinc-100/60 backdrop-blur-xl border border-white/10 [.light_&]:border-black/5 rounded-2xl p-5 tablet:p-6 flex flex-col gap-4 shadow-xl">
-               <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg">Start a New Room</h3>
+               <div className="flex items-center gap-2">
+                 <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg">Start a New Room</h3>
+                 {lockRoom && <Lock size={16} className="text-teal-400 mt-0.5" />}
+               </div>
                <div className="flex flex-col gap-2">
                  <div className="relative group w-full">
                    <div className="absolute -inset-[2px] bg-gradient-to-r from-teal-400/50 via-cyan-400/40 to-emerald-400/50 rounded-xl blur-[4px] opacity-80 group-hover:opacity-100 transition duration-500"></div>
@@ -166,7 +246,44 @@ export default function Home() {
                      maxLength={20}
                    />
                  </div>
-                 {createError && (
+                 
+                 <div className="flex items-center justify-between mt-2 mb-1 px-1">
+                   <div className="flex items-center gap-2">
+                     {lockRoom ? <Lock size={16} className="text-teal-400" /> : <Unlock size={16} className="text-zinc-500" />}
+                     <span className="text-sm font-medium text-zinc-300 [.light_&]:text-zinc-700">Lock room with a PIN</span>
+                   </div>
+                   <button 
+                     onClick={() => {
+                       setLockRoom(!lockRoom);
+                       if (createError) setCreateError('');
+                     }}
+                     className={cn("w-10 h-5 rounded-full relative transition-colors focus:outline-none", lockRoom ? "bg-teal-500" : "bg-zinc-700 [.light_&]:bg-zinc-300")}
+                   >
+                     <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[2px] transition-transform", lockRoom ? "translate-x-[22px]" : "translate-x-0.5")} />
+                   </button>
+                 </div>
+                 
+                 {lockRoom && (
+                   <div className="animate-in fade-in slide-in-from-top-2 duration-300 mt-1">
+                     <p className="text-xs text-zinc-500 mb-1.5 ml-1">Anyone joining will need this PIN</p>
+                     <input
+                       type="password"
+                       value={createPin}
+                       onChange={e => {
+                         const val = e.target.value.replace(/\D/g, '').substring(0, 4);
+                         setCreatePin(val);
+                         if (createError) setCreateError('');
+                       }}
+                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 border border-zinc-700 [.light_&]:border-zinc-300 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:border-teal-500 placeholder-zinc-600 transition-colors font-mono tracking-widest text-lg shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
+                       placeholder="4-digit PIN"
+                       maxLength={4}
+                       pattern="\d*"
+                     />
+                   </div>
+                 )}
+                 
+
+               {createError && (
                    <div className="text-red-400 [.light_&]:text-red-600 text-sm font-medium px-1 leading-tight">{createError}</div>
                  )}
                </div>
@@ -209,7 +326,31 @@ export default function Home() {
                    className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/80 [.light_&]:bg-[#fcfbf9]/80 border border-zinc-700 [.light_&]:border-zinc-300 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:border-zinc-500 [.light_&]:focus:border-zinc-400 placeholder-zinc-500 font-mono tracking-widest uppercase transition-colors text-base tablet:text-lg"
                    placeholder="ROOM CODE"
                    maxLength={6}
+                   disabled={requiresPin}
                  />
+                 
+                 {requiresPin && (
+                   <div className="animate-in fade-in slide-in-from-top-2 duration-300 mt-1">
+                     <div className="flex items-center gap-2 mb-2 ml-1">
+                       <Lock size={14} className="text-teal-400" />
+                       <span className="text-sm font-medium text-zinc-300 [.light_&]:text-zinc-700">This room is locked</span>
+                     </div>
+                     <input
+                       type="password"
+                       value={joinPin}
+                       onChange={e => {
+                         const val = e.target.value.replace(/\D/g, '').substring(0, 4);
+                         setJoinPin(val);
+                         if (joinError) setJoinError('');
+                       }}
+                       autoFocus
+                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 border border-zinc-700 [.light_&]:border-zinc-300 rounded-xl px-4 tablet:px-5 text-teal-400 [.light_&]:text-teal-600 focus:outline-none focus:border-teal-500 placeholder-zinc-600 transition-colors font-mono tracking-widest text-lg shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
+                       placeholder="Enter PIN"
+                       maxLength={4}
+                       pattern="\d*"
+                     />
+                   </div>
+                 )}
                </div>
                
                {joinError && (

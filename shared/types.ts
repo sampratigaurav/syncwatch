@@ -34,6 +34,8 @@ export interface RoomState {
   createdAt: number
   playback: PlaybackState
   subtitleState: SubtitleState
+  hasPassword: boolean
+  password: string | null
   participants: Map<string, Participant>
   chatHistory: ChatMessage[]
   fileHash: string | null
