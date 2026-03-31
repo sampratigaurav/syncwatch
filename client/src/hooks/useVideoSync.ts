@@ -53,7 +53,7 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
       // Reset the flag shortly after
       setTimeout(() => {
         isApplyingRemoteEvent.current = false;
-      }, 50);
+      }, 250);
     };
 
     const handleSubtitleBroadcast = (event: { isEnabled: boolean, trackIndex: number }) => {

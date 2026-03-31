@@ -1,22 +1,40 @@
+import { createClient } from 'redis';
 import { RoomState, Participant } from '../../../shared/types';
 
-export const rooms = new Map<string, RoomState>();
+// Serialized form stored in Redis — participants as array instead of Map
+interface SerializedRoomState extends Omit<RoomState, 'participants'> {
+  participants: Participant[];
+}
 
-const ROOM_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+export const redisClient = createClient({ url: process.env.REDIS_URL });
 
-// Periodically remove rooms that have been alive for more than 24 hours
-export const startRoomCleanup = () => {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [id, room] of rooms.entries()) {
-      if (now - room.createdAt > ROOM_TTL_MS) {
-        rooms.delete(id);
-      }
-    }
-  }, 60 * 60 * 1000); // run hourly
-};
+redisClient.on('error', (err) => console.error('Redis client error:', err));
 
-export const createRoom = (id: string, passwordHash: string | null = null, passwordSalt: string | null = null): RoomState => {
+redisClient.connect();
+
+const ROOM_KEY = (id: string) => `room:${id}`;
+const TTL = 86400; // 24 hours
+
+function serialize(room: RoomState): string {
+  const serializable: SerializedRoomState = {
+    ...room,
+    participants: Array.from(room.participants.values())
+  };
+  return JSON.stringify(serializable);
+}
+
+function deserialize(json: string): RoomState {
+  const data: SerializedRoomState = JSON.parse(json);
+  return {
+    ...data,
+    participants: new Map(data.participants.map((p) => [p.id, p]))
+  };
+}
+
+// No-op: Redis TTL handles room expiry automatically
+export const startRoomCleanup = () => {};
+
+export const createRoom = async (id: string, passwordHash: string | null = null, passwordSalt: string | null = null): Promise<RoomState> => {
   const newRoom: RoomState = {
     id,
     createdAt: Date.now(),
@@ -42,10 +60,20 @@ export const createRoom = (id: string, passwordHash: string | null = null, passw
     controllerIds: [],
     voiceParticipants: []
   };
-  rooms.set(id, newRoom);
+  await redisClient.set(ROOM_KEY(id), serialize(newRoom), { EX: TTL });
   return newRoom;
 };
 
-export const deleteRoom = (id: string) => {
-  rooms.delete(id);
+export const getRoom = async (id: string): Promise<RoomState | null> => {
+  const json = await redisClient.get(ROOM_KEY(id));
+  if (!json) return null;
+  return deserialize(json);
+};
+
+export const setRoom = async (room: RoomState): Promise<void> => {
+  await redisClient.set(ROOM_KEY(room.id), serialize(room), { EX: TTL });
+};
+
+export const deleteRoom = async (id: string): Promise<void> => {
+  await redisClient.del(ROOM_KEY(id));
 };

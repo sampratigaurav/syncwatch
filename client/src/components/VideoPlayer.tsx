@@ -186,7 +186,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
     }, []);
 
-    const progressPercentage = (currentTime / duration) * 100;
+    const progressPercentage = (currentTime / (duration || 1)) * 100;
 
     return (
       <div 

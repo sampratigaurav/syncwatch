@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
-import { rooms, createRoom } from '../rooms/RoomManager';
+import { createRoom, getRoom } from '../rooms/RoomManager';
 
 export const roomRouter = Router();
 
@@ -14,7 +14,7 @@ const createRoomLimiter = rateLimit({
   message: { error: 'Too many rooms created. Please try again later.' }
 });
 
-roomRouter.post('/', createRoomLimiter, (req, res) => {
+roomRouter.post('/', createRoomLimiter, async (req, res) => {
   const { password } = req.body || {};
   let hash: string | null = null;
   let salt: string | null = null;
@@ -28,13 +28,13 @@ roomRouter.post('/', createRoomLimiter, (req, res) => {
   }
 
   const roomId = crypto.randomBytes(3).toString('hex').toUpperCase();
-  createRoom(roomId, hash, salt);
+  await createRoom(roomId, hash, salt);
   res.json({ roomId });
 });
 
-roomRouter.get('/:id/exists', (req, res) => {
+roomRouter.get('/:id/exists', async (req, res) => {
   const { id } = req.params;
-  const room = rooms.get(id);
+  const room = await getRoom(id);
   if (room) {
     res.json({ exists: true, hasPassword: room.hasPassword });
   } else {
