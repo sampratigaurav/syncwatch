@@ -41,6 +41,8 @@ const corsOptions = {
 
     if (ALLOWED_ORIGINS.has(origin)) {
       callback(null, true);
+    } else if (origin.startsWith('chrome-extension://')) {
+      callback(null, true);
     } else {
       callback(null, false);
     }
