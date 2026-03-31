@@ -2,12 +2,13 @@ import { RoomState, Participant } from '../../../shared/types';
 
 export const rooms = new Map<string, RoomState>();
 
-export const createRoom = (id: string, passwordHash: string | null = null): RoomState => {
+export const createRoom = (id: string, passwordHash: string | null = null, passwordSalt: string | null = null): RoomState => {
   const newRoom: RoomState = {
     id,
     createdAt: Date.now(),
     hasPassword: passwordHash !== null,
     password: passwordHash,
+    passwordSalt,
     playback: {
       isPlaying: false,
       currentTime: 0,

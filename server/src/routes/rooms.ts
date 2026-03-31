@@ -6,17 +6,19 @@ export const roomRouter = Router();
 
 roomRouter.post('/', (req, res) => {
   const { password } = req.body || {};
-  let hash = null;
-  
+  let hash: string | null = null;
+  let salt: string | null = null;
+
   if (password) {
     if (!/^\d{4}$/.test(password)) {
       return res.status(400).json({ error: 'Password must be exactly 4 digits' });
     }
-    hash = crypto.createHash('sha256').update(password).digest('hex');
+    salt = crypto.randomBytes(16).toString('hex');
+    hash = crypto.pbkdf2Sync(password, salt, 100_000, 32, 'sha256').toString('hex');
   }
 
-  const roomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-  createRoom(roomId, hash);
+  const roomId = crypto.randomBytes(3).toString('hex').toUpperCase();
+  createRoom(roomId, hash, salt);
   res.json({ roomId });
 });
 
