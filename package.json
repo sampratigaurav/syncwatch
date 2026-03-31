@@ -15,7 +15,9 @@
     "build:server": "npm run build -w server",
     "build:client": "npm run build -w client",
     "build": "npm run build:server && npm run build:client",
-    "start:server": "npm start -w server"
+    "start:server": "npm start -w server",
+    "lint": "npm run lint -w client",
+    "test:integration": "node server/test/integration.js"
   },
   "dependencies": {
     "autoprefixer": "^10.4.27",

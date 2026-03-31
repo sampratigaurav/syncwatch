@@ -1,7 +1,7 @@
 // shared/types.ts
 
 export type ParticipantRole = 'host' | 'viewer'
-export type ParticipantStatus = 'ready' | 'buffering' | 'disconnected'
+export type ParticipantStatus = 'ready' | 'buffering' | 'disconnected' | 'removed'
 
 export interface Participant {
   id: string

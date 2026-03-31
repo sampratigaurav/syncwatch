@@ -1,0 +1,632 @@
+﻿SyncWatch
+Project Documentation
+Real-time Synchronized Watch Party
+v1.0 — MVP Specification
+March 2026
+
+
+"A shared remote control over the internet for your local video player."
+
+
+________________
+
+
+SECTION 1
+Product Requirements Document (PRD)
+What this product is
+SyncWatch is a real-time synchronized watch-party application that lets two or more users watch the same locally stored video file together by sharing only playback control signals over the internet. No video data ever leaves a user's device. The server acts purely as a signal relay — it knows what happened (play at 01:23:45) but never touches the media itself.
+
+
+  
+
+
+
+The one-line pitch: a shared remote control over the internet for your local video player.
+
+
+What this product is NOT
+This is the most important section. Every future feature request must be filtered through this list.
+
+
+Category
+	Excluded
+	Why it matters
+	Video streaming
+	No hosting, uploading, buffering pipelines
+	Makes the project 10× harder, adds legal surface area
+	Screen sharing
+	No video encoding/compression/capture
+	Different product entirely (Discord does this)
+	Content platform
+	No library, recommendations, accounts (MVP)
+	Separate product category
+	Piracy infrastructure
+	App distributes zero content
+	Users must already possess the file
+	Frame-perfect sync
+	Target is 100–500ms accuracy, not frame-level
+	Frame sync requires deep media pipeline work
+	Large-scale infra
+	Not designed for public rooms or 100+ users
+	Scope creep killer
+	Netflix/YouTube clone
+	No CDN, no transcoding, no DRM
+	Wrong product entirely
+	
+
+Core Principles (Non-Negotiable)
+These are truths the entire codebase is built around. If any feature violates one, reject it.
+
+
+* No video transfer — the server and network layer never touch media bytes
+* Local-first playback — each device is responsible for its own video rendering
+* Host authority — one participant is the source of truth for playback state
+* Continuous sync — drift correction runs on an interval, not just at join time
+* File verification before sync — both parties must confirm same file before room becomes active
+
+
+User Stories (MVP)
+As a host
+* I can create a room and get a shareable link
+* I can select a local video file
+* I can play, pause, and seek — and all viewers follow automatically
+* I can see who is in the room and whether anyone is buffering
+As a viewer
+* I can join a room via a link
+* I can select my local copy of the same file
+* I am warned if my file doesn't match the host's
+* My player follows the host's state automatically
+* I can signal that I'm buffering and the host's player will pause
+As either
+* I can chat in a side panel
+* I can see everyone's connection status
+* I can see a latency indicator for my connection
+
+
+Feature List
+MVP — Must Ship
+* Room creation with unique room code / link
+* Join room via code or link
+* Local file selection via browser file picker
+* File verification (filename + size + partial hash)
+* Play / Pause sync
+* Seek sync
+* Host authority model with clear visual indicator
+* Drift correction loop (every 5 seconds)
+* Buffering state broadcast (auto-pauses host)
+* Reconnection grace period (30 seconds)
+* Basic text chat
+* Room participant list with status indicators
+* Latency display per user
+Post-MVP
+* Subtitle file (.srt / .vtt) sync
+* Host transfer (pass the remote to someone else)
+* Latency-aware seek offset (compensate for round-trip time)
+* Persistent user nicknames (localStorage, no auth)
+* Room password protection
+* Mobile responsive layout
+* Reactions / emoji overlay
+Never — Out of Scope
+* Video upload or hosting
+* Server-side media processing
+* User accounts / authentication system
+* Public room discovery
+* Content recommendations
+* Screen capture
+
+
+Tech Stack
+Frontend
+Layer
+	Choice
+	Reason
+	Framework
+	React (Vite)
+	Fast dev server, great ecosystem, easy state management
+	Styling
+	Tailwind CSS
+	Rapid UI, no context switching
+	Video player
+	HTML5 <video> element
+	Native browser API, exposes all events (play, pause, seeked, waiting, canplay)
+	WebSocket client
+	Socket.io-client
+	Handles reconnection logic automatically
+	State management
+	Zustand
+	Lightweight, no boilerplate, easy for vibe coding
+	
+
+Backend
+Layer
+	Choice
+	Reason
+	Runtime
+	Node.js
+	Same language as frontend, fast I/O
+	Framework
+	Express
+	Minimal, well-documented
+	WebSocket
+	Socket.io
+	Room abstractions built in, handles reconnects
+	Language
+	TypeScript
+	Catches sync-state bugs at compile time
+	
+
+Infrastructure
+Layer
+	Choice
+	Reason
+	Hosting (server)
+	Railway or Render (free tier)
+	Zero config deployments
+	Hosting (frontend)
+	Vercel
+	Instant deploys from git
+	Database
+	None (MVP)
+	All state is ephemeral in-memory on the server
+	Room state storage
+	In-memory Map on server
+	Rooms die when server restarts — fine for MVP
+	
+
+No database in MVP. This is intentional. Rooms are ephemeral. When everyone leaves, the room is garbage collected. Persistence adds complexity with zero user value at this stage.
+________________
+
+
+SECTION 2
+Architecture Design
+System Overview
+  
+
+
+
+Folder Structure
+syncwatch/
+├── client/                        # React frontend (Vite)
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── VideoPlayer.tsx    # HTML5 <video> wrapper, emits events
+│   │   │   ├── RoomControls.tsx   # Play/pause/seek UI buttons
+│   │   │   ├── ParticipantList.tsx
+│   │   │   ├── Chat.tsx
+│   │   │   ├── FileSelector.tsx   # File picker + hash computation
+│   │   │   └── SyncStatus.tsx     # Latency + drift indicators
+│   │   ├── hooks/
+│   │   │   ├── useSocket.ts       # Socket.io connection + event listeners
+│   │   │   ├── useVideoSync.ts    # Core sync logic (apply incoming events)
+│   │   │   ├── useFileVerify.ts   # Hash computation worker
+│   │   │   └── useDriftCorrection.ts
+│   │   ├── store/
+│   │   │   └── roomStore.ts       # Zustand: room, participants, playback
+│   │   ├── lib/
+│   │   │   ├── hashFile.ts        # Web Worker for non-blocking hashing
+│   │   │   └── socketEvents.ts    # Typed event name constants
+│   │   ├── pages/
+│   │   │   ├── Home.tsx           # Create / join room
+│   │   │   └── Room.tsx           # Main watch room
+│   │   └── main.tsx
+│   └── vite.config.ts
+├── server/
+│   ├── src/
+│   │   ├── rooms/
+│   │   │   ├── RoomManager.ts     # In-memory Map, create/join/leave/gc
+│   │   │   └── RoomState.ts       # Type definitions for room
+│   │   ├── socket/
+│   │   │   ├── handlers.ts        # All socket event handlers
+│   │   │   └── middleware.ts      # Rate limiting, validation
+│   │   ├── routes/
+│   │   │   └── rooms.ts           # POST /rooms, GET /rooms/:id/exists
+│   │   └── index.ts               # Express + Socket.io bootstrap
+│   └── tsconfig.json
+├── shared/
+│   └── types.ts                   # Shared TypeScript types
+└── package.json                   # Monorepo root (npm workspaces)
+
+
+In-Memory Data Model
+Since there's no database, all state lives in a server-side Map. Here's the exact shape:
+// shared/types.ts
+
+
+type ParticipantRole   = "host" | "viewer"
+type ParticipantStatus = "ready" | "buffering" | "disconnected"
+
+
+interface Participant {
+  id: string              // socket.id
+  nickname: string        // user-chosen, stored in localStorage
+  role: ParticipantRole
+  status: ParticipantStatus
+  fileHash: string | null // null until file selected + verified
+  latencyMs: number       // updated via ping/pong
+  joinedAt: number        // Date.now()
+}
+
+
+interface PlaybackState {
+  isPlaying: boolean
+  currentTime: number     // seconds
+  lastUpdatedAt: number   // server timestamp when this was set
+  hostId: string
+}
+
+
+interface RoomState {
+  id: string              // 6-char alphanumeric code
+  createdAt: number
+  playback: PlaybackState
+  participants: Map<string, Participant>
+  chatHistory: ChatMessage[]  // capped at last 100 messages
+  fileHash: string | null     // set by host, viewers must match
+  fileName: string | null
+  fileSize: number | null
+}
+
+
+interface ChatMessage {
+  id: string
+  senderId: string
+  senderNickname: string
+  text: string
+  timestamp: number
+}
+
+
+// Server-side store
+const rooms = new Map<string, RoomState>()
+
+
+Socket Event Map
+  
+
+
+
+Sync Logic Flow
+  
+
+
+
+File Verification Flow
+This must complete before the room enters a "ready" state. It runs entirely in the client using a Web Worker so it doesn't block the UI thread.
+
+
+1. Host selects file
+2. Client computes: SHA-256(first 1MB of file) + fileSize + fileName
+3. Client emits file_verified { hash, size, name } to server
+4. Server stores hash as the room's "expected file signature"
+5. Viewer selects their file
+6. Client computes the same three values
+7. Client emits file_verified to server
+8. Server compares: if hash/size mismatch → emit file_mismatch to that viewer
+9. If match → viewer.status = "ready", broadcast participant_update
+10. Room is fully ready when host.status = "ready" AND all viewers.status = "ready"
+________________
+
+
+SECTION 3
+AI Rules Document
+This is your .cursorrules or system prompt for any AI assistant you use. Paste this at the top of every coding session.
+
+
+
+
+## SyncWatch — AI coding rules (non-negotiable)
+
+
+### What this project is
+A real-time watch-party app. Users watch locally stored video files in sync.
+The server relays control signals only. No video data ever touches the server.
+
+
+### The golden rule
+If a feature requires sending video bytes over the network → REJECT IT.
+No exceptions.
+
+
+
+
+Stack — Do Not Deviate Without Asking
+Layer
+	Technology
+	Frontend
+	React + Vite + TypeScript + Tailwind + Zustand + Socket.io-client
+	Backend
+	Node.js + Express + Socket.io + TypeScript
+	Video
+	HTML5 <video> element only. No video.js, no Plyr, no third-party player.
+	Monorepo
+	npm workspaces (client/, server/, shared/)
+	
+
+Architecture Rules
+Rule 1 — No Database in MVP
+All room state is in-memory (Map on server). Ask before adding any persistence layer.
+Rule 2 — Never Send Video Data
+Not as chunks, not as base64, not as streams. The file picker is for local playback only.
+Rule 3 — All Socket Events Must Be Typed
+ALL socket events must be defined in shared/types.ts with full TypeScript types. Never use any for socket event payloads.
+Rule 4 — Server-Side Host Validation
+The server MUST validate that playback_event emitters are the room host. Viewers cannot emit playback events. Enforce this server-side, not just client-side.
+Rule 5 — Drift Correction in Hook Only
+Drift correction belongs in useDriftCorrection.ts hook. Do not inline it in the video component or anywhere else.
+Rule 6 — File Hashing in Web Worker
+File hashing MUST use a Web Worker (lib/hashFile.ts). Never hash on the main thread — it blocks the UI.
+Rule 7 — Event Name Constants
+ALL socket event names must be imported from lib/socketEvents.ts constants. Never hardcode event name strings in components or handlers.
+
+
+Sync Rules — Critical
+Rule
+	Value / Behaviour
+	Drift threshold
+	500ms — if delta > 500ms, seek viewer to host time
+	Drift correction interval
+	Every 5 seconds — not on every frame (causes thrashing)
+	Echo prevention
+	Set isApplyingRemoteEvent = true before applying remote event, then reset
+	Buffering behaviour
+	Any participant buffering → pause all → wait for canplay → resume
+	Latency offset
+	viewer.seek(targetTime + viewer.latencyMs / 2000)
+	
+
+Code Style Rules
+* TypeScript strict mode always. No any, no // @ts-ignore.
+* Every component has a single responsibility. VideoPlayer only handles the <video> element. Sync logic lives in hooks.
+* No business logic in JSX. Components render; hooks think.
+* Error states must be handled. Disconnection, file mismatch, and buffering are not edge cases — they are core flows.
+
+
+Things to NEVER Build
+Even if asked. Even if it seems harmless.
+* Video upload endpoint
+* Server-side video storage or streaming
+* Screen capture or encoding
+* Public room directory
+* Authentication / user accounts (MVP)
+* Any feature that requires reading video bytes server-side
+
+
+Naming Conventions
+What
+	Convention
+	Example
+	Socket events
+	snake_case
+	join_room, playback_event, file_verified
+	React components
+	PascalCase
+	VideoPlayer, ParticipantList
+	Hooks
+	camelCase with "use" prefix
+	useVideoSync, useDriftCorrection
+	Types/Interfaces
+	PascalCase, no "I" prefix
+	RoomState, Participant
+	Constants
+	SCREAMING_SNAKE_CASE
+	DRIFT_THRESHOLD_MS
+	
+
+Decision Filter
+When unsure about a feature, run it through these questions in order:
+11. "Does this require sending video data?" → Yes = REJECT
+12. "Does this help sync playback?" → Yes = Consider
+13. "Is this in the MVP feature list?" → No = Defer to post-MVP
+________________
+
+
+SECTION 4
+Development Roadmap
+Phase Overview
+  
+
+
+
+Phase 0 — Foundation (Day 1)
+Goal: A monorepo that builds with zero errors. Nothing user-facing yet.
+
+
+# Scaffold
+mkdir syncwatch && cd syncwatch
+npm init -y
+mkdir client server shared
+
+
+# Client
+cd client && npm create vite@latest . -- --template react-ts
+npm install socket.io-client zustand tailwindcss
+
+
+# Server
+cd ../server && npm init -y
+npm install express socket.io
+npm install -D typescript @types/node @types/express ts-node nodemon
+
+
+# Shared types
+cd ../shared && npm init -y
+
+
+Deliverables:
+* shared/types.ts with all interfaces written out (RoomState, Participant, PlaybackState, all socket event payloads)
+* socketEvents.ts constants file with all event name strings
+* Both apps boot without errors
+* Server logs "listening on 3001", client renders a blank Vite page
+Phase 1 — Rooms + Video Player (Days 2–3)
+Goal: Users can create and join rooms. Video plays locally. No sync yet.
+
+
+Step 1.1 — Room creation (server)
+* POST /rooms → generates 6-char room code, creates RoomState in Map, returns { roomId }
+* GET /rooms/:id/exists → returns { exists: boolean } for join validation
+* Socket: join_room handler — add participant to room, set role (first joiner = host), broadcast participant_update
+* Socket: disconnect handler — remove participant, start 30s grace timer before removing from room
+Step 1.2 — Home page (client)
+* Two buttons: Create Room, Join Room
+* Join Room: text input for room code + nickname, validate with GET /rooms/:id/exists
+* On create: hit POST /rooms, store roomId in Zustand, navigate to /room/:id
+* Nickname stored in localStorage
+Step 1.3 — Video player component
+* Use <input type="file" accept="video/*"> → creates URL.createObjectURL(file) → sets as <video src>
+* Expose refs to play, pause, seek, currentTime
+* Listen to native events: play, pause, seeked, waiting, canplay — store in Zustand
+* Do NOT wire these to socket yet — just confirm local playback works
+Step 1.4 — Participant list component
+* Shows connected participants, roles, and statuses
+* Driven by participant_update socket events
+
+
+Test checkpoint: Two browser tabs can join the same room and see each other in the participant list. Video plays locally in each tab independently.
+Phase 2 — Core Sync Engine (Days 4–6)
+This is the hardest phase. Take your time here.
+
+
+Step 2.1 — File verification
+* Implement lib/hashFile.ts as a Web Worker
+* Worker takes a File, reads the first 1MB as ArrayBuffer, runs SubtleCrypto SHA-256
+* Returns { hash, size, name }
+* When user selects file, auto-run verification and emit file_verified to server
+* Server: on file_verified from host → store as room's expected signature
+* Server: on file_verified from viewer → compare with stored signature → emit file_mismatch if different
+* Show clear UI error on mismatch: "Your file doesn't match the host's file"
+Step 2.2 — Play / Pause sync
+* Host side: intercept native play and pause events → emit playback_event { action, currentTime, timestamp }
+* Server: validate sender is host → broadcast playback_broadcast to all other room members
+* Viewer side: on playback_broadcast → apply: video.play() or video.pause() and seek to currentTime
+* Critical: suppress the echo. Set isApplyingRemoteEvent = true, apply action, reset flag. Skip emission if flag is set.
+Step 2.3 — Seek sync
+* Host seeked event → emit playback_event { action: "seek", currentTime }
+* Same broadcast path as play/pause
+* Same echo suppression logic
+Step 2.4 — Drift correction
+* Implement useDriftCorrection.ts hook
+* Every 5 seconds: host emits playback_event { action: "sync_check", currentTime }
+* Viewer receives → if |video.currentTime - event.currentTime| > 0.5 → seek to event.currentTime
+* This handles gradual drift that accumulates between explicit events
+Step 2.5 — Buffering state
+* Viewer waiting event → emit buffering_state { isBuffering: true }
+* Server: if any participant is buffering → emit force_pause to all + store room is "paused for buffering"
+* Viewer canplay event → emit buffering_state { isBuffering: false }
+* Server: when all participants are no longer buffering → emit resume_allowed to host
+Step 2.6 — Latency measurement
+* Client emits ping { sentAt: Date.now() } every 10 seconds
+* Server immediately emits pong { sentAt } back to same client
+* Client receives pong: latencyMs = (Date.now() - sentAt) / 2
+* Apply latency offset when seeking: targetTime + latencyMs / 2000
+
+
+Test checkpoint: Two browser tabs. Host plays → viewer plays. Host pauses → viewer pauses. Host seeks to 5:00 → viewer jumps to 5:00. Viewer disconnects WiFi for 10 seconds, reconnects → viewer resyncs within one drift correction cycle.
+Phase 3 — Polish and Chat (Days 7–8)
+Step 3.1 — Chat panel
+* Client emits chat_message { text } (server adds timestamp, senderId, nickname)
+* Server broadcasts chat_broadcast { id, senderNickname, text, timestamp } to room
+* Simple scrollable list, auto-scroll to bottom on new message
+* Cap at 100 messages in server memory
+Step 3.2 — Reconnection handling
+* Socket.io handles transport reconnection automatically
+* On reconnect: client re-emits join_room → server restores participant status
+* Server holds room alive for 30 seconds after all participants disconnect
+* Viewer rejoining gets current playback_state in room_state event → auto-seeks to current position
+Step 3.3 — Status and error states
+Every state needs a UI treatment. Don't leave users guessing.
+
+
+State
+	UI Message
+	waiting_for_file
+	"Select your video file to continue"
+	file_mismatch
+	Red warning, exact file details shown
+	participant_buffering
+	Spinner badge on participant, "Waiting for [name]..." banner
+	disconnected
+	Yellow badge, "Reconnecting..."
+	host_left
+	"Host has left. Room will close in 30 seconds."
+	room_not_found
+	Redirect to home with error message
+	
+
+Step 3.4 — Sync status indicator
+* Small persistent indicator showing: latency in ms, last sync time, drift amount
+* Color coded: green < 200ms, amber 200–500ms, red > 500ms
+Phase 4 — Deploy (Day 9)
+Server deploy — Railway
+// server/package.json
+"scripts": {
+  "build": "tsc",
+  "start": "node dist/index.js"
+}
+
+
+// Set in Railway environment:
+// PORT (Railway sets this automatically)
+// CLIENT_ORIGIN=https://your-app.vercel.app
+
+
+// CORS config in server/src/index.ts
+const io = new Server(server, {
+  cors: {
+    origin: process.env.CLIENT_ORIGIN || "http://localhost:5173",
+    methods: ["GET", "POST"]
+  }
+})
+
+
+Client deploy — Vercel
+# client/.env.production
+VITE_SERVER_URL=https://your-server.railway.app
+
+
+Smoke Test Checklist
+* Create room from phone, join from laptop
+* Both select the same video file
+* File hash matches — no mismatch warning
+* Play/pause syncs within 500ms
+* Seek syncs correctly
+* Chat works bidirectionally
+* One tab disconnects and reconnects — resync happens automatically
+* File mismatch warning shows correctly when wrong file selected
+
+
+Decision Log
+When you hit a fork, refer here before asking the AI.
+
+
+Decision
+	Choice
+	Reason
+	Database in MVP?
+	No
+	Rooms are ephemeral, complexity not worth it
+	Third-party player?
+	No
+	HTML5 native API is sufficient and lighter
+	Frame-perfect sync?
+	No
+	100–500ms is good enough, frame sync is a different product
+	Auth in MVP?
+	No
+	localStorage nicknames are enough
+	Multi-host?
+	No
+	One source of truth is the core architecture
+	P2P (WebRTC)?
+	No
+	Server relay is simpler, more reliable, easier to debug
+	Subtitle sync?
+	Post-MVP
+	Same principles, easy to add later
+	
+
+
+
+
+
+SyncWatch — Project Documentation
+v1.0 MVP Specification — March 2026

@@ -8,3 +8,20 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .DS_Store
+
+# Build / test output logs (should not be committed)
+testOutput.txt
+vite_build_output.txt
+tsc_output.txt
+client/tsc_output.txt
+client/test_err.txt
+
+# Binary documents (use docs/ folder for text versions)
+*.docx
+*.doc
+
+# Ad-hoc dev helper scripts
+runner.js
+
+# Compiled shared package output (TypeScript source is used directly)
+shared/*.js
