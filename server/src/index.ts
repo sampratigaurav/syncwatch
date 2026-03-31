@@ -4,7 +4,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
 import { roomRouter } from './routes/rooms';
-import { setupSocketHandlers } from './socket/handlers';
+import { setupSocketHandlers } from './socket/index';
 import { startRoomCleanup } from './rooms/RoomManager';
 
 const app = express();
