@@ -14,7 +14,7 @@ export const socket: Socket = io(SERVER_URL, {
   timeout: 20000,
 });
 
-export const useSocket = () => {
+export const useSocket = (navigate?: (to: string) => void) => {
   const { 
     setIsConnected, setLatency, addChatMessage, setParticipants, 
     setPlayback, setRole, setConnectionStatus, setReconnectAttempt 
@@ -30,7 +30,8 @@ export const useSocket = () => {
         socket.emit(EVENTS.JOIN_ROOM, { 
           roomId: state.roomId, 
           nickname: state.nickname,
-          password: state.roomPassword || undefined
+          password: state.roomPassword || undefined,
+          reconnectToken: state.reconnectToken || undefined,
         });
       }
     };
@@ -72,7 +73,8 @@ export const useSocket = () => {
         socket.emit(EVENTS.JOIN_ROOM, { 
           roomId: state.roomId, 
           nickname: state.nickname,
-          password: state.roomPassword || undefined
+          password: state.roomPassword || undefined,
+          reconnectToken: state.reconnectToken || undefined,
         });
       }
     });
@@ -86,18 +88,25 @@ export const useSocket = () => {
     });
 
     socket.on(EVENTS.ROOM_REQUIRES_PASSWORD, () => {
-      alert('Room requires a PIN.');
-      window.location.href = '/';
+      useRoomStore.getState().setErrorToast('Room requires a PIN.');
+      if (navigate) navigate('/');
     });
     
     socket.on(EVENTS.WRONG_PASSWORD, () => {
-      alert('Incorrect room PIN.');
-      window.location.href = '/';
+      useRoomStore.getState().setErrorToast('Incorrect room PIN.');
+      if (navigate) navigate('/');
     });
 
     socket.on(EVENTS.HOST_LEFT, () => {
-      alert('Host has left');
-      window.location.href = '/';
+      useRoomStore.getState().setErrorToast('The host has left the room.');
+      if (navigate) navigate('/');
+    });
+
+    // Store the reconnect token issued by the server so we can present it on reconnection
+    socket.on(EVENTS.RECONNECT_TOKEN, (data: { token: string }) => {
+      if (data && typeof data.token === 'string') {
+        useRoomStore.getState().setReconnectToken(data.token);
+      }
     });
 
     socket.on(EVENTS.CHAT_BROADCAST, (msg) => {
@@ -124,7 +133,7 @@ export const useSocket = () => {
        setPlayback(roomState.playback);
        useRoomStore.getState().setControlPolicy(roomState.controlPolicy, roomState.controllerIds);
        useRoomStore.getState().setRoomHasPassword(roomState.hasPassword);
-       // Fix 7: Clear PIN from state immediately after successful join — no need to hold it in memory
+       // Clear PIN from state immediately after successful join — no need to hold it in memory
        useRoomStore.getState().setRoomPassword(null);
        const me = roomState.participants.find((p: Participant) => p.id === socket.id);
        if (me) setRole(me.role);
@@ -156,6 +165,7 @@ export const useSocket = () => {
       socket.off(EVENTS.ROOM_NOT_FOUND);
       socket.off(EVENTS.ROOM_REQUIRES_PASSWORD);
       socket.off(EVENTS.WRONG_PASSWORD);
+      socket.off(EVENTS.RECONNECT_TOKEN);
       socket.off(EVENTS.CHAT_BROADCAST);
       socket.off(EVENTS.PARTICIPANT_UPDATE);
       socket.off(EVENTS.ROOM_STATE);
@@ -163,7 +173,7 @@ export const useSocket = () => {
       socket.off(EVENTS.PONG);
       socket.off(EVENTS.HOST_LEFT);
     };
-  }, [setIsConnected, setLatency, addChatMessage, setParticipants, setPlayback, setRole, setConnectionStatus, setReconnectAttempt]);
+  }, [setIsConnected, setLatency, addChatMessage, setParticipants, setPlayback, setRole, setConnectionStatus, setReconnectAttempt, navigate]);
 
   return socket;
 };

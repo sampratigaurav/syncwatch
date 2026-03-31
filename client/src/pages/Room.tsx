@@ -26,10 +26,11 @@ export default function Room() {
     roomId, nickname, localFileUrl, role, participants, 
     connectionStatus, reconnectAttempt, clearRoomState,
     subtitleBlobUrl, setSubtitleBlobUrl,
-    subtitleEnabled, setSubtitleEnabled
+    subtitleEnabled, setSubtitleEnabled,
+    errorToast, setErrorToast
   } = useRoomStore();
   const navigate = useNavigate();
-  useSocket(); 
+  useSocket(navigate); 
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const wasPlayingBeforeBuffer = useRef<boolean>(false);
@@ -44,6 +45,14 @@ export default function Room() {
   
   const hasControl = useRoomStore(state => state.canIControl());
   const prevHasControl = useRef(hasControl);
+
+  // Show errorToast from Zustand (set by useSocket) as an in-app notification
+  useEffect(() => {
+    if (errorToast) {
+      setToastMessage(errorToast);
+      setErrorToast(null);
+    }
+  }, [errorToast, setErrorToast]);
 
   useEffect(() => {
     const handleViewportResize = () => {

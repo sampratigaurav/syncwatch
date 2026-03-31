@@ -9,6 +9,7 @@ export const EVENTS = {
   SET_CONTROL_POLICY: 'set_control_policy',
 
   // server → client
+  RECONNECT_TOKEN: 'reconnect_token',
   ROOM_STATE: 'room_state',
   PLAYBACK_BROADCAST: 'playback_broadcast',
   PARTICIPANT_UPDATE: 'participant_update',

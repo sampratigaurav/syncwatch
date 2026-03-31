@@ -2,13 +2,20 @@ import { Server, Socket } from 'socket.io';
 import crypto from 'crypto';
 import { rooms } from '../rooms/RoomManager';
 import { EVENTS } from '../../../shared/socketEvents';
-import { Participant, RoomState, PlaybackEvent } from '../../../shared/types';
+import { Participant, RoomState, PlaybackEvent, ControlPolicy } from '../../../shared/types';
 
 const disconnectTimers = new Map<string, NodeJS.Timeout>();
 const bufferingTimers = new Map<string, NodeJS.Timeout>();
 const lastReactionTimes = new Map<string, number>();
+// PIN attempts keyed by IP, not socket id, to prevent bypass via reconnection
 const pinAttemptTimes = new Map<string, number[]>();
 const lastChatTimes = new Map<string, number[]>();
+
+// Reconnect tokens: token → { roomId, nickname, role }
+// Allows a participant to reclaim their previous role after a disconnect
+const reconnectTokens = new Map<string, { roomId: string; nickname: string; role: 'host' | 'viewer' }>();
+// Track the current reconnect token for each socket so we can clean up on removal
+const socketToToken = new Map<string, string>();
 
 const MAX_NICKNAME_LENGTH = 50;
 const MAX_MESSAGE_LENGTH = 1000;
@@ -16,6 +23,16 @@ const MAX_PIN_ATTEMPTS = 5;
 const PIN_WINDOW_MS = 60_000;
 const MAX_CHAT_PER_WINDOW = 5;
 const CHAT_WINDOW_MS = 3_000;
+const MAX_FILE_NAME_LENGTH = 255;
+const VALID_HASH_RE = /^[0-9a-f]{64}$/i; // SHA-256 hex string
+const VALID_CONTROL_POLICIES: ControlPolicy[] = ['host_only', 'everyone', 'selected'];
+
+function getClientIp(socket: Socket): string {
+  const forwarded = socket.handshake.headers['x-forwarded-for'];
+  return typeof forwarded === 'string'
+    ? forwarded.split(',')[0].trim()
+    : socket.handshake.address;
+}
 
 function canControl(room: RoomState, socketId: string): boolean {
   if (room.controlPolicy === 'everyone') return true;
@@ -31,13 +48,34 @@ function canControl(room: RoomState, socketId: string): boolean {
   return false;
 }
 
+/** Issue a fresh reconnect token and send it to the socket. */
+function issueReconnectToken(socket: Socket, roomId: string, nickname: string, role: 'host' | 'viewer') {
+  // Revoke any existing token for this socket
+  const oldToken = socketToToken.get(socket.id);
+  if (oldToken) reconnectTokens.delete(oldToken);
+
+  const token = crypto.randomBytes(32).toString('hex');
+  reconnectTokens.set(token, { roomId, nickname, role });
+  socketToToken.set(socket.id, token);
+  socket.emit(EVENTS.RECONNECT_TOKEN, { token });
+}
+
+/** Remove all reconnect tokens belonging to a given socket. */
+function revokeReconnectToken(socketId: string) {
+  const token = socketToToken.get(socketId);
+  if (token) {
+    reconnectTokens.delete(token);
+    socketToToken.delete(socketId);
+  }
+}
+
 export const setupSocketHandlers = (io: Server) => {
   io.on('connection', (socket: Socket) => {
 
-    socket.on(EVENTS.JOIN_ROOM, (payload: { roomId: string, nickname: string, password?: string }) => {
-      const { roomId, nickname, password } = payload;
+    socket.on(EVENTS.JOIN_ROOM, (payload: { roomId: string, nickname: string, password?: string, reconnectToken?: string }) => {
+      const { roomId, nickname, password, reconnectToken } = payload;
 
-      // Fix 8: Server-side nickname validation
+      // Server-side nickname validation
       if (!nickname || typeof nickname !== 'string' || nickname.trim().length < 1 || nickname.length > MAX_NICKNAME_LENGTH) {
         socket.emit('error', { message: 'Nickname must be 1-50 characters' });
         return;
@@ -46,7 +84,7 @@ export const setupSocketHandlers = (io: Server) => {
       const room = rooms.get(roomId);
       if (!room) {
         socket.emit(EVENTS.ROOM_NOT_FOUND, { roomId });
-        return; // handle error or emit not found
+        return;
       }
 
       if (room.hasPassword) {
@@ -55,9 +93,10 @@ export const setupSocketHandlers = (io: Server) => {
           return;
         }
 
-        // Fix 2: Rate limit PIN attempts per socket (5 per 60s)
+        // Rate limit PIN attempts per IP (not socket id) to prevent bypass via reconnect
+        const ip = getClientIp(socket);
         const now = Date.now();
-        const recentAttempts = (pinAttemptTimes.get(socket.id) || []).filter(t => now - t < PIN_WINDOW_MS);
+        const recentAttempts = (pinAttemptTimes.get(ip) || []).filter(t => now - t < PIN_WINDOW_MS);
         if (recentAttempts.length >= MAX_PIN_ATTEMPTS) {
           socket.emit(EVENTS.WRONG_PASSWORD, { message: 'Too many attempts. Please wait before trying again.' });
           return;
@@ -66,15 +105,15 @@ export const setupSocketHandlers = (io: Server) => {
         const hash = crypto.pbkdf2Sync(password, room.passwordSalt!, 100_000, 32, 'sha256').toString('hex');
         if (hash !== room.password) {
           recentAttempts.push(now);
-          pinAttemptTimes.set(socket.id, recentAttempts);
+          pinAttemptTimes.set(ip, recentAttempts);
           socket.emit(EVENTS.WRONG_PASSWORD, { message: 'Incorrect PIN' });
           return;
         }
-        // Successful auth: clear attempt history
-        pinAttemptTimes.delete(socket.id);
+        // Successful auth: clear attempt history for this IP
+        pinAttemptTimes.delete(ip);
       }
       
-      // cancel disconnect timer if rejoining
+      // Cancel disconnect timer if rejoining
       if (disconnectTimers.has(socket.id)) {
         clearTimeout(disconnectTimers.get(socket.id));
         disconnectTimers.delete(socket.id);
@@ -91,14 +130,31 @@ export const setupSocketHandlers = (io: Server) => {
       let existing = room.participants.get(socket.id);
       
       if (!existing) {
-        const disconnectedMatch = Array.from(room.participants.values()).find(p => p.nickname === nickname && p.status === 'disconnected');
-        if (disconnectedMatch) {
-          room.participants.delete(disconnectedMatch.id);
-          existing = disconnectedMatch;
-          if (disconnectTimers.has(disconnectedMatch.id)) {
-            clearTimeout(disconnectTimers.get(disconnectedMatch.id));
-            disconnectTimers.delete(disconnectedMatch.id);
+        // Allow role reclamation only when the client presents a valid reconnect token
+        if (reconnectToken && typeof reconnectToken === 'string') {
+          const tokenData = reconnectTokens.get(reconnectToken);
+          if (
+            tokenData &&
+            tokenData.roomId === roomId &&
+            tokenData.nickname === nickname
+          ) {
+            // Find the disconnected participant slot by the stored nickname
+            const disconnectedMatch = Array.from(room.participants.values()).find(
+              p => p.nickname === nickname && p.status === 'disconnected'
+            );
+            if (disconnectedMatch) {
+              room.participants.delete(disconnectedMatch.id);
+              existing = disconnectedMatch;
+              if (disconnectTimers.has(disconnectedMatch.id)) {
+                clearTimeout(disconnectTimers.get(disconnectedMatch.id));
+                disconnectTimers.delete(disconnectedMatch.id);
+              }
+            }
+            // Consume the token (single-use); a fresh one will be issued below
+            reconnectTokens.delete(reconnectToken);
+            socketToToken.delete(socket.id);
           }
+          // If token is invalid or mismatched, the user simply joins as a new participant
         }
       }
 
@@ -128,20 +184,36 @@ export const setupSocketHandlers = (io: Server) => {
 
       room.participants.set(socket.id, participant);
 
+      // Issue a fresh reconnect token so the client can reclaim this slot on reconnect
+      issueReconnectToken(socket, roomId, nickname, role);
+
       // Serialize participants map to array for client
       const roomStatePayload = {
         ...room,
         participants: Array.from(room.participants.values())
       };
       
-      // CRITICAL: Ensure password is never transmitted implicitly via room state objects
+      // Never transmit the password hash or salt to clients
       delete (roomStatePayload as any).password;
+      delete (roomStatePayload as any).passwordSalt;
+      // Do not send historical chat to new joiners; new messages are pushed via CHAT_BROADCAST
+      delete (roomStatePayload as any).chatHistory;
 
       socket.emit(EVENTS.ROOM_STATE, roomStatePayload);
       socket.to(roomId).emit(EVENTS.PARTICIPANT_UPDATE, participant);
     });
 
     socket.on(EVENTS.FILE_VERIFIED, (payload: { hash: string, size: number, name: string }) => {
+      // Validate payload fields before trusting them
+      if (
+        !payload ||
+        typeof payload.hash !== 'string' || !VALID_HASH_RE.test(payload.hash) ||
+        typeof payload.size !== 'number' || !Number.isFinite(payload.size) || payload.size < 0 ||
+        typeof payload.name !== 'string' || payload.name.length === 0 || payload.name.length > MAX_FILE_NAME_LENGTH
+      ) {
+        return;
+      }
+
       let roomId = '';
       let participant: Participant | undefined;
       for (const [id, room] of rooms.entries()) {
@@ -211,7 +283,7 @@ export const setupSocketHandlers = (io: Server) => {
       if (!roomId || !participant) return;
       
       const room = rooms.get(roomId)!;
-      if (!canControl(room, socket.id)) return; // Validate against control policy
+      if (!canControl(room, socket.id)) return;
 
       if (payload.action === 'play') room.playback.isPlaying = true;
       if (payload.action === 'pause') room.playback.isPlaying = false;
@@ -224,7 +296,12 @@ export const setupSocketHandlers = (io: Server) => {
            isEnabled: room.subtitleState.isEnabled,
            trackIndex: room.subtitleState.trackIndex
         });
-        return; // Complete routing exclusively for subtitles without altering video engine blocks
+        return;
+      }
+
+      // Validate currentTime is a finite non-negative number
+      if (typeof payload.currentTime !== 'number' || !Number.isFinite(payload.currentTime) || payload.currentTime < 0) {
+        return;
       }
 
       room.playback.currentTime = payload.currentTime;
@@ -239,7 +316,12 @@ export const setupSocketHandlers = (io: Server) => {
       });
     });
 
-    socket.on(EVENTS.SET_CONTROL_POLICY, (payload: { policy: any, controllerIds: string[] }) => {
+    socket.on(EVENTS.SET_CONTROL_POLICY, (payload: { policy: ControlPolicy, controllerIds: string[] }) => {
+      // Validate policy is one of the allowed values
+      if (!payload || !VALID_CONTROL_POLICIES.includes(payload.policy)) return;
+      // Validate controllerIds is an array of strings that exist in the room
+      if (!Array.isArray(payload.controllerIds)) return;
+
       let roomId = '';
       let participant: Participant | undefined;
       for (const [id, room] of rooms.entries()) {
@@ -254,8 +336,14 @@ export const setupSocketHandlers = (io: Server) => {
       if (participant.role !== 'host') return;
 
       const room = rooms.get(roomId)!;
+
+      // Only allow IDs that actually belong to participants in this room
+      const validControllerIds = payload.controllerIds.filter(
+        id => typeof id === 'string' && room.participants.has(id)
+      );
+
       room.controlPolicy = payload.policy;
-      room.controllerIds = payload.controllerIds;
+      room.controllerIds = validControllerIds;
 
       io.to(roomId).emit(EVENTS.CONTROL_POLICY_UPDATE, {
         policy: room.controlPolicy,
@@ -264,6 +352,9 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.BUFFERING_STATE, (payload: { isBuffering: boolean }) => {
+      // Validate boolean type
+      if (!payload || typeof payload.isBuffering !== 'boolean') return;
+
       let roomId = '';
       let participant: Participant | undefined;
       for (const [id, room] of rooms.entries()) {
@@ -311,12 +402,11 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.CHAT_MESSAGE, (payload: { text: string }) => {
-      // Fix 6: Validate message content
       if (!payload.text || typeof payload.text !== 'string') return;
       const trimmed = payload.text.trim();
       if (trimmed.length === 0 || trimmed.length > MAX_MESSAGE_LENGTH) return;
 
-      // Fix 6: Rate limit chat messages (5 per 3s per socket)
+      // Rate limit chat messages (5 per 3s per socket)
       const now = Date.now();
       const recentChats = (lastChatTimes.get(socket.id) || []).filter(t => now - t < CHAT_WINDOW_MS);
       if (recentChats.length >= MAX_CHAT_PER_WINDOW) return;
@@ -337,7 +427,7 @@ export const setupSocketHandlers = (io: Server) => {
       const room = rooms.get(roomId)!;
 
       const message = {
-        id: crypto.randomUUID(), // Fix 10: Use cryptographically random ID
+        id: crypto.randomUUID(),
         senderId: participant.id,
         senderNickname: participant.nickname,
         text: trimmed,
@@ -402,6 +492,9 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.VOICE_MUTE_TOGGLE, (payload: { isMuted: boolean }) => {
+      // Validate boolean type
+      if (!payload || typeof payload.isMuted !== 'boolean') return;
+
       let roomId = '';
       for (const [id, room] of rooms.entries()) {
         if (room.participants.has(socket.id)) {
@@ -441,7 +534,7 @@ export const setupSocketHandlers = (io: Server) => {
       }
     });
 
-    // Fix 5: Validate that WebRTC target is in the same room as the sender
+    // Validate that WebRTC target is in the same room as the sender
     const getSharedRoom = (senderSocketId: string, targetSocketId: string): string | null => {
       for (const [roomId, room] of rooms.entries()) {
         if (room.participants.has(senderSocketId) && room.participants.has(targetSocketId)) {
@@ -476,7 +569,6 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on('disconnect', () => {
-      // Find which room this socket belongs to
       let roomId = '';
       let disconnectedParticipant: Participant | undefined;
       
@@ -488,7 +580,13 @@ export const setupSocketHandlers = (io: Server) => {
         }
       }
 
-      if (!roomId || !disconnectedParticipant) return;
+      if (!roomId || !disconnectedParticipant) {
+        // No room found — still clean up per-socket state
+        revokeReconnectToken(socket.id);
+        lastReactionTimes.delete(socket.id);
+        lastChatTimes.delete(socket.id);
+        return;
+      }
 
       const room = rooms.get(roomId)!;
       disconnectedParticipant.status = 'disconnected';
@@ -507,6 +605,8 @@ export const setupSocketHandlers = (io: Server) => {
         const p = room.participants.get(socket.id);
         if (p && p.status === 'disconnected') {
           room.participants.delete(socket.id);
+          // Revoke the reconnect token when the participant slot is permanently removed
+          revokeReconnectToken(socket.id);
           io.to(roomId).emit(EVENTS.PARTICIPANT_UPDATE, { ...p, status: 'removed' });
           if (p.role === 'host') {
              io.to(roomId).emit(EVENTS.HOST_LEFT);
@@ -520,8 +620,8 @@ export const setupSocketHandlers = (io: Server) => {
 
       disconnectTimers.set(socket.id, timer);
       lastReactionTimes.delete(socket.id);
-      pinAttemptTimes.delete(socket.id);
       lastChatTimes.delete(socket.id);
+      // Note: pinAttemptTimes is keyed by IP, not socket id — no cleanup needed here
     });
 
     socket.on(EVENTS.SEND_REACTION, (payload: { emoji: string }) => {

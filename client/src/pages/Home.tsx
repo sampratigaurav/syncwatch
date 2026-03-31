@@ -155,11 +155,11 @@ export default function Home() {
     }
     if (lockRoom) {
       if (!createPin) {
-        setCreateError('Please enter a 4-digit PIN');
+        setCreateError('Please enter a PIN');
         return;
       }
-      if (!/^\d{4}$/.test(createPin)) {
-        setCreateError('PIN must be exactly 4 digits');
+      if (!/^[a-zA-Z0-9]{4,8}$/.test(createPin)) {
+        setCreateError('PIN must be 4-8 alphanumeric characters');
         return;
       }
     }
@@ -203,8 +203,8 @@ export default function Home() {
       return;
     }
     if (requiresPin) {
-      if (!joinPin || !/^\d{4}$/.test(joinPin)) {
-        setJoinError('PIN must be exactly 4 digits');
+      if (!joinPin || !/^[a-zA-Z0-9]{4,8}$/.test(joinPin)) {
+        setJoinError('PIN must be 4-8 alphanumeric characters');
         return;
       }
     }
@@ -369,14 +369,13 @@ export default function Home() {
                        type="password"
                        value={createPin}
                        onChange={e => {
-                         const val = e.target.value.replace(/\D/g, '').substring(0, 4);
+                         const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
                          setCreatePin(val);
                          if (createError) setCreateError('');
                        }}
                        className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 border border-zinc-700 [.light_&]:border-zinc-300 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:border-teal-500 placeholder-zinc-600 transition-colors font-mono tracking-widest text-lg shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
-                       placeholder="4-digit PIN"
-                       maxLength={4}
-                       pattern="\d*"
+                       placeholder="4-8 character PIN"
+                       maxLength={8}
                      />
                    </div>
                  )}
@@ -441,15 +440,14 @@ export default function Home() {
                        type="password"
                        value={joinPin}
                        onChange={e => {
-                         const val = e.target.value.replace(/\D/g, '').substring(0, 4);
+                         const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
                          setJoinPin(val);
                          if (joinError) setJoinError('');
                        }}
                        autoFocus
                        className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 backdrop-blur-xl border border-white/10 [.light_&]:border-black/10 rounded-xl px-4 tablet:px-5 text-teal-400 [.light_&]:text-teal-600 focus:outline-none focus:shadow-[0_0_0_3px_rgba(29,158,117,0.15)] focus:border-teal-500 placeholder-zinc-600 transition-all font-mono tracking-widest text-lg shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)] [.light_&]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
                        placeholder="Enter PIN"
-                       maxLength={4}
-                       pattern="\d*"
+                       maxLength={8}
                      />
                    </div>
                  )}
