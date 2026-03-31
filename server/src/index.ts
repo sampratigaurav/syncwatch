@@ -55,8 +55,16 @@ const WS_WINDOW_MS = 60_000;
 const wsConnectionCounts = new Map<string, { count: number; resetAt: number }>();
 
 io.use((socket, next) => {
+  // Use the rightmost X-Forwarded-For IP (added by the trusted proxy, not the client)
+  // to prevent IP spoofing via a crafted X-Forwarded-For header.
   const forwarded = socket.handshake.headers['x-forwarded-for'];
-  const rawIp = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : socket.handshake.address;
+  let rawIp: string;
+  if (typeof forwarded === 'string') {
+    const ips = forwarded.split(',').map(s => s.trim()).filter(Boolean);
+    rawIp = ips[ips.length - 1] ?? socket.handshake.address;
+  } else {
+    rawIp = socket.handshake.address;
+  }
   const now = Date.now();
   const entry = wsConnectionCounts.get(rawIp);
 
@@ -91,8 +99,13 @@ if (process.env.NODE_ENV === 'production') {
 
 // Security headers (helmet sets X-Content-Type-Options, X-Frame-Options, HSTS, etc.)
 app.use(helmet({
-  // CSP is intentionally omitted; this is an API/WebSocket server with no served HTML
-  contentSecurityPolicy: false,
+  // This is a pure API/WebSocket server — no HTML is served from it.
+  // Configure a restrictive default-src CSP rather than disabling it entirely.
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'none'"],
+    }
+  },
   crossOriginEmbedderPolicy: false,
 }));
 

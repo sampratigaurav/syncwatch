@@ -19,13 +19,15 @@ self.onmessage = async (e: MessageEvent<File>) => {
     // Beginning
     chunks.push(await readChunk(0, Math.min(CHUNK_SIZE, file.size)));
 
-    // Middle (only if file is large enough)
-    if (file.size > 2 * CHUNK_SIZE) {
+    // Middle — only when the file is large enough that the middle window
+    // cannot overlap with either the beginning or end windows.
+    // Requires file.size > 3 * CHUNK_SIZE (6 MB).
+    if (file.size > 3 * CHUNK_SIZE) {
       const midStart = Math.floor(file.size / 2) - Math.floor(CHUNK_SIZE / 2);
       chunks.push(await readChunk(midStart, midStart + CHUNK_SIZE));
     }
 
-    // End (only if file is large enough)
+    // End (only if file is large enough to avoid overlap with beginning)
     if (file.size > CHUNK_SIZE) {
       chunks.push(await readChunk(Math.max(0, file.size - CHUNK_SIZE), file.size));
     }

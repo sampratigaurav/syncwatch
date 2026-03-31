@@ -28,10 +28,20 @@ const VALID_HASH_RE = /^[0-9a-f]{64}$/i; // SHA-256 hex string
 const VALID_CONTROL_POLICIES: ControlPolicy[] = ['host_only', 'everyone', 'selected'];
 
 function getClientIp(socket: Socket): string {
+  // With `trust proxy: 1` configured on Express, the server trusts one upstream
+  // proxy (e.g., Render.com's load balancer).  Each proxy in the chain appends
+  // the IP it received the connection from to X-Forwarded-For, so the rightmost
+  // entry is the one added by our trusted proxy — the actual client IP as seen
+  // by that proxy.  Taking the rightmost IP prevents a client from injecting a
+  // fake IP into the leftmost position of X-Forwarded-For before our proxy adds
+  // the real one on the right.
   const forwarded = socket.handshake.headers['x-forwarded-for'];
-  return typeof forwarded === 'string'
-    ? forwarded.split(',')[0].trim()
-    : socket.handshake.address;
+  if (typeof forwarded === 'string') {
+    const ips = forwarded.split(',').map(s => s.trim()).filter(Boolean);
+    // Rightmost = added by the trusted proxy; cannot be spoofed by the client.
+    return ips[ips.length - 1] ?? socket.handshake.address;
+  }
+  return socket.handshake.address;
 }
 
 function canControl(room: RoomState, socketId: string): boolean {
@@ -211,6 +221,7 @@ export const setupSocketHandlers = (io: Server) => {
         typeof payload.size !== 'number' || !Number.isFinite(payload.size) || payload.size < 0 ||
         typeof payload.name !== 'string' || payload.name.length === 0 || payload.name.length > MAX_FILE_NAME_LENGTH
       ) {
+        socket.emit('error', { message: 'Invalid file verification payload' });
         return;
       }
 
@@ -301,6 +312,7 @@ export const setupSocketHandlers = (io: Server) => {
 
       // Validate currentTime is a finite non-negative number
       if (typeof payload.currentTime !== 'number' || !Number.isFinite(payload.currentTime) || payload.currentTime < 0) {
+        socket.emit('error', { message: 'Invalid playback time' });
         return;
       }
 
@@ -318,9 +330,15 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(EVENTS.SET_CONTROL_POLICY, (payload: { policy: ControlPolicy, controllerIds: string[] }) => {
       // Validate policy is one of the allowed values
-      if (!payload || !VALID_CONTROL_POLICIES.includes(payload.policy)) return;
+      if (!payload || !VALID_CONTROL_POLICIES.includes(payload.policy)) {
+        socket.emit('error', { message: 'Invalid control policy' });
+        return;
+      }
       // Validate controllerIds is an array of strings that exist in the room
-      if (!Array.isArray(payload.controllerIds)) return;
+      if (!Array.isArray(payload.controllerIds)) {
+        socket.emit('error', { message: 'Invalid controllerIds' });
+        return;
+      }
 
       let roomId = '';
       let participant: Participant | undefined;
@@ -353,7 +371,10 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(EVENTS.BUFFERING_STATE, (payload: { isBuffering: boolean }) => {
       // Validate boolean type
-      if (!payload || typeof payload.isBuffering !== 'boolean') return;
+      if (!payload || typeof payload.isBuffering !== 'boolean') {
+        socket.emit('error', { message: 'Invalid buffering state' });
+        return;
+      }
 
       let roomId = '';
       let participant: Participant | undefined;
@@ -493,7 +514,10 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(EVENTS.VOICE_MUTE_TOGGLE, (payload: { isMuted: boolean }) => {
       // Validate boolean type
-      if (!payload || typeof payload.isMuted !== 'boolean') return;
+      if (!payload || typeof payload.isMuted !== 'boolean') {
+        socket.emit('error', { message: 'Invalid mute state' });
+        return;
+      }
 
       let roomId = '';
       for (const [id, room] of rooms.entries()) {
