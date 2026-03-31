@@ -124,6 +124,8 @@ export const useSocket = () => {
        setPlayback(roomState.playback);
        useRoomStore.getState().setControlPolicy(roomState.controlPolicy, roomState.controllerIds);
        useRoomStore.getState().setRoomHasPassword(roomState.hasPassword);
+       // Fix 7: Clear PIN from state immediately after successful join — no need to hold it in memory
+       useRoomStore.getState().setRoomPassword(null);
        const me = roomState.participants.find((p: Participant) => p.id === socket.id);
        if (me) setRole(me.role);
     });

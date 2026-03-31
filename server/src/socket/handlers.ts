@@ -7,6 +7,15 @@ import { Participant, RoomState, PlaybackEvent } from '../../../shared/types';
 const disconnectTimers = new Map<string, NodeJS.Timeout>();
 const bufferingTimers = new Map<string, NodeJS.Timeout>();
 const lastReactionTimes = new Map<string, number>();
+const pinAttemptTimes = new Map<string, number[]>();
+const lastChatTimes = new Map<string, number[]>();
+
+const MAX_NICKNAME_LENGTH = 50;
+const MAX_MESSAGE_LENGTH = 1000;
+const MAX_PIN_ATTEMPTS = 5;
+const PIN_WINDOW_MS = 60_000;
+const MAX_CHAT_PER_WINDOW = 5;
+const CHAT_WINDOW_MS = 3_000;
 
 function canControl(room: RoomState, socketId: string): boolean {
   if (room.controlPolicy === 'everyone') return true;
@@ -27,6 +36,13 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(EVENTS.JOIN_ROOM, (payload: { roomId: string, nickname: string, password?: string }) => {
       const { roomId, nickname, password } = payload;
+
+      // Fix 8: Server-side nickname validation
+      if (!nickname || typeof nickname !== 'string' || nickname.trim().length < 1 || nickname.length > MAX_NICKNAME_LENGTH) {
+        socket.emit('error', { message: 'Nickname must be 1-50 characters' });
+        return;
+      }
+
       const room = rooms.get(roomId);
       if (!room) {
         socket.emit(EVENTS.ROOM_NOT_FOUND, { roomId });
@@ -38,12 +54,24 @@ export const setupSocketHandlers = (io: Server) => {
           socket.emit(EVENTS.ROOM_REQUIRES_PASSWORD, { roomId });
           return;
         }
-        const hash = crypto.createHash('sha256').update(password).digest('hex');
+
+        // Fix 2: Rate limit PIN attempts per socket (5 per 60s)
+        const now = Date.now();
+        const recentAttempts = (pinAttemptTimes.get(socket.id) || []).filter(t => now - t < PIN_WINDOW_MS);
+        if (recentAttempts.length >= MAX_PIN_ATTEMPTS) {
+          socket.emit(EVENTS.WRONG_PASSWORD, { message: 'Too many attempts. Please wait before trying again.' });
+          return;
+        }
+
+        const hash = crypto.pbkdf2Sync(password, room.passwordSalt!, 100_000, 32, 'sha256').toString('hex');
         if (hash !== room.password) {
-          // TODO: add rate limiting on wrong PIN attempts before production
+          recentAttempts.push(now);
+          pinAttemptTimes.set(socket.id, recentAttempts);
           socket.emit(EVENTS.WRONG_PASSWORD, { message: 'Incorrect PIN' });
           return;
         }
+        // Successful auth: clear attempt history
+        pinAttemptTimes.delete(socket.id);
       }
       
       // cancel disconnect timer if rejoining
@@ -283,6 +311,18 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.CHAT_MESSAGE, (payload: { text: string }) => {
+      // Fix 6: Validate message content
+      if (!payload.text || typeof payload.text !== 'string') return;
+      const trimmed = payload.text.trim();
+      if (trimmed.length === 0 || trimmed.length > MAX_MESSAGE_LENGTH) return;
+
+      // Fix 6: Rate limit chat messages (5 per 3s per socket)
+      const now = Date.now();
+      const recentChats = (lastChatTimes.get(socket.id) || []).filter(t => now - t < CHAT_WINDOW_MS);
+      if (recentChats.length >= MAX_CHAT_PER_WINDOW) return;
+      recentChats.push(now);
+      lastChatTimes.set(socket.id, recentChats);
+
       let roomId = '';
       let participant: Participant | undefined;
       for (const [id, room] of rooms.entries()) {
@@ -297,10 +337,10 @@ export const setupSocketHandlers = (io: Server) => {
       const room = rooms.get(roomId)!;
 
       const message = {
-        id: Math.random().toString(36).substring(2, 10),
+        id: crypto.randomUUID(), // Fix 10: Use cryptographically random ID
         senderId: participant.id,
         senderNickname: participant.nickname,
-        text: payload.text,
+        text: trimmed,
         timestamp: Date.now()
       };
 
@@ -401,7 +441,18 @@ export const setupSocketHandlers = (io: Server) => {
       }
     });
 
+    // Fix 5: Validate that WebRTC target is in the same room as the sender
+    const getSharedRoom = (senderSocketId: string, targetSocketId: string): string | null => {
+      for (const [roomId, room] of rooms.entries()) {
+        if (room.participants.has(senderSocketId) && room.participants.has(targetSocketId)) {
+          return roomId;
+        }
+      }
+      return null;
+    };
+
     socket.on(EVENTS.WEBRTC_OFFER, (payload: { offer: any, targetId: string }) => {
+      if (!getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_OFFER, {
         offer: payload.offer,
         fromId: socket.id
@@ -409,6 +460,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.WEBRTC_ANSWER, (payload: { answer: any, targetId: string }) => {
+      if (!getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ANSWER, {
         answer: payload.answer,
         fromId: socket.id
@@ -416,6 +468,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.WEBRTC_ICE_CANDIDATE, (payload: { candidate: any, targetId: string }) => {
+      if (!getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ICE_CANDIDATE, {
         candidate: payload.candidate,
         fromId: socket.id
@@ -467,6 +520,8 @@ export const setupSocketHandlers = (io: Server) => {
 
       disconnectTimers.set(socket.id, timer);
       lastReactionTimes.delete(socket.id);
+      pinAttemptTimes.delete(socket.id);
+      lastChatTimes.delete(socket.id);
     });
 
     socket.on(EVENTS.SEND_REACTION, (payload: { emoji: string }) => {

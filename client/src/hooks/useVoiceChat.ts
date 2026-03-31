@@ -194,15 +194,21 @@ export const setupVoiceSocketListeners = () => {
   socket.on(EVENTS.WEBRTC_OFFER, async ({ offer, fromId }: { offer: RTCSessionDescriptionInit, fromId: string }) => {
     const { createPeerConnection, isInVoice } = useVoiceChat.getState();
     if (!isInVoice) return;
-    
+
+    // Fix 11: Validate offer before accepting
+    if (!offer || typeof offer.sdp !== 'string' || offer.type !== 'offer') {
+      console.warn('Rejected invalid WebRTC offer from', fromId);
+      return;
+    }
+
     const pc = createPeerConnection(fromId);
     try {
-      await pc.setRemoteDescription(offer);
+      await pc.setRemoteDescription(new RTCSessionDescription(offer));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       socket.emit(EVENTS.WEBRTC_ANSWER, { answer, targetId: fromId });
     } catch (err) {
-      console.error("Error handling offer", err);
+      console.error("Error handling offer from", fromId, err);
     }
   });
 

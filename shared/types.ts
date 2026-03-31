@@ -43,6 +43,7 @@ export interface RoomState {
   subtitleState: SubtitleState
   hasPassword: boolean
   password: string | null
+  passwordSalt: string | null
   participants: Map<string, Participant>
   chatHistory: ChatMessage[]
   fileHash: string | null
