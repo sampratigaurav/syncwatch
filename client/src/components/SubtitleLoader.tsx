@@ -25,6 +25,13 @@ export default function SubtitleLoader({ onSubtitleLoaded, onSubtitleCleared }: 
       return;
     }
 
+    const MAX_SUBTITLE_SIZE = 10 * 1024 * 1024; // 10 MB
+    if (file.size > MAX_SUBTITLE_SIZE) {
+      setError('Subtitle file is too large (max 10 MB)');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
       const content = event.target?.result as string;

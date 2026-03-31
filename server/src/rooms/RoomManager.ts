@@ -2,6 +2,20 @@ import { RoomState, Participant } from '../../../shared/types';
 
 export const rooms = new Map<string, RoomState>();
 
+const ROOM_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// Periodically remove rooms that have been alive for more than 24 hours
+export const startRoomCleanup = () => {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [id, room] of rooms.entries()) {
+      if (now - room.createdAt > ROOM_TTL_MS) {
+        rooms.delete(id);
+      }
+    }
+  }, 60 * 60 * 1000); // run hourly
+};
+
 export const createRoom = (id: string, passwordHash: string | null = null, passwordSalt: string | null = null): RoomState => {
   const newRoom: RoomState = {
     id,

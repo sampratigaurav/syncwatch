@@ -27,6 +27,10 @@ interface RoomStore {
   subtitleEnabled: boolean;
   roomPassword: string | null;
   roomHasPassword: boolean;
+  /** In-app toast shown instead of alert() for server-driven messages. */
+  errorToast: string | null;
+  /** Opaque token used to reclaim role after a disconnect without exposing nickname-based hijack. */
+  reconnectToken: string | null;
   
   setLastActionAt: () => void;
   setRoomPassword: (pass: string | null) => void;
@@ -50,6 +54,8 @@ interface RoomStore {
   setSubtitleEnabled: (enabled: boolean) => void;
   setControlPolicy: (policy: 'host_only' | 'everyone' | 'selected', ids: string[]) => void;
   canIControl: () => boolean;
+  setErrorToast: (msg: string | null) => void;
+  setReconnectToken: (token: string | null) => void;
 }
 
 export const useRoomStore = create<RoomStore>((set, get) => ({
@@ -75,6 +81,8 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   subtitleEnabled: false,
   roomPassword: null,
   roomHasPassword: false,
+  errorToast: null,
+  reconnectToken: null,
 
   setLastActionAt: () => set({ lastActionAt: Date.now() }),
   setRoomPassword: (pass) => set({ roomPassword: pass }),
@@ -121,7 +129,9 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
       subtitleBlobUrl: null,
       subtitleEnabled: false,
       roomPassword: null,
-      roomHasPassword: false
+      roomHasPassword: false,
+      errorToast: null,
+      reconnectToken: null,
     });
   },
   toggleTheme: () => set((state) => {
@@ -143,5 +153,7 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
       return state.role === 'host' || state.controllerIds.includes(socket.id!);
     }
     return false;
-  }
+  },
+  setErrorToast: (msg) => set({ errorToast: msg }),
+  setReconnectToken: (token) => set({ reconnectToken: token }),
 }));

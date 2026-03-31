@@ -8,14 +8,23 @@ import ControlPolicySelector from '../components/ControlPolicySelector';
 import { Copy, Check, Play, AlertTriangle, Loader2, WifiOff, Lock } from 'lucide-react';
 
 export default function WaitingRoom() {
-  const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState } = useRoomStore();
+  const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast } = useRoomStore();
   const { roomId: urlId } = useParams();
   const navigate = useNavigate();
-  useSocket();
+  useSocket(navigate);
   const { verifyFile, mismatchError } = useFileVerify();
   const fileName = useRoomStore(state => state.fileName);
 
   const [copied, setCopied] = useState(false);
+  const [errorBanner, setErrorBanner] = useState<string | null>(null);
+
+  // Show server-driven error messages as an in-app banner
+  useEffect(() => {
+    if (errorToast) {
+      setErrorBanner(errorToast);
+      setErrorToast(null);
+    }
+  }, [errorToast, setErrorToast]);
 
   useEffect(() => {
     if (!roomId) {
@@ -110,6 +119,13 @@ export default function WaitingRoom() {
              <span className="text-teal-500 font-mono text-xs ml-2 bg-teal-500/10 px-2 py-0.5 rounded-full">Attempt {reconnectAttempt} of 5</span>
           </div>
           <span className="text-zinc-400 text-[11px] tablet:text-xs mt-1">Lost connection to the server. Trying to reconnect automatically.</span>
+        </div>
+      )}
+
+      {errorBanner && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[95] bg-red-900/90 backdrop-blur-md border border-red-500/50 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-4 fade-in duration-300">
+          <span className="font-medium text-sm">{errorBanner}</span>
+          <button onClick={() => setErrorBanner(null)} className="text-red-300 hover:text-white transition-colors text-xs ml-2">✕</button>
         </div>
       )}
 

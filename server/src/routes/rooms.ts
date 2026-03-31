@@ -1,17 +1,27 @@
 import { Router } from 'express';
 import crypto from 'crypto';
+import rateLimit from 'express-rate-limit';
 import { rooms, createRoom } from '../rooms/RoomManager';
 
 export const roomRouter = Router();
 
-roomRouter.post('/', (req, res) => {
+// Max 10 room creations per IP per minute
+const createRoomLimiter = rateLimit({
+  windowMs: 60_000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many rooms created. Please try again later.' }
+});
+
+roomRouter.post('/', createRoomLimiter, (req, res) => {
   const { password } = req.body || {};
   let hash: string | null = null;
   let salt: string | null = null;
 
   if (password) {
-    if (!/^\d{4}$/.test(password)) {
-      return res.status(400).json({ error: 'Password must be exactly 4 digits' });
+    if (typeof password !== 'string' || !/^[a-zA-Z0-9]{4,8}$/.test(password)) {
+      return res.status(400).json({ error: 'Password must be 4-8 alphanumeric characters' });
     }
     salt = crypto.randomBytes(16).toString('hex');
     hash = crypto.pbkdf2Sync(password, salt, 100_000, 32, 'sha256').toString('hex');
