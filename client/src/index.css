@@ -57,6 +57,11 @@ html.light .bg-zinc-800 { @apply bg-zinc-100; }
   to { stroke-dashoffset: -24; }
 }
 
+@keyframes dash {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: 100; }
+}
+
 @keyframes wordmark-reveal {
   0% { opacity: 0; transform: translateY(10px) scale(0.98); }
   100% { opacity: 1; transform: translateY(0) scale(1); }

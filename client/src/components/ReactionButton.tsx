@@ -125,13 +125,6 @@ export function ReactionButton({ onSend }: ReactionButtonProps) {
           </svg>
         )}
       </button>
-
-      <style>{`
-        @keyframes dash {
-          0% { stroke-dashoffset: 0; }
-          100% { stroke-dashoffset: 100; }
-        }
-      `}</style>
     </div>
   );
 }
