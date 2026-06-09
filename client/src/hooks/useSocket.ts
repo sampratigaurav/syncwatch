@@ -149,9 +149,16 @@ export const useSocket = (navigate?: (to: string) => void) => {
       }
     }, 10000);
 
+    const rttHistory: number[] = [];
+
     socket.on(EVENTS.PONG, (data: { sentAt: number }) => {
-      const latency = (Date.now() - data.sentAt) / 2;
-      setLatency(latency);
+      const rtt = Date.now() - data.sentAt;
+      rttHistory.push(rtt);
+      if (rttHistory.length > 5) {
+        rttHistory.shift();
+      }
+      const avgRtt = rttHistory.reduce((sum, val) => sum + val, 0) / rttHistory.length;
+      setLatency(avgRtt);
     });
 
     return () => {

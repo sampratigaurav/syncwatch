@@ -69,22 +69,57 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
     };
   }, []); // Empty deps to register exactly once
 
+  const isDelayingPlay = useRef(false);
+
   // Expose these handlers to the native video element
   const handlePlay = () => {
     if (!hasControl) return;
     if (isApplyingRemoteEvent.current) return;
+    if (isDelayingPlay.current) return;
     
     setLastActionAt();
     
-    // Slight delay to prevent firing multiple rapid PLAY events on mount
+    const state = useRoomStore.getState();
+    const video = videoRef.current;
+    if (!video) return;
+
+    const targetTime = video.currentTime + (state.latencyMs / 2000);
+    const delayMs = state.latencyMs / 2;
+
+    // Pause immediately to wait for the network delay (half RTT)
+    isDelayingPlay.current = true;
+    video.pause();
+
+    socket.emit(EVENTS.PLAYBACK_EVENT, { 
+      action: 'play', 
+      currentTime: targetTime, 
+      timestamp: Date.now() 
+    });
+
     setTimeout(() => {
-      socket.emit(EVENTS.PLAYBACK_EVENT, { action: 'play', currentTime: videoRef.current?.currentTime || 0, timestamp: Date.now() });
-    }, 50);
+      if (videoRef.current) {
+        isApplyingRemoteEvent.current = true;
+        videoRef.current.currentTime = targetTime;
+        const playPromise = videoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(e => console.warn("Auto-play blocked:", e)).finally(() => {
+            isApplyingRemoteEvent.current = false;
+            isDelayingPlay.current = false;
+          });
+        } else {
+          isApplyingRemoteEvent.current = false;
+          isDelayingPlay.current = false;
+        }
+      } else {
+        isDelayingPlay.current = false;
+      }
+    }, delayMs);
   };
 
   const handlePause = () => {
     if (!hasControl) return;
     if (isApplyingRemoteEvent.current) return;
+    if (isDelayingPlay.current) return;
 
     setLastActionAt();
 
@@ -94,6 +129,7 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
   const handleSeeked = () => {
     if (!hasControl) return;
     if (isApplyingRemoteEvent.current) return;
+    if (isDelayingPlay.current) return;
 
     setLastActionAt();
     
