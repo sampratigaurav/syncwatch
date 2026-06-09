@@ -70,7 +70,10 @@ export const useFileVerify = () => {
       const arrayBuffer = await slice.arrayBuffer();
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       const audioCtx = new AudioCtx();
-      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+      const audioBuffer = await Promise.race([
+        audioCtx.decodeAudioData(arrayBuffer),
+        new Promise<AudioBuffer>((_, reject) => setTimeout(() => reject(new Error('DECODE_TIMEOUT')), 2000))
+      ]);
       const pcmData = audioBuffer.getChannelData(0);
       const sampleRate = audioBuffer.sampleRate;
 
