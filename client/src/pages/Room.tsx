@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRoomStore } from '../store/roomStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useSocket, socket } from '../hooks/useSocket';
 import { useVideoSync } from '../hooks/useVideoSync';
 import { useDriftCorrection } from '../hooks/useDriftCorrection';
@@ -28,7 +29,22 @@ export default function Room() {
     subtitleBlobUrl, setSubtitleBlobUrl,
     subtitleEnabled, setSubtitleEnabled,
     errorToast, setErrorToast
-  } = useRoomStore();
+  } = useRoomStore(useShallow(state => ({
+    roomId: state.roomId,
+    nickname: state.nickname,
+    localFileUrl: state.localFileUrl,
+    role: state.role,
+    participants: state.participants,
+    connectionStatus: state.connectionStatus,
+    reconnectAttempt: state.reconnectAttempt,
+    clearRoomState: state.clearRoomState,
+    subtitleBlobUrl: state.subtitleBlobUrl,
+    setSubtitleBlobUrl: state.setSubtitleBlobUrl,
+    subtitleEnabled: state.subtitleEnabled,
+    setSubtitleEnabled: state.setSubtitleEnabled,
+    errorToast: state.errorToast,
+    setErrorToast: state.setErrorToast,
+  })));
   const navigate = useNavigate();
   useSocket(navigate); 
   

@@ -1,5 +1,6 @@
 import { forwardRef, useState, useEffect, useRef, useCallback } from 'react';
 import { useRoomStore } from '../store/roomStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Minimize, Subtitles } from 'lucide-react';
 import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
@@ -27,7 +28,11 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
   ({ src, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate, subtitleBlobUrl, subtitleEnabled, onSubtitleToggle }, externalRef) => {
-    const { participants, canIControl, controlPolicy } = useRoomStore();
+    const { participants, canIControl, controlPolicy } = useRoomStore(useShallow(state => ({
+      participants: state.participants,
+      canIControl: state.canIControl,
+      controlPolicy: state.controlPolicy,
+    })));
     const hasControl = canIControl();
     const hostName = participants.find(p => p.role === 'host')?.nickname || 'Host';
     
