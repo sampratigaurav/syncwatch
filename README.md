@@ -44,12 +44,13 @@ No CDN. No encoding. No legal grey areas. Just sync.
 |---|---|
 | **Zero-Upload Sync** | Watch any file — even 4K — instantly. Media never hits the network. |
 | **Sub-Second Sync** | Custom drift-correction loop keeps all viewers within ≤500 ms of the host. |
-| **File Verification** | SHA-256 multi-chunk hashing via Web Worker confirms everyone has the same file before playback starts. |
+| **Perceptual Sync** | Audio fingerprinting allows viewers with different encodings of the same video to join seamlessly. |
+| **P2P Asset Sharing** | Load `.srt` or `.vtt` subtitles — host broadcasts subtitle data directly to viewers via WebRTC Data Channels. |
+| **Latency Compensation** | Frame-perfect playback pause sync by accounting for average Round Trip Time (RTT). |
 | **Host Authority + Delegation** | The room host controls playback by default. Optionally grant control to everyone or selected participants. |
 | **Room PIN Protection** | Lock rooms with a 4–8 character PIN, stored as a PBKDF2 hash server-side. |
 | **Real-Time Chat** | Built-in chat panel with system messages and emoji reactions. |
 | **Voice Chat** | WebRTC peer-to-peer voice with speaking indicators and mute controls. |
-| **Subtitle Sync** | Load `.srt` or `.vtt` subtitles — toggle and track changes sync across all viewers. |
 | **Smart Buffering** | If any participant buffers, the room auto-pauses and resumes when everyone is ready. |
 | **Reconnection Grace** | 30-second reconnect window with cryptographic token-based role reclamation. |
 | **Emoji Reactions** | Floating animated emoji overlay during playback. |
@@ -64,8 +65,8 @@ No CDN. No encoding. No legal grey areas. Just sync.
 ┌──────────────────────────────────────────────────────┐
 │                     Browser (Alice)                  │
 │  ┌───────────────┐   File: movie.mp4 (local)         │
-│  │  VideoPlayer  │   Hash: SHA-256 of 3 chunks       │
-│  │  (HTML5 <vid>)│                                   │
+│  │  VideoPlayer  │   Hash: Perceptual Audio          │
+│  │  (HTML5 <vid>)│   Fingerprint (RMS Energy Bins)   │
 │  └──────┬────────┘                                   │
 │         │ play/pause/seek events                     │
 │  ┌──────▼────────┐                                   │
@@ -98,7 +99,7 @@ Host emits    → playback_event { action, currentTime, timestamp }
 Server        → validates authority → broadcasts to room
 Viewers apply → echo-suppressed via isApplyingRemoteEvent flag
 Drift check   → every 5s host emits sync_check; viewers correct if |Δt| > 500ms
-Latency comp  → targetTime + latencyMs / 2000 (half RTT offset)
+Latency comp  → Frame-perfect pause sync delays local playback by half RTT (latencyMs / 2)
 ```
 
 ---
@@ -114,8 +115,8 @@ Latency comp  → targetTime + latencyMs / 2000 (half RTT offset)
 | State | Zustand v5 |
 | Realtime | Socket.IO Client v4 |
 | Routing | React Router v7 |
-| Hashing | Web Worker + SubtleCrypto SHA-256 |
-| Voice | WebRTC + Web Audio API |
+| Perceptual Sync | Web Worker + Web Audio API |
+| P2P Transport | WebRTC + RTCDataChannel + Web Audio API |
 
 ### Backend (`/server`)
 | Layer | Technology |
@@ -249,7 +250,7 @@ syncwatch/
 │       ├── store/
 │       │   └── roomStore.ts       # Zustand global state
 │       └── lib/
-│           ├── hashFile.ts        # Web Worker (multi-chunk SHA-256)
+│           ├── audioFingerprintWorker.ts # Web Worker (Acoustic Fingerprint & Pearson Corr)
 │           └── config.ts          # Server URL config
 │
 ├── server/
@@ -290,27 +291,31 @@ SyncWatch is built with production security in mind:
 
 ---
 
-## 🧠 How File Verification Works
+## 🧠 How Perceptual Sync (File Verification) Works
+
+To support different encodings and qualities of the same video (e.g., 4K vs 1080p), SyncWatch uses an acoustic fingerprinting system instead of strict hashing.
 
 ```
-1. Host picks file  →  Web Worker reads 3 × 2 MB chunks (start, middle, end)
-                        + 8-byte file size encoding
-                        →  SHA-256(concatenated)  →  hexdigest
+1. Host picks file   → Web Audio API decodes the first 10MB of the audio track
+                       → Web Worker calculates RMS energy across 100ms bins
+                       → Yields an array of ~100 floats (Acoustic Fingerprint)
 
-2. Host emits       →  file_verified { hash, size, name }
+2. Host emits        → Caches fingerprint locally
+                       → Broadcasts it directly to peers via WebRTC Data Channels
+                       → Sends a dummy 'file_verified' hash to trick server into 'ready' state
 
-3. Server stores    →  room.fileHash = hash (single source of truth)
+3. Viewer picks file → Computes their own local acoustic fingerprint
 
-4. Viewer picks file → Same hashing algorithm in their Web Worker
-                       → Emits file_verified to server
+4. Viewer compares   → Receives host's fingerprint via WebRTC
+                       → Web Worker runs Pearson Correlation (requires > 0.85 match)
 
-5. Server compares  →  match  → emit file_match  → viewer.status = 'ready'
-                       mismatch → emit file_mismatch → prompt re-selection
+5. Server compares   → If local Web Worker approves, viewer sends the identical dummy hash
+                       → Server sees a 100% hash match and sets viewer.status = 'ready'
 
-6. Room is ready    →  all participants.status === 'ready'
+6. Room is ready     → all participants.status === 'ready'
 ```
 
-Hashing runs entirely **off the main thread** via a Web Worker — even a 10 GB file does not freeze the UI.
+If the first 10MB of the file lacks the `moov` atom (making it undecodable), the system gracefully falls back to passing the `file.size` over WebRTC and ensuring viewers are within a ±5% size tolerance. Analysis runs entirely **off the main thread** via a Web Worker — even a 10 GB file does not freeze the UI.
 
 ---
 
@@ -351,19 +356,18 @@ Hashing runs entirely **off the main thread** via a Web Worker — even a 10 GB 
 ## 🔭 Roadmap
 
 - [x] Core sync engine (play / pause / seek / drift correction)
-- [x] File verification (multi-chunk SHA-256, Web Worker)
+- [x] Perceptual Sync (Audio Fingerprinting for quality mismatch)
+- [x] P2P Subtitle Asset Sharing (WebRTC)
+- [x] Latency-aware playback sync (RTT compensation)
 - [x] Room PIN protection (PBKDF2)
 - [x] Control policy (host-only / everyone / selected)
 - [x] Voice chat (WebRTC P2P)
-- [x] Subtitle sync (.srt / .vtt)
 - [x] Emoji reactions (floating overlay)
 - [x] Chrome Extension (YouTube sync)
 - [x] Redis-backed horizontal scaling
 - [ ] Host transfer (pass the remote)
-- [ ] Latency-aware seek offset (RTT compensation per viewer)
 - [ ] Mobile-responsive layout improvements
 - [ ] Persistent nicknames (no auth required)
-- [ ] Subtitle track selection sync
 - [ ] Room history / replay (post-MVP)
 
 ---
