@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Subtitles, X, Upload } from 'lucide-react';
+import { Subtitles, X, Upload, Wand2, Loader2 } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useWebRTC } from '../hooks/useWebRTC';
+import { useSmartSubtitles } from '../hooks/useSmartSubtitles';
 
 interface SubtitleLoaderProps {
   onSubtitleLoaded: (blobUrl: string) => void;
@@ -12,7 +13,11 @@ export default function SubtitleLoader({ onSubtitleLoaded, onSubtitleCleared }: 
   const [filename, setFilename] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
+  const [targetLanguage, setTargetLanguage] = useState<string>('en');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const videoFileName = useRoomStore(state => state.fileName);
+  const { fetchSubtitles, isLoading, progress, error: smartError } = useSmartSubtitles();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -82,6 +87,27 @@ export default function SubtitleLoader({ onSubtitleLoaded, onSubtitleCleared }: 
       useWebRTC.getState().sendSubtitlePayload('');
     }
   };
+  
+  const handleMagicSubtitles = async () => {
+    if (!videoFileName) {
+      setError("No video file loaded.");
+      return;
+    }
+    
+    setError(null);
+    const blobUrl = await fetchSubtitles(videoFileName, targetLanguage);
+    if (blobUrl) {
+      if (currentUrl) URL.revokeObjectURL(currentUrl);
+      setCurrentUrl(blobUrl);
+      setFilename(`[Magic] ${targetLanguage.toUpperCase()}`);
+      onSubtitleLoaded(blobUrl);
+      
+      // Send payload if host? No, architecture says host/viewers fetch their own.
+      // Wait, we need to read the blob content and send if host, OR simply don't send via WebRTC.
+      // The instructions say: "DON'T sync subtitles via Socket.IO: Keep to the architecture. The host fetches/translates their subtitles, and viewers click the button to fetch/translate their own. Do not stream subtitle text through the Node server."
+      // BUT for manual upload, we currently send via WebRTC. We can skip WebRTC for magic subtitles.
+    }
+  };
 
   const truncate = (name: string) => name.length > 20 ? name.substring(0, 20) + '...' : name;
 
@@ -96,13 +122,48 @@ export default function SubtitleLoader({ onSubtitleLoaded, onSubtitleCleared }: 
       <h3 className="text-zinc-400 [.light_&]:text-zinc-500 text-xs font-semibold uppercase tracking-wider mb-1">Subtitles (optional)</h3>
       
       {!filename ? (
-        <button 
-          onClick={() => fileInputRef.current?.click()}
-          className="flex items-center justify-center gap-2 w-full py-2 bg-zinc-800 hover:bg-zinc-700 [.light_&]:bg-zinc-200 [.light_&]:hover:bg-zinc-300 text-zinc-300 [.light_&]:text-zinc-700 rounded-md transition-colors text-sm font-medium"
-        >
-          <Upload size={16} />
-          Load subtitles (.srt or .vtt)
-        </button>
+        <>
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center justify-center gap-2 w-full py-2 bg-zinc-800 hover:bg-zinc-700 [.light_&]:bg-zinc-200 [.light_&]:hover:bg-zinc-300 text-zinc-300 [.light_&]:text-zinc-700 rounded-md transition-colors text-sm font-medium"
+          >
+            <Upload size={16} />
+            Load manually (.srt or .vtt)
+          </button>
+          
+          <div className="flex items-center gap-2 mt-2 pt-2 border-t border-zinc-800 [.light_&]:border-zinc-200">
+            <select 
+              value={targetLanguage}
+              onChange={(e) => setTargetLanguage(e.target.value)}
+              disabled={isLoading}
+              className="bg-zinc-800 [.light_&]:bg-zinc-200 text-zinc-300 [.light_&]:text-zinc-700 text-xs rounded px-2 py-1.5 flex-shrink-0 outline-none focus:ring-1 focus:ring-teal-500"
+            >
+              <option value="en">English (Original)</option>
+              <option value="hi">Hindi</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+            </select>
+            
+            <button 
+              onClick={handleMagicSubtitles}
+              disabled={isLoading || !videoFileName}
+              className="flex-grow flex items-center justify-center gap-1.5 py-1.5 bg-teal-500/20 hover:bg-teal-500/30 text-teal-400 rounded transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" />
+                  {progress}%
+                </>
+              ) : (
+                <>
+                  <Wand2 size={14} />
+                  Magic Subtitles
+                </>
+              )}
+            </button>
+          </div>
+        </>
       ) : (
         <div className="flex items-center justify-between bg-teal-500/10 [.light_&]:bg-teal-500/5 border border-teal-500/20 text-teal-400 [.light_&]:text-teal-600 px-3 py-2 rounded-md">
           <div className="flex items-center gap-2 overflow-hidden">
@@ -120,8 +181,8 @@ export default function SubtitleLoader({ onSubtitleLoaded, onSubtitleCleared }: 
         </div>
       )}
 
-      {error && (
-        <p className="text-red-400 [.light_&]:text-red-500 text-xs mt-1 font-medium">{error}</p>
+      {(error || smartError) && (
+        <p className="text-red-400 [.light_&]:text-red-500 text-xs mt-1 font-medium">{error || smartError}</p>
       )}
 
       <input 
