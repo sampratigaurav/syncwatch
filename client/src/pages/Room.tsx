@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useSocket, socket } from '../hooks/useSocket';
 import { useVideoSync } from '../hooks/useVideoSync';
 import { useDriftCorrection } from '../hooks/useDriftCorrection';
+import { useBingeWatcher } from '../hooks/useBingeWatcher';
 import { useNavigate } from 'react-router-dom';
 import ParticipantList from '../components/ParticipantList';
 import { VideoPlayer } from '../components/VideoPlayer';
@@ -28,7 +29,8 @@ export default function Room() {
     connectionStatus, reconnectAttempt, clearRoomState,
     subtitleBlobUrl, setSubtitleBlobUrl,
     subtitleEnabled, setSubtitleEnabled,
-    errorToast, setErrorToast
+    errorToast, setErrorToast,
+    fileVerifyStatus
   } = useRoomStore(useShallow(state => ({
     roomId: state.roomId,
     nickname: state.nickname,
@@ -44,6 +46,7 @@ export default function Room() {
     setSubtitleEnabled: state.setSubtitleEnabled,
     errorToast: state.errorToast,
     setErrorToast: state.setErrorToast,
+    fileVerifyStatus: state.fileVerifyStatus,
   })));
   const navigate = useNavigate();
   useSocket(navigate); 
@@ -53,6 +56,8 @@ export default function Room() {
   
   const { handlePlay, handlePause, handleSeeked, handleWaiting, handleCanPlay, handlePlaying } = useVideoSync(videoRef);
   useDriftCorrection(videoRef);
+  
+  const { isCountingDown, countdown, nextEpisodeName, handleEnded, cancelCountdown } = useBingeWatcher();
 
   const [showSettings, setShowSettings] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -104,6 +109,13 @@ export default function Room() {
       navigate('/');
     }
   }, [roomId, nickname, navigate]);
+
+  // Navigate to waiting room if mismatch occurs
+  useEffect(() => {
+    if (fileVerifyStatus === 'mismatch') {
+      navigate(`/room/${roomId}/waiting`);
+    }
+  }, [fileVerifyStatus, roomId, navigate]);
 
   useEffect(() => {
     const handleForcePause = () => {
@@ -219,8 +231,50 @@ export default function Room() {
                     });
                   }
                 }}
+                onEnded={handleEnded}
               />
               <ReactionOverlay />
+
+              {/* Binge-Watcher Countdown Overlay */}
+              {isCountingDown && (
+                <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+                  <h3 className="text-2xl tablet:text-4xl font-bold text-white mb-2 tracking-tight">Up Next</h3>
+                  <p className="text-teal-400 text-lg tablet:text-2xl font-medium mb-8 text-center px-4">
+                    {nextEpisodeName}
+                  </p>
+                  
+                  <div className="relative w-20 h-20 tablet:w-24 tablet:h-24 flex items-center justify-center mb-8">
+                    <svg className="absolute inset-0 w-full h-full -rotate-90">
+                      <circle cx="50%" cy="50%" r="46%" className="stroke-zinc-800 fill-none" strokeWidth="6" />
+                      <circle 
+                        cx="50%" cy="50%" r="46%" 
+                        className="stroke-teal-500 fill-none transition-all duration-1000 ease-linear" 
+                        strokeWidth="6" 
+                        strokeDasharray="290" 
+                        strokeDashoffset={290 - (290 * countdown) / 5}
+                      />
+                    </svg>
+                    <span className="text-3xl tablet:text-4xl font-bold text-white">{countdown}</span>
+                  </div>
+
+                  {role === 'host' && (
+                    <button 
+                      onClick={cancelCountdown}
+                      className="px-8 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-full transition-colors"
+                    >
+                      Cancel Auto-Play
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Verification Loading Overlay */}
+              {fileVerifyStatus === 'computing' && !isCountingDown && (
+                <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                  <Loader2 className="w-12 h-12 text-teal-500 animate-spin mb-4" />
+                  <span className="text-white text-lg font-medium tracking-wide">Loading next episode...</span>
+                </div>
+              )}
 
               {/* Floating button for landscape mobile */}
               <button 

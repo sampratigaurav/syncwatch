@@ -213,14 +213,61 @@ export default function WaitingRoom() {
 
               </div>
             ) : (
-              <div className="relative border-2 border-dashed border-zinc-700 hover:border-teal-500/50 rounded-2xl h-40 tablet:h-auto tablet:p-16 flex flex-col items-center justify-center text-center bg-zinc-950/50 hover:bg-zinc-800/30 transition-all cursor-pointer group">
-                <input type="file" accept="video/*" onChange={onFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Select Video" />
-                <div className="w-12 h-12 tablet:w-20 tablet:h-20 bg-zinc-800 group-hover:bg-zinc-700/80 rounded-full flex items-center justify-center mb-3 tablet:mb-6 transition-colors shadow-lg">
-                  <Play className="w-6 h-6 tablet:w-10 tablet:h-10 text-teal-500 ml-1 tablet:ml-1.5" />
+              <div className="flex flex-col gap-4">
+                <div className="relative border-2 border-dashed border-zinc-700 hover:border-teal-500/50 rounded-2xl h-40 tablet:h-auto tablet:p-16 flex flex-col items-center justify-center text-center bg-zinc-950/50 hover:bg-zinc-800/30 transition-all cursor-pointer group">
+                  <input type="file" accept="video/*" onChange={onFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Select Video" />
+                  <div className="w-12 h-12 tablet:w-20 tablet:h-20 bg-zinc-800 group-hover:bg-zinc-700/80 rounded-full flex items-center justify-center mb-3 tablet:mb-6 transition-colors shadow-lg">
+                    <Play className="w-6 h-6 tablet:w-10 tablet:h-10 text-teal-500 ml-1 tablet:ml-1.5" />
+                  </div>
+                  <span className="block tablet:hidden text-lg font-medium text-white px-4">Tap to select your movie file</span>
+                  <span className="hidden tablet:block text-xl font-medium text-white mb-2">Click to browse</span>
+                  <span className="hidden tablet:block text-sm text-zinc-500">or drag and drop your local video file here</span>
                 </div>
-                <span className="block tablet:hidden text-lg font-medium text-white px-4">Tap to select your movie file</span>
-                <span className="hidden tablet:block text-xl font-medium text-white mb-2">Click to browse</span>
-                <span className="hidden tablet:block text-sm text-zinc-500">or drag and drop your local video file here</span>
+                
+                {'showDirectoryPicker' in window && (
+                  <button 
+                    onClick={async () => {
+                      try {
+                        // @ts-ignore
+                        const dirHandle = await window.showDirectoryPicker();
+                        const handles: any[] = [];
+                        // @ts-ignore
+                        for await (const entry of dirHandle.values()) {
+                          if (entry.kind === 'file') {
+                            const name = entry.name.toLowerCase();
+                            if (name.endsWith('.mp4') || name.endsWith('.mkv') || name.endsWith('.webm')) {
+                              handles.push(entry);
+                            }
+                          }
+                        }
+                        
+                        if (handles.length === 0) {
+                          setErrorToast("No video files found in the selected folder.");
+                          return;
+                        }
+                        
+                        // Sort alphabetically with natural sort (Episode 1 before Episode 2, not Episode 10)
+                        handles.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+                        
+                        useRoomStore.getState().setDirectoryHandles(handles);
+                        
+                        // Auto-load the first episode
+                        const firstFile = await handles[0].getFile();
+                        verifyFile(firstFile);
+                        
+                      } catch (err: any) {
+                        if (err.name !== 'AbortError') {
+                           console.error('Folder selection failed:', err);
+                           setErrorToast("Failed to read folder contents. Please try again.");
+                        }
+                      }
+                    }}
+                    className="w-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800 text-zinc-300 font-medium rounded-xl py-4 transition-all flex flex-col items-center justify-center gap-1 active:scale-[0.98]"
+                  >
+                    <span className="text-white">Binge-Watcher Mode</span>
+                    <span className="text-xs text-zinc-500">Select an entire TV show folder for auto-play</span>
+                  </button>
+                )}
               </div>
             )}
             

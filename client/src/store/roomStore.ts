@@ -42,6 +42,8 @@ interface RoomStore {
   setPlayback: (p: PlaybackState | null) => void;
   setFileDetails: (hash: string | null, name: string | null) => void;
   setVerifyStatus: (s: 'idle' | 'computing' | 'verified' | 'mismatch') => void;
+  mismatchError: string | null;
+  setMismatchError: (err: string | null) => void;
   addChatMessage: (msg: ChatMessage) => void;
   setLatency: (ms: number) => void;
   setIsConnected: (connected: boolean) => void;
@@ -58,6 +60,8 @@ interface RoomStore {
   setReconnectToken: (token: string | null) => void;
   cachedFingerprintPayload: number[] | number | null;
   setCachedFingerprintPayload: (payload: number[] | number | null) => void;
+  directoryHandles: any[];
+  setDirectoryHandles: (handles: any[]) => void;
 }
 
 export const useRoomStore = create<RoomStore>((set, get) => ({
@@ -86,7 +90,9 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   errorToast: null,
   reconnectToken: null,
   cachedFingerprintPayload: null,
+  directoryHandles: [],
 
+  setDirectoryHandles: (handles) => set({ directoryHandles: handles }),
   setCachedFingerprintPayload: (payload) => set({ cachedFingerprintPayload: payload }),
   setLastActionAt: () => set({ lastActionAt: Date.now() }),
   setRoomPassword: (pass) => set({ roomPassword: pass }),
@@ -101,6 +107,8 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   setPlayback: (p) => set({ playback: p }),
   setFileDetails: (hash, name) => set({ fileHash: hash, fileName: name }),
   setVerifyStatus: (s) => set({ fileVerifyStatus: s }),
+  mismatchError: null,
+  setMismatchError: (err) => set({ mismatchError: err }),
   addChatMessage: (msg) => set((state) => {
     const next = [...state.chatMessages, msg];
     return { chatMessages: next.slice(-100) };
@@ -136,6 +144,7 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
       roomHasPassword: false,
       errorToast: null,
       reconnectToken: null,
+      directoryHandles: [],
     });
   },
   toggleTheme: () => set((state) => {

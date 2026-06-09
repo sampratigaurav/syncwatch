@@ -7,9 +7,8 @@ import { EVENTS } from '../../../shared/socketEvents';
 const DUMMY_HASH = '0'.repeat(64);
 
 export const useFileVerify = () => {
-  const { setVerifyStatus, setFileDetails, setLocalFileUrl, role, cachedFingerprintPayload, setCachedFingerprintPayload, fileName } = useRoomStore();
+  const { setVerifyStatus, setFileDetails, setLocalFileUrl, role, cachedFingerprintPayload, setCachedFingerprintPayload, fileName, mismatchError, setMismatchError } = useRoomStore();
   const sendFingerprintPayload = useWebRTC((state) => state.sendFingerprintPayload);
-  const [mismatchError, setMismatchError] = useState<string | null>(null);
   const [localFingerprintPayload, setLocalFingerprintPayload] = useState<number[] | number | null>(null);
 
   useEffect(() => {

@@ -17,6 +17,7 @@ interface VideoPlayerProps {
   onCanPlay: () => void;
   onPlaying?: () => void;
   onTimeUpdate?: () => void;
+  onEnded?: () => void;
   subtitleBlobUrl: string | null;
   subtitleEnabled: boolean;
   onSubtitleToggle: () => void;
@@ -27,7 +28,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 }
 
 export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
-  ({ src, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate, subtitleBlobUrl, subtitleEnabled, onSubtitleToggle }, externalRef) => {
+  ({ src, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate, onEnded, subtitleBlobUrl, subtitleEnabled, onSubtitleToggle }, externalRef) => {
     const { participants, canIControl, controlPolicy } = useRoomStore(useShallow(state => ({
       participants: state.participants,
       canIControl: state.canIControl,
@@ -231,6 +232,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           onPlaying={onPlaying}
           onTimeUpdate={handleNativeTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
+          onEnded={onEnded}
         >
           {subtitleBlobUrl && (
             <track

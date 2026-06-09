@@ -449,6 +449,19 @@ export const setupSocketHandlers = (io: Server) => {
       io.to(roomId).emit(EVENTS.CHAT_BROADCAST, message);
     });
 
+    socket.on(EVENTS.LOAD_NEXT_EPISODE, async (payload: { filename: string }) => {
+      if (!payload || typeof payload.filename !== 'string') return;
+      const roomId = socketToRoom.get(socket.id);
+      if (!roomId) return;
+      const room = await getRoom(roomId);
+      if (!room) return;
+      
+      const participant = room.participants.get(socket.id);
+      if (!participant || participant.role !== 'host') return;
+      
+      socket.to(roomId).emit(EVENTS.LOAD_NEXT_EPISODE, { filename: payload.filename });
+    });
+
     socket.on(EVENTS.VOICE_JOIN, async () => {
       const roomId = socketToRoom.get(socket.id);
       if (!roomId) return;

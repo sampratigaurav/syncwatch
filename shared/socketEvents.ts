@@ -25,6 +25,7 @@ export const EVENTS = {
   SUBTITLE_STATE_BROADCAST: 'subtitle_state_broadcast',
   WRONG_PASSWORD: 'wrong_password',
   ROOM_REQUIRES_PASSWORD: 'room_requires_password',
+  LOAD_NEXT_EPISODE: 'load_next_episode',
 
   // WebRTC Voice Chat Signalling
   WEBRTC_OFFER: 'webrtc_offer',
