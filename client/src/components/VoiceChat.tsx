@@ -1,5 +1,5 @@
 import { Mic, MicOff, PhoneOff, AlertCircle } from 'lucide-react';
-import { useVoiceChat } from '../hooks/useVoiceChat';
+import { useWebRTC } from '../hooks/useWebRTC';
 import { useEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -18,14 +18,14 @@ export function VoiceChat() {
     leaveVoice,
     toggleMute,
     remoteStreams
-  } = useVoiceChat();
+  } = useWebRTC();
 
   const [confirmLeave, setConfirmLeave] = useState(false);
   const audioContainerRef = useRef<HTMLDivElement>(null);
 
   // Manage hidden audio elements for remote streams
   useEffect(() => {
-    if (!audioContainerRef.current) return;
+    if (!audioContainerRef.current || !isInVoice) return;
     
     // Clear existing audio elements
     audioContainerRef.current.innerHTML = '';
@@ -39,7 +39,7 @@ export function VoiceChat() {
       audio.dataset.targetId = targetId;
       audioContainerRef.current?.appendChild(audio);
     });
-  }, [remoteStreams]);
+  }, [remoteStreams, isInVoice]);
 
   if (permissionDenied) {
     return (
@@ -58,7 +58,7 @@ export function VoiceChat() {
   return (
     <div className="flex flex-col relative w-full pt-1 pb-4">
       {/* Hidden container for audio tags */}
-      <div ref={audioContainerRef} className="hidden" aria-hidden="true" />
+      {isInVoice && <div ref={audioContainerRef} className="hidden" aria-hidden="true" />}
       
       <div className="flex items-center gap-2 mb-3 px-3">
         <Mic className="w-4 h-4 text-zinc-400" />

@@ -1,12 +1,12 @@
 import { useRoomStore } from '../store/roomStore';
 import { socket } from '../hooks/useSocket';
 import { User, Wifi, WifiOff, Gamepad2, Crown, MicOff } from 'lucide-react';
-import { useVoiceChat } from '../hooks/useVoiceChat';
+import { useWebRTC } from '../hooks/useWebRTC';
 import clsx from 'clsx';
 
 export default function ParticipantList({ variant = 'default' }: { variant?: 'default' | 'waiting-room' }) {
   const { participants, controlPolicy, controllerIds } = useRoomStore();
-  const { voiceParticipants } = useVoiceChat();
+  const { voiceParticipants } = useWebRTC();
 
   const isWaitingRoom = variant === 'waiting-room';
 

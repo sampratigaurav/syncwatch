@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Subtitles, X, Upload } from 'lucide-react';
+import { useRoomStore } from '../store/roomStore';
+import { useWebRTC } from '../hooks/useWebRTC';
 
 interface SubtitleLoaderProps {
   onSubtitleLoaded: (blobUrl: string) => void;
@@ -52,6 +54,11 @@ export default function SubtitleLoader({ onSubtitleLoaded, onSubtitleCleared }: 
 
       setFilename(file.name);
       onSubtitleLoaded(url);
+
+      const role = useRoomStore.getState().role;
+      if (role === 'host') {
+        useWebRTC.getState().sendSubtitlePayload(vttContent);
+      }
     };
 
     reader.onerror = () => {
@@ -69,6 +76,10 @@ export default function SubtitleLoader({ onSubtitleLoaded, onSubtitleCleared }: 
     if (currentUrl) {
       URL.revokeObjectURL(currentUrl);
       setCurrentUrl(null);
+    }
+    const role = useRoomStore.getState().role;
+    if (role === 'host') {
+      useWebRTC.getState().sendSubtitlePayload('');
     }
   };
 

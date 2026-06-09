@@ -2,21 +2,26 @@ import { create } from 'zustand';
 import { socket } from './useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import type { VoiceParticipant } from '../../../shared/types';
+import { useRoomStore } from '../store/roomStore';
 
-interface VoiceChatState {
+interface WebRTCState {
   isInVoice: boolean;
   isMuted: boolean;
   localStream: MediaStream | null;
   peerConnections: Map<string, RTCPeerConnection>;
   remoteStreams: Map<string, MediaStream>;
+  dataChannels: Map<string, RTCDataChannel>;
   voiceParticipants: VoiceParticipant[];
   permissionDenied: boolean;
+  
+  cachedSubtitlePayload: string | null;
 
   joinVoice: () => Promise<void>;
   leaveVoice: () => void;
   toggleMute: () => void;
   initiateCall: (targetId: string) => Promise<void>;
   createPeerConnection: (targetId: string) => RTCPeerConnection;
+  sendSubtitlePayload: (payload: string) => void;
 }
 
 const ICE_SERVERS = {
@@ -31,14 +36,93 @@ let audioContext: AudioContext | null = null;
 let analyser: AnalyserNode | null = null;
 let pollingInterval: ReturnType<typeof setInterval> | null = null;
 
-export const useVoiceChat = create<VoiceChatState>((set, get) => ({
+let chunkBuffer: string[] = [];
+
+const setupDataChannel = (dc: RTCDataChannel, targetId: string) => {
+  dc.onopen = () => {
+    console.log(`DataChannel open with ${targetId}`);
+    const state = useWebRTC.getState();
+    if (state.cachedSubtitlePayload) {
+      // If we have a cached subtitle, send it to this new peer immediately
+      const payload = state.cachedSubtitlePayload;
+      const chunkSize = 16 * 1024;
+      const chunks: string[] = [];
+      for (let i = 0; i < payload.length; i += chunkSize) {
+        chunks.push(payload.substring(i, i + chunkSize));
+      }
+      
+      dc.send(JSON.stringify({ type: 'START', totalSize: payload.length }));
+      chunks.forEach((chunk, index) => {
+        dc.send(JSON.stringify({ type: 'CHUNK', payload: chunk, index }));
+      });
+      dc.send(JSON.stringify({ type: 'END' }));
+    }
+  };
+
+  dc.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (data.type === 'START') {
+        chunkBuffer = [];
+      } else if (data.type === 'CHUNK') {
+        chunkBuffer.push(data.payload);
+      } else if (data.type === 'END') {
+        const fullPayload = chunkBuffer.join('');
+        chunkBuffer = [];
+        
+        // Reconstruct blob and push to store
+        if (fullPayload === '') {
+          useRoomStore.getState().setSubtitleBlobUrl(null);
+        } else {
+          const blob = new Blob([fullPayload], { type: 'text/vtt' });
+          const url = URL.createObjectURL(blob);
+          useRoomStore.getState().setSubtitleBlobUrl(url);
+        }
+      }
+    } catch (e) {
+      console.warn("Error parsing datachannel message", e);
+    }
+  };
+  
+  dc.onclose = () => {
+    const state = useWebRTC.getState();
+    const newDc = new Map(state.dataChannels);
+    newDc.delete(targetId);
+    useWebRTC.setState({ dataChannels: newDc });
+  };
+};
+
+export const useWebRTC = create<WebRTCState>((set, get) => ({
   isInVoice: false,
   isMuted: false,
   localStream: null,
   peerConnections: new Map(),
   remoteStreams: new Map(),
+  dataChannels: new Map(),
   voiceParticipants: [],
   permissionDenied: false,
+  cachedSubtitlePayload: null,
+
+  sendSubtitlePayload: (payload: string) => {
+    set({ cachedSubtitlePayload: payload });
+    const { dataChannels } = get();
+    
+    const chunkSize = 16 * 1024;
+    const chunks: string[] = [];
+    for (let i = 0; i < payload.length; i += chunkSize) {
+      chunks.push(payload.substring(i, i + chunkSize));
+    }
+
+    dataChannels.forEach((dc) => {
+      if (dc.readyState === 'open') {
+        dc.send(JSON.stringify({ type: 'START', totalSize: payload.length }));
+        chunks.forEach((chunk, index) => {
+          dc.send(JSON.stringify({ type: 'CHUNK', payload: chunk, index }));
+        });
+        dc.send(JSON.stringify({ type: 'END' }));
+      }
+    });
+  },
 
   joinVoice: async () => {
     try {
@@ -54,9 +138,21 @@ export const useVoiceChat = create<VoiceChatState>((set, get) => ({
       set({ localStream: stream, permissionDenied: false, isInVoice: true, isMuted: false });
       socket.emit(EVENTS.VOICE_JOIN);
 
+      // Add track to all existing peer connections and renegotiate
+      const { peerConnections } = get();
+      peerConnections.forEach(async (pc, targetId) => {
+        stream.getTracks().forEach(track => pc.addTrack(track, stream));
+        try {
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          socket.emit(EVENTS.WEBRTC_OFFER, { offer, targetId });
+        } catch (e) {
+           console.error(e);
+        }
+      });
+
       // Web Audio API for speaking indicator
       try {
-        // Need ts-ignore or window interface check for Safari
         const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
         audioContext = new AudioCtx();
         analyser = audioContext.createAnalyser();
@@ -72,7 +168,6 @@ export const useVoiceChat = create<VoiceChatState>((set, get) => ({
 
           const currentSelf = get().voiceParticipants.find(p => p.id === socket.id);
           if (currentSelf && currentSelf.isSpeaking !== isSpeaking) {
-            // Optimistic update locally
             set(state => ({
               voiceParticipants: state.voiceParticipants.map(p => 
                 p.id === socket.id ? { ...p, isSpeaking } : p
@@ -94,9 +189,24 @@ export const useVoiceChat = create<VoiceChatState>((set, get) => ({
     const { localStream, peerConnections } = get();
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
+      
+      // Remove tracks from existing PCs and renegotiate
+      peerConnections.forEach(async (pc, targetId) => {
+        const senders = pc.getSenders();
+        senders.forEach(sender => {
+           if (sender.track && sender.track.kind === 'audio') {
+              pc.removeTrack(sender);
+           }
+        });
+        try {
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          socket.emit(EVENTS.WEBRTC_OFFER, { offer, targetId });
+        } catch (e) {
+           console.error(e);
+        }
+      });
     }
-    
-    peerConnections.forEach(pc => pc.close());
     
     if (pollingInterval) clearInterval(pollingInterval);
     if (audioContext && audioContext.state !== 'closed') audioContext.close();
@@ -108,8 +218,6 @@ export const useVoiceChat = create<VoiceChatState>((set, get) => ({
     set({
       isInVoice: false,
       localStream: null,
-      peerConnections: new Map(),
-      remoteStreams: new Map()
     });
 
     socket.emit(EVENTS.VOICE_LEAVE);
@@ -130,8 +238,20 @@ export const useVoiceChat = create<VoiceChatState>((set, get) => ({
   },
 
   createPeerConnection: (targetId: string) => {
-    const { localStream, peerConnections } = get();
+    const { localStream, peerConnections, dataChannels } = get();
     const pc = new RTCPeerConnection(ICE_SERVERS);
+
+    // Setup datachannel if we are offering
+    const dc = pc.createDataChannel('syncwatch-assets', { negotiated: false });
+    const newDataChannels = new Map(dataChannels);
+    newDataChannels.set(targetId, dc);
+    set({ dataChannels: newDataChannels });
+    
+    setupDataChannel(dc, targetId);
+
+    pc.ondatachannel = (event) => {
+      setupDataChannel(event.channel, targetId);
+    };
 
     if (localStream) {
       localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
@@ -155,7 +275,9 @@ export const useVoiceChat = create<VoiceChatState>((set, get) => ({
         newPeers.delete(targetId);
         const newRemotes = new Map(get().remoteStreams);
         newRemotes.delete(targetId);
-        set({ peerConnections: newPeers, remoteStreams: newRemotes });
+        const newDcs = new Map(get().dataChannels);
+        newDcs.delete(targetId);
+        set({ peerConnections: newPeers, remoteStreams: newRemotes, dataChannels: newDcs });
       }
     };
 
@@ -178,30 +300,47 @@ export const useVoiceChat = create<VoiceChatState>((set, get) => ({
   }
 }));
 
-// Setup socket listeners outside the store so they always run effectively 
-export const setupVoiceSocketListeners = () => {
+export const setupWebRTCSocketListeners = () => {
   socket.on(EVENTS.VOICE_STATE_UPDATE, (participants: VoiceParticipant[]) => {
-    useVoiceChat.setState({ voiceParticipants: participants });
+    useWebRTC.setState({ voiceParticipants: participants });
   });
 
-  socket.on(EVENTS.VOICE_JOIN, (newParticipant: VoiceParticipant) => {
-    const { isInVoice, initiateCall } = useVoiceChat.getState();
-    if (isInVoice) {
-      initiateCall(newParticipant.id);
+  // Room Join logic - automatically establish WebRTC for everyone
+  socket.on(EVENTS.ROOM_STATE, (roomState) => {
+    const { initiateCall, peerConnections } = useWebRTC.getState();
+    roomState.participants.forEach((p: any) => {
+       if (p.id !== socket.id && socket.id && socket.id < p.id) {
+         if (!peerConnections.has(p.id)) {
+           initiateCall(p.id);
+         }
+       }
+    });
+  });
+
+  socket.on(EVENTS.PARTICIPANT_UPDATE, (participant) => {
+    if (participant.status === 'removed') return;
+    
+    if (socket.id && socket.id < participant.id) {
+       const { peerConnections, initiateCall } = useWebRTC.getState();
+       if (!peerConnections.has(participant.id)) {
+         initiateCall(participant.id);
+       }
     }
   });
 
   socket.on(EVENTS.WEBRTC_OFFER, async ({ offer, fromId }: { offer: RTCSessionDescriptionInit, fromId: string }) => {
-    const { createPeerConnection, isInVoice } = useVoiceChat.getState();
-    if (!isInVoice) return;
-
-    // Fix 11: Validate offer before accepting
+    const { createPeerConnection, peerConnections } = useWebRTC.getState();
+    
     if (!offer || typeof offer.sdp !== 'string' || offer.type !== 'offer') {
       console.warn('Rejected invalid WebRTC offer from', fromId);
       return;
     }
 
-    const pc = createPeerConnection(fromId);
+    let pc = peerConnections.get(fromId);
+    if (!pc) {
+       pc = createPeerConnection(fromId);
+    }
+
     try {
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
       const answer = await pc.createAnswer();
@@ -213,7 +352,7 @@ export const setupVoiceSocketListeners = () => {
   });
 
   socket.on(EVENTS.WEBRTC_ANSWER, async ({ answer, fromId }: { answer: RTCSessionDescriptionInit, fromId: string }) => {
-    const { peerConnections } = useVoiceChat.getState();
+    const { peerConnections } = useWebRTC.getState();
     const pc = peerConnections.get(fromId);
     if (pc) {
       try {
@@ -225,7 +364,7 @@ export const setupVoiceSocketListeners = () => {
   });
 
   socket.on(EVENTS.WEBRTC_ICE_CANDIDATE, async ({ candidate, fromId }: { candidate: RTCIceCandidateInit, fromId: string }) => {
-    const { peerConnections } = useVoiceChat.getState();
+    const { peerConnections } = useWebRTC.getState();
     const pc = peerConnections.get(fromId);
     if (pc && pc.remoteDescription) {
       try {
@@ -236,9 +375,8 @@ export const setupVoiceSocketListeners = () => {
     }
   });
   
-  // Custom listener for speaking indicator
   socket.on(EVENTS.VOICE_SPEAKING, ({ isSpeaking, fromId }: { isSpeaking: boolean, fromId: string }) => {
-     useVoiceChat.setState(state => ({
+     useWebRTC.setState(state => ({
         voiceParticipants: state.voiceParticipants.map(p => 
            p.id === fromId ? { ...p, isSpeaking } : p
         )
@@ -246,5 +384,4 @@ export const setupVoiceSocketListeners = () => {
   });
 };
 
-// Initialize listeners proactively
-setupVoiceSocketListeners();
+setupWebRTCSocketListeners();
