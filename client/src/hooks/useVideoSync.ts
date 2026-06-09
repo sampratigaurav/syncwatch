@@ -30,7 +30,7 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
       }
 
       if (event.action === 'play') {
-        if (Math.abs(video.currentTime - event.currentTime) > 0.5) {
+        if (Math.abs(video.currentTime - event.currentTime) > 2.0) {
           video.currentTime = event.currentTime;
         }
         if (video.paused) {
