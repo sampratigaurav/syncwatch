@@ -12,7 +12,7 @@ export default function WaitingRoom() {
   const { roomId: urlId } = useParams();
   const navigate = useNavigate();
   useSocket(navigate);
-  const { verifyFile, mismatchError } = useFileVerify();
+  const { verifyFile, mismatchError, forceAccept } = useFileVerify();
   const fileName = useRoomStore(state => state.fileName);
 
   const [copied, setCopied] = useState(false);
@@ -169,10 +169,15 @@ export default function WaitingRoom() {
                   </div>
                 </div>
 
-                <div className="relative w-full tablet:w-auto">
-                  <input type="file" accept="video/*" onChange={onFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Select Video" />
-                  <button className="w-full tablet:w-auto bg-red-600 hover:bg-red-500 text-white font-semibold tablet:font-medium rounded-xl tablet:rounded-lg px-8 py-3.5 tablet:py-3 transition-all shadow-[0_4px_14px_rgba(220,38,38,0.4)] active:scale-95 tablet:shadow-lg uppercase tracking-wide tablet:normal-case tablet:tracking-normal text-[15px] tablet:text-base">
-                    Select a different file
+                <div className="relative w-full tablet:w-auto flex flex-col gap-3">
+                  <div className="relative w-full tablet:w-auto">
+                    <input type="file" accept="video/*" onChange={onFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Select Video" />
+                    <button className="w-full tablet:w-auto bg-red-600 hover:bg-red-500 text-white font-semibold tablet:font-medium rounded-xl tablet:rounded-lg px-8 py-3.5 tablet:py-3 transition-all shadow-[0_4px_14px_rgba(220,38,38,0.4)] active:scale-95 tablet:shadow-lg uppercase tracking-wide tablet:normal-case tablet:tracking-normal text-[15px] tablet:text-base">
+                      Select a different file
+                    </button>
+                  </div>
+                  <button onClick={forceAccept} className="w-full tablet:w-auto bg-transparent border border-red-900/50 hover:bg-red-950/50 text-red-400 font-semibold tablet:font-medium rounded-xl tablet:rounded-lg px-8 py-3.5 tablet:py-2 transition-all active:scale-95 text-[13px] tablet:text-sm">
+                    Force Join (I know this is the right file)
                   </button>
                 </div>
               </div>

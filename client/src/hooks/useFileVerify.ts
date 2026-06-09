@@ -106,5 +106,11 @@ export const useFileVerify = () => {
     }
   };
 
-  return { verifyFile, mismatchError };
+  const forceAccept = () => {
+    socket.emit(EVENTS.FILE_VERIFIED, { hash: DUMMY_HASH, size: 0, name: fileName || 'video.mp4' });
+    setVerifyStatus('verified');
+    setMismatchError(null);
+  };
+
+  return { verifyFile, mismatchError, forceAccept };
 };
