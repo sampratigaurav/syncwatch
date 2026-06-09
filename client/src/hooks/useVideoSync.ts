@@ -60,12 +60,39 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
       useRoomStore.getState().setSubtitleEnabled(event.isEnabled);
     };
 
+    const handleRoomState = (roomState: any) => {
+      const video = videoRef.current;
+      if (!video || !roomState.playback) return;
+      
+      isApplyingRemoteEvent.current = true;
+      
+      if (Math.abs(video.currentTime - roomState.playback.currentTime) > 2.0) {
+        video.currentTime = roomState.playback.currentTime;
+      }
+
+      if (roomState.playback.isPlaying) {
+        if (video.paused) {
+          video.play().catch(e => console.warn("Auto-play blocked:", e));
+        }
+      } else {
+        if (!video.paused) {
+          video.pause();
+        }
+      }
+
+      setTimeout(() => {
+        isApplyingRemoteEvent.current = false;
+      }, 250);
+    };
+
     socket.on(EVENTS.PLAYBACK_BROADCAST, handleRemoteBroadcast);
     socket.on(EVENTS.SUBTITLE_STATE_BROADCAST, handleSubtitleBroadcast);
+    socket.on(EVENTS.ROOM_STATE, handleRoomState);
 
     return () => {
       socket.off(EVENTS.PLAYBACK_BROADCAST, handleRemoteBroadcast);
       socket.off(EVENTS.SUBTITLE_STATE_BROADCAST, handleSubtitleBroadcast);
+      socket.off(EVENTS.ROOM_STATE, handleRoomState);
     };
   }, []); // Empty deps to register exactly once
 

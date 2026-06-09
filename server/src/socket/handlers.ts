@@ -159,6 +159,8 @@ export const setupSocketHandlers = (io: Server) => {
                 clearTimeout(disconnectTimers.get(disconnectedMatch.id));
                 disconnectTimers.delete(disconnectedMatch.id);
               }
+              // Tell other clients to remove the ghost clone
+              socket.to(roomId).emit(EVENTS.PARTICIPANT_UPDATE, { ...disconnectedMatch, status: 'removed' });
             }
             // Consume the token (single-use); a fresh one will be issued below
             reconnectTokens.delete(reconnectToken);
@@ -186,8 +188,8 @@ export const setupSocketHandlers = (io: Server) => {
         id: socket.id,
         nickname,
         role,
-        status: (existing && !isNewSocket) ? existing.status : 'disconnected',
-        fileHash: (existing && !isNewSocket) ? existing.fileHash : null,
+        status: existing ? existing.status : 'disconnected',
+        fileHash: existing ? existing.fileHash : null,
         latencyMs: existing ? existing.latencyMs : 0,
         joinedAt: existing ? existing.joinedAt : Date.now()
       };
