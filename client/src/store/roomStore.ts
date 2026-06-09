@@ -56,6 +56,8 @@ interface RoomStore {
   canIControl: () => boolean;
   setErrorToast: (msg: string | null) => void;
   setReconnectToken: (token: string | null) => void;
+  cachedFingerprintPayload: number[] | number | null;
+  setCachedFingerprintPayload: (payload: number[] | number | null) => void;
 }
 
 export const useRoomStore = create<RoomStore>((set, get) => ({
@@ -83,7 +85,9 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
   roomHasPassword: false,
   errorToast: null,
   reconnectToken: null,
+  cachedFingerprintPayload: null,
 
+  setCachedFingerprintPayload: (payload) => set({ cachedFingerprintPayload: payload }),
   setLastActionAt: () => set({ lastActionAt: Date.now() }),
   setRoomPassword: (pass) => set({ roomPassword: pass }),
   setRoomHasPassword: (has) => set({ roomHasPassword: has }),

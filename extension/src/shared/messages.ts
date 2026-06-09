@@ -3,6 +3,7 @@ export type Participant = {
   nickname: string
   role: 'host' | 'viewer'
   latencyMs: number
+  status?: 'ready' | 'buffering' | 'disconnected'
 }
 
 export type ExtensionState = {
@@ -40,6 +41,7 @@ export type ExtensionMessage =
   | { type: 'PLAYER_NOT_FOUND' }
   | { type: 'GET_CURRENT_TIME' }
   | { type: 'CURRENT_TIME_RESPONSE'; currentTime: number }
+  | { type: 'PING' }
 
 export type MessageResponse =
   | { success: true; roomId?: string }

@@ -4,7 +4,13 @@
       "Bash(npm install:*)",
       "Bash(npx tsc:*)",
       "Bash(git pull:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(find /c/Users/ASUS/desktop/projects/SyncWatch -type d -not -path */node_modules* -not -path */dist*)",
+      "Bash(node scripts/generate-icons.js)",
+      "Bash(npm run:*)"
     ]
   }
 }

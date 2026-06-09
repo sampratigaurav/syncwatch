@@ -22,6 +22,7 @@ interface WebRTCState {
   initiateCall: (targetId: string) => Promise<void>;
   createPeerConnection: (targetId: string) => RTCPeerConnection;
   sendSubtitlePayload: (payload: string) => void;
+  sendFingerprintPayload: (payload: number[] | number) => void;
 }
 
 const ICE_SERVERS = {
@@ -57,12 +58,19 @@ const setupDataChannel = (dc: RTCDataChannel, targetId: string) => {
       });
       dc.send(JSON.stringify({ type: 'END' }));
     }
+
+    const fingerprintPayload = useRoomStore.getState().cachedFingerprintPayload;
+    if (fingerprintPayload !== null) {
+      dc.send(JSON.stringify({ type: 'FINGERPRINT', payload: fingerprintPayload }));
+    }
   };
 
   dc.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
-      if (data.type === 'START') {
+      if (data.type === 'FINGERPRINT') {
+        useRoomStore.getState().setCachedFingerprintPayload(data.payload);
+      } else if (data.type === 'START') {
         chunkBuffer = [];
       } else if (data.type === 'CHUNK') {
         chunkBuffer.push(data.payload);
@@ -120,6 +128,15 @@ export const useWebRTC = create<WebRTCState>((set, get) => ({
           dc.send(JSON.stringify({ type: 'CHUNK', payload: chunk, index }));
         });
         dc.send(JSON.stringify({ type: 'END' }));
+      }
+    });
+  },
+
+  sendFingerprintPayload: (payload: number[] | number) => {
+    const { dataChannels } = get();
+    dataChannels.forEach((dc) => {
+      if (dc.readyState === 'open') {
+        dc.send(JSON.stringify({ type: 'FINGERPRINT', payload }));
       }
     });
   },

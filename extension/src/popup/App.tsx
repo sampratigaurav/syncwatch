@@ -40,7 +40,7 @@ export default function App(): React.JSX.Element {
   const [isBusy, setIsBusy] = useState(false)
   const [copied, setCopied] = useState(false)
   const [leaveArmed, setLeaveArmed] = useState(false)
-  const [isYouTube, setIsYouTube] = useState(false)
+  const [isYouTube, setIsYouTube] = useState<'ready' | 'needs-refresh' | 'no'>('no')
   const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── Mount: load nickname, get state, detect YouTube tab ──────────────────
@@ -63,8 +63,21 @@ export default function App(): React.JSX.Element {
     )
 
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const url = tabs[0]?.url ?? ''
-      setIsYouTube(url.includes('youtube.com/watch'))
+      const tab = tabs[0]
+      if (!tab?.url?.includes('youtube.com/watch')) return
+      // Probe the content script — if it's not running (tab was open before
+      // extension load) the sendMessage will error and we show the refresh prompt.
+      chrome.tabs.sendMessage(
+        tab.id!,
+        { type: 'PING' } satisfies ExtensionMessage,
+        () => {
+          if (chrome.runtime.lastError) {
+            setIsYouTube('needs-refresh')
+          } else {
+            setIsYouTube('ready')
+          }
+        },
+      )
     })
 
     const listener = (msg: ExtensionMessage) => {
@@ -194,7 +207,7 @@ interface IdleViewProps {
   roomCode: string
   setRoomCode: (v: string) => void
   error: string
-  isYouTube: boolean
+  isYouTube: 'ready' | 'needs-refresh' | 'no'
   isBusy: boolean
   onCreate: () => void
   onJoin: () => void
@@ -224,11 +237,17 @@ function IdleView({
 
       {/* YouTube detection status */}
       <div style={{ marginBottom: 16 }}>
-        {isYouTube ? (
+        {isYouTube === 'ready' && (
           <div style={{ color: '#1D9E75', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}>
             <span>●</span> YouTube video detected
           </div>
-        ) : (
+        )}
+        {isYouTube === 'needs-refresh' && (
+          <div style={{ color: '#f59e0b', fontSize: 12 }}>
+            ⚠ Refresh the YouTube tab (Ctrl+R) then reopen this popup
+          </div>
+        )}
+        {isYouTube === 'no' && (
           <div style={{ color: '#6b7280', fontSize: 12 }}>
             Navigate to a YouTube video first
           </div>
