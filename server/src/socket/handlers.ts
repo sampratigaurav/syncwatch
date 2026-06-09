@@ -81,6 +81,7 @@ export const setupSocketHandlers = (io: Server) => {
   io.on('connection', (socket: Socket) => {
 
     socket.on(EVENTS.JOIN_ROOM, async (payload: { roomId: string, nickname: string, password?: string, reconnectToken?: string }) => {
+      if (!payload) return;
       const { roomId, nickname, password, reconnectToken } = payload;
 
       // Server-side nickname validation
@@ -277,6 +278,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.PLAYBACK_EVENT, async (payload: PlaybackEvent) => {
+      if (!payload) return;
       const roomId = socketToRoom.get(socket.id);
       if (!roomId) return;
       const room = await getRoom(roomId);
@@ -410,7 +412,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.CHAT_MESSAGE, async (payload: { text: string }) => {
-      if (!payload.text || typeof payload.text !== 'string') return;
+      if (!payload || !payload.text || typeof payload.text !== 'string') return;
       const trimmed = payload.text.trim();
       if (trimmed.length === 0 || trimmed.length > MAX_MESSAGE_LENGTH) return;
 
@@ -506,6 +508,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.VOICE_SPEAKING, async (payload: { isSpeaking: boolean }) => {
+      if (!payload) return;
       const roomId = socketToRoom.get(socket.id);
       if (!roomId) return;
       const room = await getRoom(roomId);
@@ -528,6 +531,7 @@ export const setupSocketHandlers = (io: Server) => {
     };
 
     socket.on(EVENTS.WEBRTC_OFFER, async (payload: { offer: any, targetId: string }) => {
+      if (!payload || !payload.targetId) return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_OFFER, {
         offer: payload.offer,
@@ -536,6 +540,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.WEBRTC_ANSWER, async (payload: { answer: any, targetId: string }) => {
+      if (!payload || !payload.targetId) return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ANSWER, {
         answer: payload.answer,
@@ -544,6 +549,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.WEBRTC_ICE_CANDIDATE, async (payload: { candidate: any, targetId: string }) => {
+      if (!payload || !payload.targetId) return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ICE_CANDIDATE, {
         candidate: payload.candidate,
@@ -609,6 +615,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.SEND_REACTION, async (payload: { emoji: string }) => {
+      if (!payload || !payload.emoji) return;
       const ALLOWED_EMOJIS = ['😂', '❤️', '😮', '😭', '🔥', '👏', '😍', '💀', '🤯', '👀'];
       if (!ALLOWED_EMOJIS.includes(payload.emoji)) return;
 
