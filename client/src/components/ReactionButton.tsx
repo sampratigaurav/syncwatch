@@ -79,6 +79,7 @@ export function ReactionButton({ onSend }: ReactionButtonProps) {
       {isOpen && (
         <div 
           ref={pickerRef}
+          id="reaction-picker"
           className="absolute bottom-full mb-4 right-0 tablet:-right-2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150"
           onClick={(e) => e.stopPropagation()}
         >
