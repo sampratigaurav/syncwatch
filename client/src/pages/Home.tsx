@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Coffee, Copy, Check, Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
+import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../lib/config';
 import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
@@ -92,8 +93,10 @@ const STEPS = [
 export default function Home() {
   const navigate = useNavigate();
   const { roomId: urlRoomId } = useParams();
-  const setRoomId = useRoomStore((s) => s.setRoomId);
-  const { setNickname } = useRoomStore();
+  const { setRoomId, setNickname } = useRoomStore(useShallow(state => ({
+    setRoomId: state.setRoomId,
+    setNickname: state.setNickname
+  })));
 
   const savedNickname = localStorage.getItem('syncwatch_nickname') || '';
   const [inputRoomId, setInputRoomId] = useState(urlRoomId || '');

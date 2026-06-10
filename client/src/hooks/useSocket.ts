@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useRoomStore } from '../store/roomStore';
+import { useShallow } from 'zustand/react/shallow';
 import { EVENTS } from '../../../shared/socketEvents';
 import type { Participant } from '../../../shared/types';
 import { SERVER_URL } from '../lib/config';
@@ -18,7 +19,16 @@ export const useSocket = (navigate?: (to: string) => void) => {
   const { 
     setIsConnected, setLatency, addChatMessage, setParticipants, 
     setPlayback, setRole, setConnectionStatus, setReconnectAttempt 
-  } = useRoomStore();
+  } = useRoomStore(useShallow(state => ({
+    setIsConnected: state.setIsConnected,
+    setLatency: state.setLatency,
+    addChatMessage: state.addChatMessage,
+    setParticipants: state.setParticipants,
+    setPlayback: state.setPlayback,
+    setRole: state.setRole,
+    setConnectionStatus: state.setConnectionStatus,
+    setReconnectAttempt: state.setReconnectAttempt
+  })));
 
   useEffect(() => {
     const onConnect = () => {
