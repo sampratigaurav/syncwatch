@@ -102,8 +102,11 @@ export function ReactionButton({ onSend }: ReactionButtonProps) {
         onClick={handleToggle}
         disabled={onCooldown}
         title="Send Reaction"
+        aria-label="Send Reaction"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? "reaction-picker" : undefined}
         className={cn(
-          "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center transition-colors focus:outline-none pr-1 tablet:pr-0 relative",
+          "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded-lg pr-1 tablet:pr-0 relative",
           onCooldown 
             ? "text-zinc-600 [.light_&]:text-zinc-400 cursor-not-allowed" 
             : "text-white [.light_&]:text-zinc-600 hover:text-teal-400 [.light_&]:hover:text-teal-500"
