@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRoomStore } from '../store/roomStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useWebRTC } from './useWebRTC';
 import { socket } from './useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
@@ -7,7 +8,17 @@ import { EVENTS } from '../../../shared/socketEvents';
 const DUMMY_HASH = '0'.repeat(64);
 
 export const useFileVerify = () => {
-  const { setVerifyStatus, setFileDetails, setLocalFileUrl, role, cachedFingerprintPayload, setCachedFingerprintPayload, fileName, mismatchError, setMismatchError } = useRoomStore();
+  const { setVerifyStatus, setFileDetails, setLocalFileUrl, role, cachedFingerprintPayload, setCachedFingerprintPayload, fileName, mismatchError, setMismatchError } = useRoomStore(useShallow(state => ({
+    setVerifyStatus: state.setVerifyStatus,
+    setFileDetails: state.setFileDetails,
+    setLocalFileUrl: state.setLocalFileUrl,
+    role: state.role,
+    cachedFingerprintPayload: state.cachedFingerprintPayload,
+    setCachedFingerprintPayload: state.setCachedFingerprintPayload,
+    fileName: state.fileName,
+    mismatchError: state.mismatchError,
+    setMismatchError: state.setMismatchError
+  })));
   const sendFingerprintPayload = useWebRTC((state) => state.sendFingerprintPayload);
   
   const [localFingerprint, setLocalFingerprint] = useState<number[] | number | null>(null);

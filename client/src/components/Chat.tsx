@@ -1,11 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRoomStore } from '../store/roomStore';
+import { useShallow } from 'zustand/react/shallow';
 import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import { Send } from 'lucide-react';
 
 export default function Chat() {
-  const { chatMessages, nickname } = useRoomStore();
+  const { chatMessages, nickname } = useRoomStore(useShallow(state => ({
+    chatMessages: state.chatMessages,
+    nickname: state.nickname
+  })));
   const [text, setText] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 

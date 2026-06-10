@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRoomStore } from '../store/roomStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useSocket } from '../hooks/useSocket';
 import { useFileVerify } from '../hooks/useFileVerify';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -8,7 +9,17 @@ import ControlPolicySelector from '../components/ControlPolicySelector';
 import { Copy, Check, Play, AlertTriangle, Loader2, WifiOff, Lock } from 'lucide-react';
 
 export default function WaitingRoom() {
-  const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast } = useRoomStore();
+  const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast } = useRoomStore(useShallow(state => ({
+    roomId: state.roomId,
+    participants: state.participants,
+    role: state.role,
+    fileVerifyStatus: state.fileVerifyStatus,
+    connectionStatus: state.connectionStatus,
+    reconnectAttempt: state.reconnectAttempt,
+    clearRoomState: state.clearRoomState,
+    errorToast: state.errorToast,
+    setErrorToast: state.setErrorToast
+  })));
   const { roomId: urlId } = useParams();
   const navigate = useNavigate();
   useSocket(navigate);

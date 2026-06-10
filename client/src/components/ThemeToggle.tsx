@@ -1,9 +1,13 @@
 import { Moon, Sun } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
+import { useShallow } from 'zustand/react/shallow';
 import { useEffect } from 'react';
 
 export default function ThemeToggle() {
-  const { theme, toggleTheme } = useRoomStore();
+  const { theme, toggleTheme } = useRoomStore(useShallow(state => ({
+    theme: state.theme,
+    toggleTheme: state.toggleTheme
+  })));
   
   useEffect(() => {
     if (theme === 'dark') {

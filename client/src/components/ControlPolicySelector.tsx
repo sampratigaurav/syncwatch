@@ -1,4 +1,5 @@
 import { useRoomStore } from '../store/roomStore';
+import { useShallow } from 'zustand/react/shallow';
 import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import { Crown, Users, UserPlus } from 'lucide-react';
@@ -11,7 +12,13 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 }
 
 export default function ControlPolicySelector() {
-  const { role, controlPolicy, controllerIds, participants, nickname } = useRoomStore();
+  const { role, controlPolicy, controllerIds, participants, nickname } = useRoomStore(useShallow(state => ({
+    role: state.role,
+    controlPolicy: state.controlPolicy,
+    controllerIds: state.controllerIds,
+    participants: state.participants,
+    nickname: state.nickname
+  })));
   
   if (role !== 'host') return null;
 

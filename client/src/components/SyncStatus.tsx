@@ -1,9 +1,13 @@
 import { useRoomStore } from '../store/roomStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Activity, Clock } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function SyncStatus() {
-  const { latencyMs, playback } = useRoomStore();
+  const { latencyMs, playback } = useRoomStore(useShallow(state => ({
+    latencyMs: state.latencyMs,
+    playback: state.playback
+  })));
   
   // Color coding latency
   const latencyColor = 
