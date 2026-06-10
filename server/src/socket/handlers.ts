@@ -84,6 +84,11 @@ export const setupSocketHandlers = (io: Server) => {
       if (!payload) return;
       const { roomId, nickname, password, reconnectToken } = payload;
 
+      if (typeof roomId !== 'string') {
+        socket.emit('error', { message: 'Invalid room ID' });
+        return;
+      }
+
       // Server-side nickname validation
       if (!nickname || typeof nickname !== 'string' || nickname.trim().length < 1 || nickname.length > MAX_NICKNAME_LENGTH) {
         socket.emit('error', { message: 'Nickname must be 1-50 characters' });
@@ -99,6 +104,11 @@ export const setupSocketHandlers = (io: Server) => {
       if (room.hasPassword) {
         if (!password) {
           socket.emit(EVENTS.ROOM_REQUIRES_PASSWORD, { roomId });
+          return;
+        }
+
+        if (typeof password !== 'string') {
+          socket.emit(EVENTS.WRONG_PASSWORD, { message: 'Incorrect PIN format' });
           return;
         }
 
