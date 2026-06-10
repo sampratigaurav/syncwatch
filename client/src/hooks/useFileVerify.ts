@@ -10,10 +10,11 @@ export const useFileVerify = () => {
   const { setVerifyStatus, setFileDetails, setLocalFileUrl, role, cachedFingerprintPayload, setCachedFingerprintPayload, fileName, mismatchError, setMismatchError } = useRoomStore();
   const sendFingerprintPayload = useWebRTC((state) => state.sendFingerprintPayload);
   
-  // To fix the viewer race condition reliably
-  const localFingerprintRef = useRef<number[] | number | null>(null);
+  const [localFingerprint, setLocalFingerprint] = useState<number[] | number | null>(null);
+  
   const compareWorkerRef = useRef<Worker | null>(null);
   const generateWorkerRef = useRef<Worker | null>(null);
+  const failsafeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const handleMismatch = () => {
@@ -37,7 +38,7 @@ export const useFileVerify = () => {
 
   // Viewer comparison effect
   useEffect(() => {
-    if (role === 'viewer' && localFingerprintRef.current !== null && cachedFingerprintPayload !== null) {
+    if (role === 'viewer' && localFingerprint !== null && cachedFingerprintPayload !== null) {
       if (compareWorkerRef.current) {
         compareWorkerRef.current.terminate();
       }
@@ -46,6 +47,7 @@ export const useFileVerify = () => {
       compareWorkerRef.current = worker;
 
       worker.onerror = (err) => {
+        if (failsafeRef.current) clearTimeout(failsafeRef.current);
         console.error("Compare Worker Error:", err);
         setVerifyStatus('mismatch');
         setMismatchError("Verification process crashed");
@@ -53,6 +55,7 @@ export const useFileVerify = () => {
       };
 
       worker.onmessage = (e) => {
+        if (failsafeRef.current) clearTimeout(failsafeRef.current);
         try {
           if (e.data.type === 'COMPARE_RESULT') {
             if (e.data.isMatch) {
@@ -73,21 +76,23 @@ export const useFileVerify = () => {
 
       worker.postMessage({
         type: 'COMPARE',
-        payload: { localPayload: localFingerprintRef.current, remotePayload: cachedFingerprintPayload }
+        payload: { localPayload: localFingerprint, remotePayload: cachedFingerprintPayload }
       });
     }
-  }, [role, cachedFingerprintPayload, setVerifyStatus, setMismatchError, fileName]);
+  }, [role, localFingerprint, cachedFingerprintPayload, setVerifyStatus, setMismatchError, fileName]);
 
   const verifyFile = async (file: File) => {
     setVerifyStatus('computing');
     setMismatchError(null);
-    localFingerprintRef.current = null;
+    setLocalFingerprint(null);
     
     // Failsafe timeout
-    const failsafe = setTimeout(() => {
+    if (failsafeRef.current) clearTimeout(failsafeRef.current);
+    failsafeRef.current = setTimeout(() => {
       setVerifyStatus('mismatch');
-      setMismatchError("Verification timed out.");
+      setMismatchError("Verification timed out waiting for host data. You can force join.");
       if (generateWorkerRef.current) generateWorkerRef.current.terminate();
+      if (compareWorkerRef.current) compareWorkerRef.current.terminate();
     }, 10000);
 
     const url = URL.createObjectURL(file);
@@ -116,6 +121,7 @@ export const useFileVerify = () => {
       const result = await new Promise<number[]>((resolve, reject) => {
         worker.onerror = (err) => {
           console.error("Generate Worker Error:", err);
+          if (role === 'host' && failsafeRef.current) clearTimeout(failsafeRef.current);
           setVerifyStatus('mismatch');
           setMismatchError("Verification process crashed");
           reject(new Error("Worker error"));
@@ -129,6 +135,7 @@ export const useFileVerify = () => {
               reject(new Error(e.data.error));
             }
           } catch (err) {
+            if (role === 'host' && failsafeRef.current) clearTimeout(failsafeRef.current);
             setVerifyStatus('mismatch');
             setMismatchError("Verification process crashed");
             reject(err);
@@ -147,30 +154,16 @@ export const useFileVerify = () => {
       console.warn("Audio decoding failed, falling back to file size check", e);
       payload = file.size;
     }
-    
-    clearTimeout(failsafe);
 
-    localFingerprintRef.current = payload;
-
-    // Trigger viewer effect if it was waiting for local payload
-    // To trigger the effect securely, we also save it in a state
-    // But since the requirements specifically requested a useRef to avoid race conditions,
-    // we use a force render state just to kick the effect if role is viewer
-    setLocalRenderTrigger(prev => prev + 1);
+    setLocalFingerprint(payload);
 
     if (role === 'host') {
+      if (failsafeRef.current) clearTimeout(failsafeRef.current);
       setCachedFingerprintPayload(payload);
       sendFingerprintPayload(payload);
       socket.emit(EVENTS.FILE_VERIFIED, { hash: DUMMY_HASH, size: 0, name: file.name });
     }
   };
-
-  const [localRenderTrigger, setLocalRenderTrigger] = useState(0);
-
-  // Combine trigger with the effect dependencies
-  useEffect(() => {
-    // This empty effect is just so the dependency array in the comparison effect fires when localRenderTrigger changes
-  }, [localRenderTrigger]);
 
   const forceAccept = () => {
     socket.emit(EVENTS.FILE_VERIFIED, { hash: DUMMY_HASH, size: 0, name: fileName || 'video.mp4' });
@@ -183,6 +176,7 @@ export const useFileVerify = () => {
     return () => {
       if (compareWorkerRef.current) compareWorkerRef.current.terminate();
       if (generateWorkerRef.current) generateWorkerRef.current.terminate();
+      if (failsafeRef.current) clearTimeout(failsafeRef.current);
     };
   }, []);
 
