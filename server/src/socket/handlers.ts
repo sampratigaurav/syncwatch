@@ -420,7 +420,8 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.PING, (payload: { sentAt: number }) => {
-      socket.emit(EVENTS.PONG, payload);
+      if (!payload || typeof payload.sentAt !== 'number') return;
+      socket.emit(EVENTS.PONG, { sentAt: payload.sentAt });
     });
 
     socket.on(EVENTS.CHAT_MESSAGE, async (payload: { text: string }) => {
@@ -533,7 +534,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.VOICE_SPEAKING, async (payload: { isSpeaking: boolean }) => {
-      if (!payload) return;
+      if (!payload || typeof payload.isSpeaking !== 'boolean') return;
       const roomId = socketToRoom.get(socket.id);
       if (!roomId) return;
       const room = await getRoom(roomId);
@@ -556,7 +557,7 @@ export const setupSocketHandlers = (io: Server) => {
     };
 
     socket.on(EVENTS.WEBRTC_OFFER, async (payload: { offer: any, targetId: string }) => {
-      if (!payload || !payload.targetId) return;
+      if (!payload || typeof payload.targetId !== 'string') return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_OFFER, {
         offer: payload.offer,
@@ -565,7 +566,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.WEBRTC_ANSWER, async (payload: { answer: any, targetId: string }) => {
-      if (!payload || !payload.targetId) return;
+      if (!payload || typeof payload.targetId !== 'string') return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ANSWER, {
         answer: payload.answer,
@@ -574,7 +575,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.WEBRTC_ICE_CANDIDATE, async (payload: { candidate: any, targetId: string }) => {
-      if (!payload || !payload.targetId) return;
+      if (!payload || typeof payload.targetId !== 'string') return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ICE_CANDIDATE, {
         candidate: payload.candidate,
