@@ -140,6 +140,7 @@ export function VoiceChat() {
           <div className="flex items-center gap-2 pt-3 border-t border-white/5">
             <button
               onClick={toggleMute}
+              aria-label={isMuted ? "Unmute microphone" : "Mute microphone"}
               className={cn(
                  "flex-1 flex items-center justify-center gap-2 py-2 rounded-md transition-colors min-w-[44px]",
                  isMuted 
@@ -182,6 +183,7 @@ export function VoiceChat() {
               <button
                 onClick={() => setConfirmLeave(true)}
                 title="Leave Voice"
+                aria-label="Leave voice chat"
                 className="w-[44px] h-[40px] flex items-center justify-center border border-zinc-800 bg-zinc-900/50 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 rounded-md transition-colors text-zinc-400 shrink-0"
               >
                 <PhoneOff className="w-4 h-4" />

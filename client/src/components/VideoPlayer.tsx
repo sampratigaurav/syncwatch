@@ -300,6 +300,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               <button 
                  onClick={(e) => { e.stopPropagation(); skipBackward(); }}
                  disabled={!hasControl}
+                 aria-label="Skip backward 10 seconds"
                  className={cn(
                   "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
@@ -312,6 +313,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               <button 
                 onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                 disabled={!hasControl}
+                aria-label={isPlaying ? "Pause" : "Play"}
                 className={cn(
                   "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
@@ -324,6 +326,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               <button 
                  onClick={(e) => { e.stopPropagation(); skipForward(); }}
                  disabled={!hasControl}
+                 aria-label="Skip forward 10 seconds"
                  className={cn(
                   "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
@@ -334,7 +337,11 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
 
               {/* Volume Slider - Unlocked for Viewer */}
               <div className="flex items-center gap-2 group/volume relative ml-1 tablet:ml-0">
-                <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none">
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                  aria-label={isMuted || volume === 0 ? "Unmute" : "Mute"}
+                  className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none"
+                >
                   {isMuted || volume === 0 ? <VolumeX className="w-6 h-6 tablet:w-5 tablet:h-5" /> : <Volume2 className="w-6 h-6 tablet:w-5 tablet:h-5" />}
                 </button>
                 <input 
@@ -363,6 +370,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 }}
                 disabled={!subtitleBlobUrl}
                 title={!subtitleBlobUrl ? "Load a subtitle file in the sidebar to enable captions" : "Toggle Captions"}
+                aria-label={!subtitleBlobUrl ? "Load a subtitle file in the sidebar to enable captions" : "Toggle Captions"}
                 className={cn(
                   "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center transition-colors focus:outline-none max-[360px]:hidden group relative",
                   !subtitleBlobUrl ? "text-white/30 [.light_&]:text-zinc-400 cursor-not-allowed" :
@@ -380,7 +388,11 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               />
 
               {/* Fullscreen Toggle */}
-              <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none pr-2 tablet:pr-0">
+              <button
+                onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
+                aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none pr-2 tablet:pr-0"
+              >
                 {isFullscreen ? <Minimize className="w-6 h-6 tablet:w-5 tablet:h-5" /> : <Maximize className="w-6 h-6 tablet:w-5 tablet:h-5" />}
               </button>
             </div>
