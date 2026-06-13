@@ -12,3 +12,8 @@
 **Vulnerability:** Several Socket.IO event handlers (e.g., PING, VOICE_SPEAKING, WEBRTC_*) accessed payload properties without validating their types. This could lead to a Denial of Service or unhandled errors if malicious clients sent unexpected data types instead of the expected primitives (like objects instead of booleans/strings). PING specifically had a reflection issue where it blindly echoed the entire payload back.
 **Learning:** Checking `if (!payload)` is not enough; every individual property expected in a Socket.IO payload must have its type explicitly validated (e.g., `typeof payload.targetId === 'string'`) before use.
 **Prevention:** Always use strict `typeof` checks for all destructured or accessed payload properties in socket handlers, and explicitly construct return objects rather than echoing untrusted payloads.
+
+## 2024-05-18 - Reflection DoS via Spread Operator in Socket.io
+**Vulnerability:** Mass Assignment / Reflection DoS via Socket.io object spread
+**Learning:** Avoid using the spread operator (`...payload`) on unvalidated incoming payloads over websockets, as it reflects injected properties to all clients and can result in Reflection DoS vulnerabilities or allow Mass Assignment type vulnerabilities on the state.
+**Prevention:** Explicitly specify the necessary properties from incoming payloads rather than spreading an unvalidated object.

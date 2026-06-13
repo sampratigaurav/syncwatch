@@ -329,7 +329,10 @@ export const setupSocketHandlers = (io: Server) => {
       await setRoom(room);
 
       socket.to(roomId).emit(EVENTS.PLAYBACK_BROADCAST, {
-        ...payload,
+        action: payload.action,
+        currentTime: payload.currentTime,
+        timestamp: payload.timestamp,
+        subtitleState: payload.subtitleState,
         lastActionBy: socket.id,
         lastActionNickname: participant.nickname
       });
