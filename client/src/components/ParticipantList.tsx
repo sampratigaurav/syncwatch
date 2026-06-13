@@ -11,7 +11,8 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
     controlPolicy: state.controlPolicy,
     controllerIds: state.controllerIds
   })));
-  const { voiceParticipants } = useWebRTC();
+  // Performance: specific selector prevents unnecessary re-renders when other WebRTC states change
+  const voiceParticipants = useWebRTC(state => state.voiceParticipants);
 
   const isWaitingRoom = variant === 'waiting-room';
 
