@@ -1,0 +1,3 @@
+## 2024-06-12 - Missing ARIA Labels on Icon-Only Media Controls
+**Learning:** Several core media control components (like VideoPlayer, ThemeToggle, and Chat) relied exclusively on visual icons without corresponding `aria-label`s, rendering them inaccessible to screen readers.
+**Action:** Ensure that any newly added icon-only buttons always include descriptive `aria-label` and `title` attributes to maintain accessibility and provide helpful tooltips.
