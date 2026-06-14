@@ -1,5 +1,6 @@
 import { Mic, MicOff, PhoneOff, AlertCircle } from 'lucide-react';
 import { useWebRTC } from '../hooks/useWebRTC';
+import { useShallow } from 'zustand/react/shallow';
 import { useEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -9,6 +10,9 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 }
 
 export function VoiceChat() {
+  // ⚡ Bolt: Use useShallow with specific selectors to prevent VoiceChat from
+  // re-rendering whenever underlying WebRTC connections or localStream change.
+  // Reduces re-renders significantly during active voice calls.
   const { 
     isInVoice,
     isMuted,
@@ -18,7 +22,16 @@ export function VoiceChat() {
     leaveVoice,
     toggleMute,
     remoteStreams
-  } = useWebRTC();
+  } = useWebRTC(useShallow(state => ({
+    isInVoice: state.isInVoice,
+    isMuted: state.isMuted,
+    voiceParticipants: state.voiceParticipants,
+    permissionDenied: state.permissionDenied,
+    joinVoice: state.joinVoice,
+    leaveVoice: state.leaveVoice,
+    toggleMute: state.toggleMute,
+    remoteStreams: state.remoteStreams
+  })));
 
   const [confirmLeave, setConfirmLeave] = useState(false);
   const audioContainerRef = useRef<HTMLDivElement>(null);

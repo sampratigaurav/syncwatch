@@ -11,7 +11,8 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
     controlPolicy: state.controlPolicy,
     controllerIds: state.controllerIds
   })));
-  const { voiceParticipants } = useWebRTC();
+  // ⚡ Bolt: Use specific selector to prevent re-rendering when other WebRTC state (e.g. localStream) changes
+  const voiceParticipants = useWebRTC(state => state.voiceParticipants);
 
   const isWaitingRoom = variant === 'waiting-room';
 
