@@ -19,14 +19,22 @@ export default function ThemeToggle() {
     }
   }, [theme]);
 
-  // Actually changing index.css to handle this class toggle
+  const label = `Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`;
+
   return (
-    <button 
-      onClick={toggleTheme}
-      className="p-2 rounded-full bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors fixed top-4 right-4 z-50"
-      title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-    >
-      {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-    </button>
+    <>
+      <button 
+        onClick={toggleTheme}
+        aria-label={label}
+        title={label}
+        className="p-2 rounded-full bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors fixed top-4 right-4 z-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
+      >
+        {theme === 'dark' ? <Sun className="w-5 h-5" aria-hidden="true" /> : <Moon className="w-5 h-5" aria-hidden="true" />}
+      </button>
+      {/* Screen reader live region announces theme changes */}
+      <span aria-live="polite" className="sr-only">
+        {theme === 'dark' ? 'Dark mode active' : 'Light mode active'}
+      </span>
+    </>
   );
 }

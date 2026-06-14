@@ -77,8 +77,11 @@ export function ReactionButton({ onSend }: ReactionButtonProps) {
   return (
     <div className="relative flex items-center justify-center">
       {isOpen && (
-        <div 
+      <div 
           ref={pickerRef}
+          id="reaction-picker"
+          role="dialog"
+          aria-label="Emoji reaction picker"
           className="absolute bottom-full mb-4 right-0 tablet:-right-2 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150"
           onClick={(e) => e.stopPropagation()}
         >
@@ -87,8 +90,8 @@ export function ReactionButton({ onSend }: ReactionButtonProps) {
               <button
                 key={emoji}
                 onClick={(e) => handleSend(e, emoji)}
-                className="w-11 h-11 flex-shrink-0 flex items-center justify-center text-xl tablet:text-2xl hover:bg-zinc-800 [.light_&]:hover:bg-zinc-100 rounded-xl transition-transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
-                title={emoji}
+                aria-label={`React with ${emoji}`}
+                className="w-11 h-11 flex-shrink-0 flex items-center justify-center text-xl tablet:text-2xl hover:bg-zinc-800 [.light_&]:hover:bg-zinc-100 rounded-xl transition-transform hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70"
               >
                 {emoji}
               </button>
@@ -101,18 +104,21 @@ export function ReactionButton({ onSend }: ReactionButtonProps) {
         ref={buttonRef}
         onClick={handleToggle}
         disabled={onCooldown}
+        aria-label="Send a reaction"
+        aria-expanded={isOpen}
+        aria-controls="reaction-picker"
         title="Send Reaction"
         className={cn(
-          "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center transition-colors focus:outline-none pr-1 tablet:pr-0 relative",
+          "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 pr-1 tablet:pr-0 relative",
           onCooldown 
             ? "text-zinc-600 [.light_&]:text-zinc-400 cursor-not-allowed" 
             : "text-white [.light_&]:text-zinc-600 hover:text-teal-400 [.light_&]:hover:text-teal-500"
         )}
       >
-        <Smile className="w-6 h-6 tablet:w-5 tablet:h-5" />
+        <Smile className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />
         {/* Cooldown visual indicator ring */}
         {onCooldown && (
-          <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none opacity-50">
+          <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none opacity-50" aria-hidden="true">
              <circle 
                 cx="50%" cy="50%" r="42%" 
                 fill="none" 
