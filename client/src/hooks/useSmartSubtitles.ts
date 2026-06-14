@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import type { SubtitleBlock } from '../lib/subtitleUtils';
 
 interface SubtitleState {
   isLoading: boolean;
@@ -15,7 +16,7 @@ export const useSmartSubtitles = () => {
 
   const workerRef = useRef<Worker | null>(null);
 
-  const fetchSubtitles = useCallback((fileName: string, targetLanguage: string): Promise<string | null> => {
+  const fetchSubtitles = useCallback((fileName: string): Promise<SubtitleBlock[] | null> => {
     // Validate the API key on the main thread before spinning up the worker
     const API_KEY = import.meta.env.VITE_OPENSUBTITLES_API_KEY;
     if (!API_KEY || API_KEY === 'your_api_key_here') {
@@ -31,10 +32,7 @@ export const useSmartSubtitles = () => {
       workerRef.current = null;
     }
 
-    // IMPORTANT: All network fetches (OpenSubtitles + LibreTranslate) run INSIDE the worker.
-    // This keeps the main thread 100% free so Socket.IO heartbeats are never starved,
-    // which was causing the host to be reconnected as a viewer.
-    return new Promise<string | null>((resolve) => {
+    return new Promise<SubtitleBlock[] | null>((resolve) => {
       const worker = new Worker(new URL('../lib/subtitleWorker.ts', import.meta.url), { type: 'module' });
       workerRef.current = worker;
 
@@ -45,10 +43,7 @@ export const useSmartSubtitles = () => {
           setState({ isLoading: false, progress: 100, error: null });
           worker.terminate();
           workerRef.current = null;
-          
-          const blob = new Blob([e.data.vtt], { type: 'text/vtt' });
-          const blobUrl = URL.createObjectURL(blob);
-          resolve(blobUrl);
+          resolve(e.data.blocks);
         } else if (e.data.type === 'ERROR') {
           setState({ isLoading: false, progress: 0, error: e.data.error });
           worker.terminate();
@@ -66,7 +61,7 @@ export const useSmartSubtitles = () => {
       };
 
       // Pass fileName + apiKey to worker — it handles ALL fetching internally
-      worker.postMessage({ fileName, targetLanguage, apiKey: API_KEY });
+      worker.postMessage({ fileName, apiKey: API_KEY });
     });
   }, []);
 
