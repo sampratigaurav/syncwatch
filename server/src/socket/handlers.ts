@@ -290,7 +290,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.PLAYBACK_EVENT, async (payload: PlaybackEvent) => {
-      if (!payload) return;
+      if (!payload || typeof payload !== 'object') return;
       const roomId = socketToRoom.get(socket.id);
       if (!roomId) return;
       const room = await getRoom(roomId);
@@ -300,12 +300,23 @@ export const setupSocketHandlers = (io: Server) => {
 
       if (!canControl(room, socket.id)) return;
 
+      const validActions = ['play', 'pause', 'seek', 'sync_check', 'subtitle_toggle', 'subtitle_track_change'];
+      if (typeof payload.action !== 'string' || !validActions.includes(payload.action)) {
+        socket.emit('error', { message: 'Invalid playback action' });
+        return;
+      }
+
       if (payload.action === 'play') room.playback.isPlaying = true;
       if (payload.action === 'pause') room.playback.isPlaying = false;
 
       if (payload.action === 'subtitle_toggle' || payload.action === 'subtitle_track_change') {
-        if (payload.subtitleState) {
-          room.subtitleState = payload.subtitleState;
+        if (payload.subtitleState && typeof payload.subtitleState === 'object') {
+          if (typeof payload.subtitleState.isEnabled === 'boolean' && typeof payload.subtitleState.trackIndex === 'number') {
+            room.subtitleState = {
+              isEnabled: payload.subtitleState.isEnabled,
+              trackIndex: payload.subtitleState.trackIndex
+            };
+          }
         }
         await setRoom(room);
         socket.to(roomId).emit(EVENTS.SUBTITLE_STATE_BROADCAST, {
@@ -321,6 +332,12 @@ export const setupSocketHandlers = (io: Server) => {
         return;
       }
 
+      // Validate timestamp is a finite number
+      if (typeof payload.timestamp !== 'number' || !Number.isFinite(payload.timestamp)) {
+        socket.emit('error', { message: 'Invalid playback timestamp' });
+        return;
+      }
+
       room.playback.currentTime = payload.currentTime;
       room.playback.lastUpdatedAt = Date.now();
       room.playback.lastActionBy = socket.id;
@@ -329,7 +346,9 @@ export const setupSocketHandlers = (io: Server) => {
       await setRoom(room);
 
       socket.to(roomId).emit(EVENTS.PLAYBACK_BROADCAST, {
-        ...payload,
+        action: payload.action,
+        currentTime: payload.currentTime,
+        timestamp: payload.timestamp,
         lastActionBy: socket.id,
         lastActionNickname: participant.nickname
       });
