@@ -222,6 +222,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
         <video
           ref={setRefs}
           src={src}
+          crossOrigin="anonymous"
           className="w-full h-full object-contain cursor-pointer"
           onPlay={handleNativePlay}
           onPause={handleNativePause}
@@ -235,10 +236,17 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
         >
           {subtitleBlobUrl && (
             <track
+              key={subtitleBlobUrl}
               ref={trackRef}
               kind="subtitles"
               src={subtitleBlobUrl}
-              default
+              srcLang="en"
+              label="English"
+              default={subtitleEnabled}
+              onLoad={(e) => {
+                 const trackElement = e.currentTarget as HTMLTrackElement;
+                 trackElement.track.mode = subtitleEnabled ? 'showing' : 'hidden';
+              }}
             />
           )}
         </video>
