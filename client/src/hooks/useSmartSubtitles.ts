@@ -15,121 +15,56 @@ export const useSmartSubtitles = () => {
 
   const workerRef = useRef<Worker | null>(null);
 
-  const fetchSubtitles = useCallback(async (fileName: string, targetLanguage: string): Promise<string | null> => {
+  const fetchSubtitles = useCallback((fileName: string, targetLanguage: string): Promise<string | null> => {
+    // Validate the API key on the main thread before spinning up the worker
+    const API_KEY = import.meta.env.VITE_OPENSUBTITLES_API_KEY;
+    if (!API_KEY || API_KEY === 'your_api_key_here') {
+      setState({ isLoading: false, progress: 0, error: 'OpenSubtitles API key is missing. Add VITE_OPENSUBTITLES_API_KEY to your .env' });
+      return Promise.resolve(null);
+    }
+
     setState({ isLoading: true, progress: 0, error: null });
 
-    try {
-      const API_KEY = import.meta.env.VITE_OPENSUBTITLES_API_KEY;
-      if (!API_KEY || API_KEY === 'your_api_key_here') {
-        throw new Error('OpenSubtitles API key is missing. Add VITE_OPENSUBTITLES_API_KEY to your .env');
-      }
+    // Terminate any existing worker
+    if (workerRef.current) {
+      workerRef.current.terminate();
+      workerRef.current = null;
+    }
 
-      // 1. Search for English subtitle
-      setState(s => ({ ...s, progress: 5 }));
-      const cleanFileName = fileName.replace(/\.[^/.]+$/, ""); // remove extension
-      const searchUrl = new URL('https://api.opensubtitles.com/api/v1/subtitles');
-      searchUrl.searchParams.append('query', cleanFileName);
-      searchUrl.searchParams.append('languages', 'en');
-      searchUrl.searchParams.append('order_by', 'download_count');
-      searchUrl.searchParams.append('order_direction', 'desc');
+    // IMPORTANT: All network fetches (OpenSubtitles + LibreTranslate) run INSIDE the worker.
+    // This keeps the main thread 100% free so Socket.IO heartbeats are never starved,
+    // which was causing the host to be reconnected as a viewer.
+    return new Promise<string | null>((resolve) => {
+      const worker = new Worker(new URL('../lib/subtitleWorker.ts', import.meta.url), { type: 'module' });
+      workerRef.current = worker;
 
-      const searchRes = await fetch(searchUrl.toString(), {
-        headers: {
-          'Api-Key': API_KEY,
-          'Content-Type': 'application/json',
-          'User-Agent': 'SyncWatch v1'
-        }
-      });
-
-      if (!searchRes.ok) {
-        throw new Error('Failed to search OpenSubtitles.');
-      }
-
-      const searchData = await searchRes.json();
-      if (!searchData.data || searchData.data.length === 0) {
-        throw new Error('No subtitles found for this video.');
-      }
-
-      // Pick the best match file ID
-      const bestMatch = searchData.data[0];
-      const fileId = bestMatch.attributes.files[0].file_id;
-
-      setState(s => ({ ...s, progress: 10 }));
-
-      // 2. Request download link
-      const downloadRes = await fetch('https://api.opensubtitles.com/api/v1/download', {
-        method: 'POST',
-        headers: {
-          'Api-Key': API_KEY,
-          'Content-Type': 'application/json',
-          'User-Agent': 'SyncWatch v1',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ file_id: fileId })
-      });
-
-      if (!downloadRes.ok) {
-        throw new Error('Failed to request subtitle download link.');
-      }
-
-      const downloadData = await downloadRes.json();
-      const srtLink = downloadData.link;
-
-      setState(s => ({ ...s, progress: 15 }));
-
-      // 3. Download the actual .srt text
-      const srtRes = await fetch(srtLink);
-      if (!srtRes.ok) {
-        throw new Error('Failed to download subtitle file.');
-      }
-      
-      const srtContent = await srtRes.text();
-
-      // 4. Pass to Web Worker for processing
-      return new Promise<string | null>((resolve) => {
-        if (workerRef.current) {
-          workerRef.current.terminate();
-        }
-
-        const worker = new Worker(new URL('../lib/subtitleWorker.ts', import.meta.url), { type: 'module' });
-        workerRef.current = worker;
-
-        worker.onmessage = (e) => {
-          if (e.data.type === 'PROGRESS') {
-            // Worker progress is from 5 to 100, we map to overall progress (15 to 100)
-            const overallProgress = 15 + Math.floor((e.data.percent / 100) * 85);
-            setState(s => ({ ...s, progress: overallProgress }));
-          } else if (e.data.type === 'COMPLETE') {
-            setState({ isLoading: false, progress: 100, error: null });
-            worker.terminate();
-            workerRef.current = null;
-            resolve(e.data.blobUrl);
-          } else if (e.data.type === 'ERROR') {
-            setState({ isLoading: false, progress: 0, error: e.data.error });
-            worker.terminate();
-            workerRef.current = null;
-            resolve(null); // resolve null so we don't crash the UI, but show error
-          }
-        };
-
-        worker.onerror = () => {
-          setState({ isLoading: false, progress: 0, error: 'Worker error occurred.' });
+      worker.onmessage = (e) => {
+        if (e.data.type === 'PROGRESS') {
+          setState(s => ({ ...s, progress: e.data.percent }));
+        } else if (e.data.type === 'COMPLETE') {
+          setState({ isLoading: false, progress: 100, error: null });
+          worker.terminate();
+          workerRef.current = null;
+          resolve(e.data.blobUrl);
+        } else if (e.data.type === 'ERROR') {
+          setState({ isLoading: false, progress: 0, error: e.data.error });
           worker.terminate();
           workerRef.current = null;
           resolve(null);
-        };
+        }
+      };
 
-        worker.postMessage({
-          srtContent,
-          targetLanguage
-        });
-      });
+      worker.onerror = (err) => {
+        console.error('SubtitleWorker crashed:', err);
+        setState({ isLoading: false, progress: 0, error: 'Worker error occurred.' });
+        worker.terminate();
+        workerRef.current = null;
+        resolve(null);
+      };
 
-    } catch (err: any) {
-      console.error(err);
-      setState({ isLoading: false, progress: 0, error: err.message || 'An unknown error occurred.' });
-      return null;
-    }
+      // Pass fileName + apiKey to worker — it handles ALL fetching internally
+      worker.postMessage({ fileName, targetLanguage, apiKey: API_KEY });
+    });
   }, []);
 
   const cancelSubtitles = useCallback(() => {
