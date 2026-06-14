@@ -153,8 +153,10 @@ export function VoiceChat() {
           <div className="flex items-center gap-2 pt-3 border-t border-white/5">
             <button
               onClick={toggleMute}
+              aria-label={isMuted ? 'Unmute microphone' : 'Mute microphone'}
+              title={isMuted ? 'Unmute microphone' : 'Mute microphone'}
               className={cn(
-                 "flex-1 flex items-center justify-center gap-2 py-2 rounded-md transition-colors min-w-[44px]",
+                 "flex-1 flex items-center justify-center gap-2 py-2 rounded-md transition-colors min-w-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70",
                  isMuted 
                     ? "bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20" 
                     : "bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/20"
@@ -162,12 +164,12 @@ export function VoiceChat() {
             >
               {isMuted ? (
                 <>
-                  <MicOff className="w-4 h-4" />
+                  <MicOff className="w-4 h-4" aria-hidden="true" />
                   <span className="text-sm font-medium text-red-500">Muted</span>
                 </>
               ) : (
                 <>
-                  <Mic className="w-4 h-4" />
+                  <Mic className="w-4 h-4" aria-hidden="true" />
                   <span className="text-sm font-medium text-teal-500">Unmuted</span>
                 </>
               )}
@@ -180,13 +182,15 @@ export function VoiceChat() {
                     leaveVoice();
                     setConfirmLeave(false);
                   }}
-                  className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
+                  aria-label="Confirm leave voice chat"
+                  className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                 >
                   Confirm
                 </button>
                 <button
                   onClick={() => setConfirmLeave(false)}
-                  className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md transition-colors"
+                  aria-label="Cancel leaving voice chat"
+                  className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
                 >
                   Cancel
                 </button>
@@ -194,10 +198,11 @@ export function VoiceChat() {
             ) : (
               <button
                 onClick={() => setConfirmLeave(true)}
+                aria-label="Leave voice chat"
                 title="Leave Voice"
-                className="w-[44px] h-[40px] flex items-center justify-center border border-zinc-800 bg-zinc-900/50 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 rounded-md transition-colors text-zinc-400 shrink-0"
+                className="w-[44px] h-[40px] flex items-center justify-center border border-zinc-800 bg-zinc-900/50 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 rounded-md transition-colors text-zinc-400 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
               >
-                <PhoneOff className="w-4 h-4" />
+                <PhoneOff className="w-4 h-4" aria-hidden="true" />
               </button>
             )}
           </div>
