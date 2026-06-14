@@ -8,18 +8,32 @@ interface SubtitleBlock {
   text: string[];
 }
 
-function parseSrt(content: string): SubtitleBlock[] {
+function parseSubtitles(content: string): SubtitleBlock[] {
   const normalized = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   const blocks = normalized.split(/\n\s*\n/);
   const parsedBlocks: SubtitleBlock[] = [];
+  
+  if (blocks[0] && blocks[0].trim().toUpperCase().startsWith('WEBVTT')) {
+    blocks.shift();
+  }
+
   for (const block of blocks) {
     if (!block.trim()) continue;
     const lines = block.split('\n');
-    if (lines.length >= 3) {
+    
+    let timeLineIdx = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].includes('-->')) {
+        timeLineIdx = i;
+        break;
+      }
+    }
+
+    if (timeLineIdx !== -1) {
       parsedBlocks.push({
-        id: lines[0].trim(),
-        time: lines[1].trim(),
-        text: lines.slice(2).map(l => l.trim()).filter(l => l),
+        id: timeLineIdx > 0 ? lines[0].trim() : '',
+        time: lines[timeLineIdx].trim(),
+        text: lines.slice(timeLineIdx + 1).map(l => l.trim()).filter(l => l),
       });
     }
   }
@@ -126,16 +140,13 @@ self.onmessage = async (e: MessageEvent) => {
       return;
     }
 
-    self.postMessage({ type: 'PROGRESS', percent: 18 });
-    const blocks = parseSrt(rawSrt);
+    self.postMessage({ type: 'PROGRESS', percent: 18 }); // The raw text might be SRT or VTT.
+    const blocks = parseSubtitles(rawSrt);
 
     // English (original) — no translation needed
     if (!targetLanguage || targetLanguage === 'en') {
       const vtt = blocksToVtt(blocks);
-      const blob = new Blob([vtt], { type: 'text/vtt' });
-      // NOTE: createObjectURL works in workers in modern browsers (Chrome 76+, Firefox 79+)
-      const blobUrl = URL.createObjectURL(blob);
-      self.postMessage({ type: 'COMPLETE', blobUrl });
+      self.postMessage({ type: 'COMPLETE', vtt });
       return;
     }
 

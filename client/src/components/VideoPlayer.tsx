@@ -222,7 +222,6 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
         <video
           ref={setRefs}
           src={src}
-          crossOrigin="anonymous"
           className="w-full h-full object-contain cursor-pointer"
           onPlay={handleNativePlay}
           onPause={handleNativePause}
