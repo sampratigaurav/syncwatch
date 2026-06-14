@@ -29,12 +29,11 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
   ({ src, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate, onEnded, subtitleBlobUrl, subtitleEnabled, onSubtitleToggle }, externalRef) => {
-    const { participants, canIControl, controlPolicy } = useRoomStore(useShallow(state => ({
+    const { participants, controlPolicy } = useRoomStore(useShallow(state => ({
       participants: state.participants,
-      canIControl: state.canIControl,
       controlPolicy: state.controlPolicy,
     })));
-    const hasControl = canIControl();
+    const hasControl = useRoomStore(state => state.canIControl());
     const hostName = participants.find(p => p.role === 'host')?.nickname || 'Host';
     
     // Internal refs

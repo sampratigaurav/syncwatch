@@ -10,6 +10,7 @@ interface FloatingReaction extends ReactionPayload {
 
 export function ReactionOverlay() {
   const [activeReactions, setActiveReactions] = useState<FloatingReaction[]>([]);
+  const participantCount = useRoomStore(state => state.participants.length);
 
   useEffect(() => {
     let pendingQueue: ReactionPayload[] = [];
@@ -100,7 +101,7 @@ export function ReactionOverlay() {
           <span className="text-[36px] tablet:text-[40px] drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
             {reaction.emoji}
           </span>
-          {useRoomStore.getState().participants.length > 1 && (
+          {participantCount > 1 && (
             <span className="mt-1 px-2 py-0.5 bg-black/60 backdrop-blur-sm rounded-full text-white text-[11px] font-medium whitespace-nowrap shadow-md max-w-[80px] truncate text-center">
               {reaction.senderNickname}
             </span>

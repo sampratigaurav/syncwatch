@@ -6,11 +6,10 @@ import { EVENTS } from '../../../shared/socketEvents';
 import type { PlaybackEvent } from '../../../shared/types';
 
 export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>) => {
-  const { canIControl, setLastActionAt } = useRoomStore(useShallow(state => ({
-    canIControl: state.canIControl,
+  const { setLastActionAt } = useRoomStore(useShallow(state => ({
     setLastActionAt: state.setLastActionAt
   })));
-  const hasControl = canIControl();
+  const hasControl = useRoomStore(state => state.canIControl());
   const isApplyingRemoteEvent = useRef(false);
 
   useEffect(() => {
