@@ -99,8 +99,13 @@ export const useDriftCorrection = (videoRef: React.RefObject<HTMLVideoElement | 
       const error = extrapolatedHostTime - localTime; 
       const absError = Math.abs(error);
 
+      // Network-aware drift correction
+      // If latency is high, we tolerate more drift before hard seeking to avoid jarring skips
+      // Base tolerance is 2.0s, but we add up to 3.0s based on latency
+      const maxTolerance = 2.0 + Math.min(state.latencyMs / 500, 3.0);
+
       // Massive drift: fallback to hard seek
-      if (absError > 2.0) {
+      if (absError > maxTolerance) {
         video.currentTime = extrapolatedHostTime;
         pidState.current.integral = 0;
         pidState.current.prevError = null;
@@ -108,8 +113,11 @@ export const useDriftCorrection = (videoRef: React.RefObject<HTMLVideoElement | 
         return;
       }
 
+      // Dynamic PID threshold based on latency
+      const pidThreshold = Math.max(0.05, state.latencyMs / 2000);
+
       // Small to medium drift: apply PID formula to calculate new playbackRate
-      if (absError >= 0.05) { // Between 50ms and 2000ms
+      if (absError >= pidThreshold) {
         const Kp = 0.2;
         const Ki = 0.05;
         const Kd = 0.01;

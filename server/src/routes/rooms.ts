@@ -1,9 +1,12 @@
 import { Router } from 'express';
 import crypto from 'crypto';
+import { promisify } from 'util';
 import rateLimit from 'express-rate-limit';
 import { createRoom, getRoom } from '../rooms/RoomManager';
 
 export const roomRouter = Router();
+
+const pbkdf2Async = promisify(crypto.pbkdf2);
 
 // Max 10 room creations per IP per minute
 const createRoomLimiter = rateLimit({
@@ -24,7 +27,8 @@ roomRouter.post('/', createRoomLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Password must be 4-8 alphanumeric characters' });
     }
     salt = crypto.randomBytes(16).toString('hex');
-    hash = crypto.pbkdf2Sync(password, salt, 100_000, 32, 'sha256').toString('hex');
+    const hashBuffer = await pbkdf2Async(password, salt, 100_000, 32, 'sha256');
+    hash = hashBuffer.toString('hex');
   }
 
   const roomId = crypto.randomBytes(3).toString('hex').toUpperCase();

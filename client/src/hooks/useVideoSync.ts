@@ -59,6 +59,46 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
       }, 250);
     };
 
+    // --- Media Session API Integration ---
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play', () => {
+        const video = videoRef.current;
+        if (video && hasControl) {
+          video.play();
+          socket.emit(EVENTS.PLAYBACK_EVENT, {
+            action: 'play',
+            currentTime: video.currentTime,
+            timestamp: Date.now()
+          });
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('pause', () => {
+        const video = videoRef.current;
+        if (video && hasControl) {
+          video.pause();
+          socket.emit(EVENTS.PLAYBACK_EVENT, {
+            action: 'pause',
+            currentTime: video.currentTime,
+            timestamp: Date.now()
+          });
+        }
+      });
+
+      navigator.mediaSession.setActionHandler('seekto', (details) => {
+        const video = videoRef.current;
+        if (video && hasControl && details.seekTime !== undefined) {
+          video.currentTime = details.seekTime;
+          socket.emit(EVENTS.PLAYBACK_EVENT, {
+            action: 'seek',
+            currentTime: video.currentTime,
+            timestamp: Date.now()
+          });
+        }
+      });
+    }
+    // -------------------------------------
+
     const handleSubtitleBroadcast = (event: { isEnabled: boolean, trackIndex: number }) => {
       useRoomStore.getState().setSubtitleEnabled(event.isEnabled);
     };

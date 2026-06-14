@@ -1,8 +1,11 @@
 import { Server, Socket } from 'socket.io';
 import crypto from 'crypto';
+import { promisify } from 'util';
 import { getRoom, setRoom, deleteRoom } from '../rooms/RoomManager';
 import { EVENTS } from '../../../shared/socketEvents';
 import { Participant, RoomState, PlaybackEvent, ControlPolicy } from '../../../shared/types';
+
+const pbkdf2Async = promisify(crypto.pbkdf2);
 
 const disconnectTimers = new Map<string, NodeJS.Timeout>();
 const bufferingTimers = new Map<string, NodeJS.Timeout>();
@@ -121,7 +124,8 @@ export const setupSocketHandlers = (io: Server) => {
           return;
         }
 
-        const hash = crypto.pbkdf2Sync(password, room.passwordSalt!, 100_000, 32, 'sha256').toString('hex');
+        const hashBuffer = await pbkdf2Async(password, room.passwordSalt!, 100_000, 32, 'sha256');
+        const hash = hashBuffer.toString('hex');
         if (hash !== room.password) {
           recentAttempts.push(now);
           pinAttemptTimes.set(ip, recentAttempts);
@@ -141,6 +145,32 @@ export const setupSocketHandlers = (io: Server) => {
       if (room.participants.size >= 5 && !room.participants.has(socket.id)) {
         socket.emit('error', { message: 'Room is full (max 5 participants)' });
         return;
+      }
+
+      // Check if socket is already in a different room
+      const currentRoomId = socketToRoom.get(socket.id);
+      if (currentRoomId && currentRoomId !== roomId) {
+        socket.leave(currentRoomId);
+        const oldRoom = await getRoom(currentRoomId);
+        if (oldRoom) {
+          const p = oldRoom.participants.get(socket.id);
+          if (p) {
+            oldRoom.participants.delete(socket.id);
+            if (oldRoom.voiceParticipants) {
+              oldRoom.voiceParticipants = oldRoom.voiceParticipants.filter(vp => vp.id !== socket.id);
+              socket.to(currentRoomId).emit(EVENTS.VOICE_STATE_UPDATE, oldRoom.voiceParticipants);
+            }
+            socket.to(currentRoomId).emit(EVENTS.PARTICIPANT_UPDATE, { ...p, status: 'removed' });
+            if (p.role === 'host') {
+              socket.to(currentRoomId).emit(EVENTS.HOST_LEFT);
+            }
+            if (oldRoom.participants.size === 0) {
+              await deleteRoom(currentRoomId);
+            } else {
+              await setRoom(oldRoom);
+            }
+          }
+        }
       }
 
       socket.join(roomId);
@@ -224,8 +254,12 @@ export const setupSocketHandlers = (io: Server) => {
       // Never transmit the password hash or salt to clients
       delete (roomStatePayload as any).password;
       delete (roomStatePayload as any).passwordSalt;
+      
       // Do not send historical chat to new joiners; new messages are pushed via CHAT_BROADCAST
-      delete (roomStatePayload as any).chatHistory;
+      // But DO send it if they are an existing participant reclaiming their slot (reconnection)
+      if (!existing) {
+        delete (roomStatePayload as any).chatHistory;
+      }
 
       socket.emit(EVENTS.ROOM_STATE, roomStatePayload);
       socket.to(roomId).emit(EVENTS.PARTICIPANT_UPDATE, participant);

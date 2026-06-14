@@ -1,122 +1,25 @@
 import { create } from 'zustand';
-import type { ParticipantRole, Participant, PlaybackState, ChatMessage } from '../../../shared/types';
-import { socket } from '../hooks/useSocket';
+import { createAuthSlice } from './slices/authSlice';
+import type { AuthSlice } from './slices/authSlice';
+import { createChatSlice } from './slices/chatSlice';
+import type { ChatSlice } from './slices/chatSlice';
+import { createPlaybackSlice } from './slices/playbackSlice';
+import type { PlaybackSlice } from './slices/playbackSlice';
+import { createParticipantSlice } from './slices/participantSlice';
+import type { ParticipantSlice } from './slices/participantSlice';
 
 export type ConnectionStatus = 'connected' | 'connecting' | 'reconnecting' | 'disconnected' | 'failed' | 'room_not_found';
 
-interface RoomStore {
-  roomId: string | null;
-  nickname: string;
-  role: ParticipantRole | null;
-  participants: Participant[];
-  playback: PlaybackState | null;
-  fileHash: string | null;
-  fileName: string | null;
-  fileVerifyStatus: 'idle' | 'computing' | 'verified' | 'mismatch';
-  chatMessages: ChatMessage[];
-  latencyMs: number;
-  isConnected: boolean;
-  theme: 'dark' | 'light';
-  localFileUrl: string | null;
-  controlPolicy: 'host_only' | 'everyone' | 'selected';
-  controllerIds: string[];
-  lastActionAt: number;
-  connectionStatus: ConnectionStatus;
-  reconnectAttempt: number;
-  subtitleBlobUrl: string | null;
-  subtitleEnabled: boolean;
-  roomPassword: string | null;
-  roomHasPassword: boolean;
-  /** In-app toast shown instead of alert() for server-driven messages. */
-  errorToast: string | null;
-  /** Opaque token used to reclaim role after a disconnect without exposing nickname-based hijack. */
-  reconnectToken: string | null;
-  
-  setLastActionAt: () => void;
-  setRoomPassword: (pass: string | null) => void;
-  setRoomHasPassword: (has: boolean) => void;
-  setRoomId: (id: string | null) => void;
-  setNickname: (name: string) => void;
-  setRole: (role: ParticipantRole | null) => void;
-  setParticipants: (p: Participant[]) => void;
-  setPlayback: (p: PlaybackState | null) => void;
-  setFileDetails: (hash: string | null, name: string | null) => void;
-  setVerifyStatus: (s: 'idle' | 'computing' | 'verified' | 'mismatch') => void;
-  mismatchError: string | null;
-  setMismatchError: (err: string | null) => void;
-  addChatMessage: (msg: ChatMessage) => void;
-  setLatency: (ms: number) => void;
-  setIsConnected: (connected: boolean) => void;
-  setConnectionStatus: (status: ConnectionStatus) => void;
-  setReconnectAttempt: (attempt: number) => void;
+export type RoomStore = AuthSlice & ChatSlice & PlaybackSlice & ParticipantSlice & {
   clearRoomState: () => void;
-  toggleTheme: () => void;
-  setLocalFileUrl: (url: string | null) => void;
-  setSubtitleBlobUrl: (url: string | null) => void;
-  setSubtitleEnabled: (enabled: boolean) => void;
-  setControlPolicy: (policy: 'host_only' | 'everyone' | 'selected', ids: string[]) => void;
-  canIControl: () => boolean;
-  setErrorToast: (msg: string | null) => void;
-  setReconnectToken: (token: string | null) => void;
-  cachedFingerprintPayload: number[] | number | null;
-  setCachedFingerprintPayload: (payload: number[] | number | null) => void;
-  directoryHandles: any[];
-  setDirectoryHandles: (handles: any[]) => void;
-}
+};
 
-export const useRoomStore = create<RoomStore>((set, get) => ({
-  roomId: null,
-  nickname: localStorage.getItem('nickname') || '',
-  role: null,
-  participants: [],
-  playback: null,
-  fileHash: null,
-  fileName: null,
-  fileVerifyStatus: 'idle',
-  chatMessages: [],
-  latencyMs: 0,
-  isConnected: false,
-  theme: (localStorage.getItem('theme') as 'dark'|'light') || 'dark',
-  localFileUrl: null,
-  controlPolicy: 'host_only',
-  controllerIds: [],
-  lastActionAt: 0,
-  connectionStatus: 'connecting',
-  reconnectAttempt: 0,
-  subtitleBlobUrl: null,
-  subtitleEnabled: false,
-  roomPassword: null,
-  roomHasPassword: false,
-  errorToast: null,
-  reconnectToken: null,
-  cachedFingerprintPayload: null,
-  directoryHandles: [],
+export const useRoomStore = create<RoomStore>((set, get, api) => ({
+  ...createAuthSlice(set, get, api),
+  ...createChatSlice(set, get, api),
+  ...createPlaybackSlice(set, get, api),
+  ...createParticipantSlice(set, get, api),
 
-  setDirectoryHandles: (handles) => set({ directoryHandles: handles }),
-  setCachedFingerprintPayload: (payload) => set({ cachedFingerprintPayload: payload }),
-  setLastActionAt: () => set({ lastActionAt: Date.now() }),
-  setRoomPassword: (pass) => set({ roomPassword: pass }),
-  setRoomHasPassword: (has) => set({ roomHasPassword: has }),
-  setRoomId: (id) => set({ roomId: id }),
-  setNickname: (name) => {
-    localStorage.setItem('nickname', name);
-    set({ nickname: name });
-  },
-  setRole: (role) => set({ role: role }),
-  setParticipants: (p) => set({ participants: p }),
-  setPlayback: (p) => set({ playback: p }),
-  setFileDetails: (hash, name) => set({ fileHash: hash, fileName: name }),
-  setVerifyStatus: (s) => set({ fileVerifyStatus: s }),
-  mismatchError: null,
-  setMismatchError: (err) => set({ mismatchError: err }),
-  addChatMessage: (msg) => set((state) => {
-    const next = [...state.chatMessages, msg];
-    return { chatMessages: next.slice(-100) };
-  }),
-  setLatency: (ms) => set({ latencyMs: ms }),
-  setIsConnected: (C) => set({ isConnected: C }),
-  setConnectionStatus: (status) => set({ connectionStatus: status }),
-  setReconnectAttempt: (attempt) => set({ reconnectAttempt: attempt }),
   clearRoomState: () => {
     const state = get();
     if (state.subtitleBlobUrl) {
@@ -147,26 +50,4 @@ export const useRoomStore = create<RoomStore>((set, get) => ({
       directoryHandles: [],
     });
   },
-  toggleTheme: () => set((state) => {
-    const next = state.theme === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('theme', next);
-    return { theme: next };
-  }),
-  setLocalFileUrl: (url) => set({ localFileUrl: url }),
-  setSubtitleBlobUrl: (url) => set({ subtitleBlobUrl: url }),
-  setSubtitleEnabled: (enabled) => set({ subtitleEnabled: enabled }),
-  setControlPolicy: (policy, ids) => set({ controlPolicy: policy, controllerIds: ids }),
-  canIControl: () => {
-    const state = get();
-    if (state.controlPolicy === 'everyone') return true;
-    if (state.controlPolicy === 'host_only') {
-      return state.role === 'host';
-    }
-    if (state.controlPolicy === 'selected') {
-      return state.role === 'host' || state.controllerIds.includes(socket.id!);
-    }
-    return false;
-  },
-  setErrorToast: (msg) => set({ errorToast: msg }),
-  setReconnectToken: (token) => set({ reconnectToken: token }),
 }));
