@@ -31,10 +31,15 @@ export const useSocket = (navigate?: (to: string) => void) => {
   })));
 
   useEffect(() => {
-    const onConnect = () => {
-      setIsConnected(true);
-      setConnectionStatus('connected');
-      setReconnectAttempt(0);
+    // Track the last time we emitted JOIN_ROOM to prevent double-emit
+    // from the connect + reconnect events firing in rapid succession.
+    let lastJoinEmittedAt = 0;
+
+    const emitJoinRoom = () => {
+      const now = Date.now();
+      // Debounce: ignore if we already emitted within the last 1 second
+      if (now - lastJoinEmittedAt < 1000) return;
+      lastJoinEmittedAt = now;
       const state = useRoomStore.getState();
       if (state.roomId && state.nickname) {
         socket.emit(EVENTS.JOIN_ROOM, { 
@@ -44,6 +49,13 @@ export const useSocket = (navigate?: (to: string) => void) => {
           reconnectToken: state.reconnectToken || undefined,
         });
       }
+    };
+
+    const onConnect = () => {
+      setIsConnected(true);
+      setConnectionStatus('connected');
+      setReconnectAttempt(0);
+      emitJoinRoom();
     };
 
     if (socket.connected) {
@@ -78,15 +90,11 @@ export const useSocket = (navigate?: (to: string) => void) => {
     socket.on('reconnect', () => {
       setConnectionStatus('connected');
       setReconnectAttempt(0);
-      const state = useRoomStore.getState();
-      if (state.roomId && state.nickname) {
-        socket.emit(EVENTS.JOIN_ROOM, { 
-          roomId: state.roomId, 
-          nickname: state.nickname,
-          password: state.roomPassword || undefined,
-          reconnectToken: state.reconnectToken || undefined,
-        });
-      }
+      // NOTE: socket.io fires both 'reconnect' AND 'connect' on a successful reconnect.
+      // emitJoinRoom() is debounced to prevent double-emitting JOIN_ROOM which would
+      // consume the single-use reconnect token on the first call, then assign viewer
+      // role on the second call (because the token is already gone).
+      emitJoinRoom();
     });
 
     socket.on('reconnect_failed', () => {
@@ -143,8 +151,9 @@ export const useSocket = (navigate?: (to: string) => void) => {
        setPlayback(roomState.playback);
        useRoomStore.getState().setControlPolicy(roomState.controlPolicy, roomState.controllerIds);
        useRoomStore.getState().setRoomHasPassword(roomState.hasPassword);
-       // Clear PIN from state immediately after successful join — no need to hold it in memory
-       useRoomStore.getState().setRoomPassword(null);
+       // NOTE: Do NOT clear roomPassword here. It must survive reconnect cycles so it
+       // can be re-sent with JOIN_ROOM if the socket drops and reconnects for a password room.
+       // It is cleared in clearRoomState() when the user intentionally leaves.
        const me = roomState.participants.find((p: Participant) => p.id === socket.id);
        if (me) setRole(me.role);
     });

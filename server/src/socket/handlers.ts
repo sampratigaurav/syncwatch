@@ -158,9 +158,14 @@ export const setupSocketHandlers = (io: Server) => {
             tokenData.roomId === roomId &&
             tokenData.nickname === nickname
           ) {
-            // Find the disconnected participant slot by the stored nickname
+            // Find the disconnected participant slot by the stored nickname.
+            // IMPORTANT: Also match 'ready'/'buffering' status because on fast reconnects
+            // the socket can re-emit JOIN_ROOM before the server has processed the
+            // disconnect event and updated the status to 'disconnected'. The token itself
+            // is the cryptographic proof of identity, so status check is relaxed here.
             const disconnectedMatch = Array.from(room.participants.values()).find(
-              p => p.nickname === nickname && p.status === 'disconnected'
+              p => p.nickname === nickname && 
+                   (p.status === 'disconnected' || p.status === 'ready' || p.status === 'buffering')
             );
             if (disconnectedMatch) {
               room.participants.delete(disconnectedMatch.id);
