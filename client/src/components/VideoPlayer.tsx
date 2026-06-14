@@ -300,42 +300,53 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               <button 
                  onClick={(e) => { e.stopPropagation(); skipBackward(); }}
                  disabled={!hasControl}
+                 aria-label="Skip back 10 seconds"
+                 title="Skip back 10 seconds"
                  className={cn(
-                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none",
+                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
                 )}
               >
-                 <RotateCcw className="w-6 h-6 tablet:w-5 tablet:h-5" />
+                 <RotateCcw className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />
               </button>
 
               {/* Playback Toggle */}
               <button 
                 onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                 disabled={!hasControl}
+                aria-label={isPlaying ? 'Pause' : 'Play'}
+                title={isPlaying ? 'Pause' : 'Play'}
                 className={cn(
-                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none",
+                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
                 )}
               >
-                {isPlaying ? <Pause className="w-8 h-8 tablet:w-6 tablet:h-6 fill-current" /> : <Play className="w-8 h-8 tablet:w-6 tablet:h-6 fill-current pl-1 tablet:pl-0" />}
+                {isPlaying ? <Pause className="w-8 h-8 tablet:w-6 tablet:h-6 fill-current" aria-hidden="true" /> : <Play className="w-8 h-8 tablet:w-6 tablet:h-6 fill-current pl-1 tablet:pl-0" aria-hidden="true" />}
               </button>
 
               {/* Skip Forward */}
               <button 
                  onClick={(e) => { e.stopPropagation(); skipForward(); }}
                  disabled={!hasControl}
+                 aria-label="Skip forward 10 seconds"
+                 title="Skip forward 10 seconds"
                  className={cn(
-                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none",
+                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
                 )}
               >
-                 <RotateCw className="w-6 h-6 tablet:w-5 tablet:h-5" />
+                 <RotateCw className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />
               </button>
 
               {/* Volume Slider - Unlocked for Viewer */}
               <div className="flex items-center gap-2 group/volume relative ml-1 tablet:ml-0">
-                <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none">
-                  {isMuted || volume === 0 ? <VolumeX className="w-6 h-6 tablet:w-5 tablet:h-5" /> : <Volume2 className="w-6 h-6 tablet:w-5 tablet:h-5" />}
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                  aria-label={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
+                  title={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
+                  className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded"
+                >
+                  {isMuted || volume === 0 ? <VolumeX className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" /> : <Volume2 className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />}
                 </button>
                 <input 
                   type="range"
@@ -362,16 +373,17 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                    if (subtitleBlobUrl) onSubtitleToggle(); 
                 }}
                 disabled={!subtitleBlobUrl}
-                title={!subtitleBlobUrl ? "Load a subtitle file in the sidebar to enable captions" : "Toggle Captions"}
+                aria-label={!subtitleBlobUrl ? 'Load a subtitle file to enable captions' : subtitleEnabled ? 'Disable captions' : 'Enable captions'}
+                title={!subtitleBlobUrl ? "Load a subtitle file in the sidebar to enable captions" : subtitleEnabled ? "Disable Captions" : "Enable Captions"}
                 className={cn(
-                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center transition-colors focus:outline-none max-[360px]:hidden group relative",
+                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded max-[360px]:hidden group relative",
                   !subtitleBlobUrl ? "text-white/30 [.light_&]:text-zinc-400 cursor-not-allowed" :
                   subtitleEnabled ? "text-teal-400" : "text-white [.light_&]:text-zinc-600 hover:text-teal-400 [.light_&]:hover:text-teal-500"
                 )}
               >
-                <Subtitles className="w-6 h-6 tablet:w-5 tablet:h-5" />
+                <Subtitles className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />
                 {subtitleEnabled && (
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-400 rounded-full tablet:hidden" />
+                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-400 rounded-full tablet:hidden" aria-hidden="true" />
                 )}
               </button>
 
@@ -380,8 +392,13 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               />
 
               {/* Fullscreen Toggle */}
-              <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus:outline-none pr-2 tablet:pr-0">
-                {isFullscreen ? <Minimize className="w-6 h-6 tablet:w-5 tablet:h-5" /> : <Maximize className="w-6 h-6 tablet:w-5 tablet:h-5" />}
+              <button
+                onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
+                aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded pr-2 tablet:pr-0"
+              >
+                {isFullscreen ? <Minimize className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" /> : <Maximize className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />}
               </button>
             </div>
           </div>
