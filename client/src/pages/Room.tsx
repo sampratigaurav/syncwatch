@@ -365,7 +365,16 @@ export default function Room() {
             </div>
           </div>
           <SyncStatus />
-          <SubtitleLoader onSubtitleLoaded={setSubtitleBlobUrl} onSubtitleCleared={() => setSubtitleBlobUrl(null)} />
+          <SubtitleLoader
+            onSubtitleLoaded={(url) => {
+              setSubtitleBlobUrl(url);
+              setSubtitleEnabled(true);
+            }}
+            onSubtitleCleared={() => {
+              setSubtitleBlobUrl(null);
+              setSubtitleEnabled(false);
+            }}
+          />
         </div>
         
         {showSettings && role === 'host' ? (
