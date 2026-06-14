@@ -165,6 +165,10 @@ export const useSocket = (navigate?: (to: string) => void) => {
        useRoomStore.getState().setControlPolicy(payload.policy, payload.controllerIds);
     });
 
+    socket.on(EVENTS.RECONNECT_TOKEN, (payload: { token: string }) => {
+       useRoomStore.getState().setReconnectToken(payload.token);
+    });
+
     const pingInterval = setInterval(() => {
       if (socket.connected) {
         socket.emit(EVENTS.PING, { sentAt: Date.now() });

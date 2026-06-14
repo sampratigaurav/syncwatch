@@ -34,7 +34,7 @@ export const createAuthSlice: StateCreator<RoomStore, [], [], AuthSlice> = (set)
   roomPassword: null,
   roomHasPassword: false,
   errorToast: null,
-  reconnectToken: null,
+  reconnectToken: sessionStorage.getItem('reconnectToken') || null,
   theme: (localStorage.getItem('theme') as 'dark'|'light') || 'dark',
 
   setRoomId: (id) => set({ roomId: id }),
@@ -48,7 +48,11 @@ export const createAuthSlice: StateCreator<RoomStore, [], [], AuthSlice> = (set)
   setRoomPassword: (pass) => set({ roomPassword: pass }),
   setRoomHasPassword: (has) => set({ roomHasPassword: has }),
   setErrorToast: (msg) => set({ errorToast: msg }),
-  setReconnectToken: (token) => set({ reconnectToken: token }),
+  setReconnectToken: (token) => {
+    if (token) sessionStorage.setItem('reconnectToken', token);
+    else sessionStorage.removeItem('reconnectToken');
+    set({ reconnectToken: token });
+  },
   toggleTheme: () => set((state) => {
     const next = state.theme === 'dark' ? 'light' : 'dark';
     localStorage.setItem('theme', next);

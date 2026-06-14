@@ -162,9 +162,7 @@ self.onmessage = async (e: MessageEvent) => {
     }
 
     const vtt = blocksToVtt(blocks, translatedLines);
-    const blob = new Blob([vtt], { type: 'text/vtt' });
-    const blobUrl = URL.createObjectURL(blob);
-    self.postMessage({ type: 'COMPLETE', blobUrl });
+    self.postMessage({ type: 'COMPLETE', vtt });
 
   } catch (err: any) {
     self.postMessage({ type: 'ERROR', error: err.message || 'Worker error occurred.' });

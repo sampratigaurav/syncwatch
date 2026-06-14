@@ -45,7 +45,10 @@ export const useSmartSubtitles = () => {
           setState({ isLoading: false, progress: 100, error: null });
           worker.terminate();
           workerRef.current = null;
-          resolve(e.data.blobUrl);
+          
+          const blob = new Blob([e.data.vtt], { type: 'text/vtt' });
+          const blobUrl = URL.createObjectURL(blob);
+          resolve(blobUrl);
         } else if (e.data.type === 'ERROR') {
           setState({ isLoading: false, progress: 0, error: e.data.error });
           worker.terminate();
