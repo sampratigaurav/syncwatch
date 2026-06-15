@@ -135,8 +135,12 @@ export default function ControlPolicySelector() {
                   
                   <button 
                     onClick={() => toggleParticipant(p.id)}
+                    role="switch"
+                    aria-checked={canControl}
+                    aria-label={`Grant playback control to ${p.nickname}`}
+                    title={canControl ? `Revoke control from ${p.nickname}` : `Grant control to ${p.nickname}`}
                     className={cn(
-                      "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none",
+                      "relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
                       canControl ? "bg-teal-500" : "bg-zinc-700"
                     )}
                   >
