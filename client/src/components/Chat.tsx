@@ -4,20 +4,61 @@ import { useShallow } from 'zustand/react/shallow';
 import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import { Send } from 'lucide-react';
+import { TypingIndicator } from './TypingIndicator';
 
 export default function Chat() {
-  const { chatMessages, nickname } = useRoomStore(useShallow(state => ({
+  const { chatMessages, nickname, participants } = useRoomStore(useShallow(state => ({
     chatMessages: state.chatMessages,
-    nickname: state.nickname
+    nickname: state.nickname,
+    participants: state.participants
   })));
   const [text, setText] = useState('');
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [chatMessages]);
+  }, [chatMessages, typingUsers.size]);
+
+  useEffect(() => {
+    const handleTypingStart = ({ userId }: { userId: string }) => {
+      setTypingUsers(prev => {
+        const next = new Set(prev);
+        next.add(userId);
+        return next;
+      });
+    };
+
+    const handleTypingStop = ({ userId }: { userId: string }) => {
+      setTypingUsers(prev => {
+        const next = new Set(prev);
+        next.delete(userId);
+        return next;
+      });
+    };
+
+    socket.on(EVENTS.TYPING_START, handleTypingStart);
+    socket.on(EVENTS.TYPING_STOP, handleTypingStop);
+
+    return () => {
+      socket.off(EVENTS.TYPING_START, handleTypingStart);
+      socket.off(EVENTS.TYPING_STOP, handleTypingStop);
+    };
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setText(e.target.value);
+    
+    socket.emit(EVENTS.TYPING_START);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit(EVENTS.TYPING_STOP);
+    }, 2000);
+  };
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +66,13 @@ export default function Chat() {
     
     socket.emit(EVENTS.CHAT_MESSAGE, { text });
     setText('');
+    
+    socket.emit(EVENTS.TYPING_STOP);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
   };
 
   return (
-    <div className="flex flex-col h-full bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-lg">
+    <div className="flex flex-col h-full bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-lg relative">
       <div className="bg-zinc-950/50 px-4 py-3 border-b border-zinc-800 flex-shrink-0">
         <h3 className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Chat</h3>
       </div>
@@ -60,6 +104,20 @@ export default function Chat() {
             </div>
           );
         })}
+        {typingUsers.size > 0 && (
+          <div className="flex flex-col items-start pt-2">
+            <div className="bg-zinc-800 text-zinc-200 rounded-2xl rounded-tl-sm px-3 py-2 flex items-center gap-2">
+               <TypingIndicator />
+            </div>
+            <span className="text-[10px] text-zinc-500 mt-0.5 px-1">
+               {Array.from(typingUsers)
+                  .map(id => participants.find(p => p.id === id)?.nickname)
+                  .filter(Boolean)
+                  .join(', ')}{' '}
+               {typingUsers.size > 1 ? 'are' : 'is'} typing...
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="p-3 bg-zinc-950/50 border-t border-zinc-800 flex-shrink-0">
@@ -67,7 +125,7 @@ export default function Chat() {
           <input
             type="text"
             value={text}
-            onChange={e => setText(e.target.value)}
+            onChange={handleInputChange}
             placeholder="Type a message..."
             className="w-full bg-zinc-900 border border-zinc-700 rounded-full pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:ring-1 focus:ring-teal-500 transition-shadow"
           />

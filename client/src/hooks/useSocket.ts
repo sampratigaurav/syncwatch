@@ -6,6 +6,7 @@ import { EVENTS } from '../../../shared/socketEvents';
 import type { Participant } from '../../../shared/types';
 import toast from 'react-hot-toast';
 import { SERVER_URL } from '../lib/config';
+import { useSoundEffects } from './useSoundEffects';
 
 export const socket: Socket = io(SERVER_URL, {
   autoConnect: false,
@@ -30,6 +31,8 @@ export const useSocket = (navigate?: (to: string) => void) => {
     setConnectionStatus: state.setConnectionStatus,
     setReconnectAttempt: state.setReconnectAttempt
   })));
+
+  const { playJoinSound, playLeaveSound, playMessageSound } = useSoundEffects();
 
   useEffect(() => {
     // Track the last time we emitted JOIN_ROOM to prevent double-emit
@@ -133,6 +136,9 @@ export const useSocket = (navigate?: (to: string) => void) => {
 
     socket.on(EVENTS.CHAT_BROADCAST, (msg) => {
       addChatMessage(msg);
+      if (msg.senderId !== socket.id && msg.senderId !== 'system') {
+        playMessageSound();
+      }
     });
 
     socket.on(EVENTS.PARTICIPANT_UPDATE, (participant) => {
@@ -143,6 +149,7 @@ export const useSocket = (navigate?: (to: string) => void) => {
         if (participant.status === 'removed') {
           setParticipants(state.participants.filter(p => p.id !== participant.id));
           if (participant.id !== socket.id) {
+            playLeaveSound();
             toast(`${participant.nickname} left`, { icon: '👋', id: `leave-${participant.id}` });
           }
         } else if (existing) {
@@ -150,6 +157,7 @@ export const useSocket = (navigate?: (to: string) => void) => {
         } else {
           setParticipants([...state.participants, participant]);
           if (participant.id !== socket.id) {
+            playJoinSound();
             toast.success(`${participant.nickname} joined`, { id: `join-${participant.id}` });
           }
         }

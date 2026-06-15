@@ -29,11 +29,15 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
          if (controlPolicy === 'everyone') hasControl = true;
          if (controlPolicy === 'selected') hasControl = isHost || controllerIds.includes(p.id);
          if (controlPolicy === 'host_only') hasControl = isHost;
+         const vp = voiceParticipants.find(v => v.id === p.id);
 
          return (
            <div key={`chip-${p.id}`} className="flex-shrink-0 flex items-center bg-zinc-800/80 rounded-full pr-4 pl-1.5 py-1.5 border border-zinc-700 shadow-sm relative">
              <div className="relative">
-               <div className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-700 flex items-center justify-center text-xs font-bold text-zinc-300 uppercase tracking-widest">
+               <div className={clsx(
+                 "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-zinc-300 uppercase tracking-widest transition-all",
+                 vp?.isSpeaking ? "bg-zinc-900 ring-2 ring-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.5)]" : "bg-zinc-900 border border-zinc-700"
+               )}>
                  {p.nickname.substring(0,2)}
                </div>
                <div className={clsx(
@@ -80,7 +84,10 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
             <div key={p.id} className="flex items-center justify-between p-2 rounded-lg bg-transparent hover:bg-zinc-800/30 transition-colors">
               <div className="flex items-center space-x-3">
                 <div className="relative">
-                  <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center">
+                  <div className={clsx(
+                    "w-10 h-10 rounded-full flex items-center justify-center transition-all",
+                    vp?.isSpeaking ? "bg-zinc-800 ring-2 ring-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.5)]" : "bg-zinc-800"
+                  )}>
                     <User className="w-5 h-5 text-zinc-400" />
                   </div>
                   <div className={clsx(

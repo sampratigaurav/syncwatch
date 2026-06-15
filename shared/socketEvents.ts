@@ -5,6 +5,8 @@ export const EVENTS = {
   PLAYBACK_EVENT: 'playback_event',
   BUFFERING_STATE: 'buffering_state',
   CHAT_MESSAGE: 'chat_message',
+  TYPING_START: 'typing_start',
+  TYPING_STOP: 'typing_stop',
   PING: 'ping',
   SET_CONTROL_POLICY: 'set_control_policy',
 

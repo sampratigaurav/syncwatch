@@ -536,6 +536,16 @@ export const setupSocketHandlers = (io: Server) => {
       io.to(roomId).emit(EVENTS.CHAT_BROADCAST, message);
     });
 
+    socket.on(EVENTS.TYPING_START, () => {
+      const roomId = socketToRoom.get(socket.id);
+      if (roomId) socket.to(roomId).emit(EVENTS.TYPING_START, { userId: socket.id });
+    });
+
+    socket.on(EVENTS.TYPING_STOP, () => {
+      const roomId = socketToRoom.get(socket.id);
+      if (roomId) socket.to(roomId).emit(EVENTS.TYPING_STOP, { userId: socket.id });
+    });
+
     socket.on(EVENTS.LOAD_NEXT_EPISODE, async (payload: { filename: string }) => {
       if (!payload || typeof payload.filename !== 'string') return;
       const roomId = socketToRoom.get(socket.id);
