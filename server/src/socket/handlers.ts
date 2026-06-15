@@ -23,14 +23,19 @@ const socketToToken = new Map<string, string>();
 const MAX_NICKNAME_LENGTH = 50;
 const MAX_MESSAGE_LENGTH = 1000;
 const MAX_PIN_ATTEMPTS = 5;
-const PIN_WINDOW_MS = 60_000;
+let pinRateLimiter: RateLimiterRedis | null = null;
 
-const pinRateLimiter = new RateLimiterRedis({
-  storeClient: redisClient,
-  keyPrefix: 'rate_limit_pin',
-  points: 5, // 5 attempts
-  duration: 900, // block for 15 minutes (900 seconds)
-});
+const getPinRateLimiter = () => {
+  if (!pinRateLimiter) {
+    pinRateLimiter = new RateLimiterRedis({
+      storeClient: redisClient,
+      keyPrefix: 'rate_limit_pin',
+      points: 5, // 5 attempts
+      duration: 900, // block for 15 minutes (900 seconds)
+    });
+  }
+  return pinRateLimiter;
+};
 const MAX_CHAT_PER_WINDOW = 5;
 const CHAT_WINDOW_MS = 3_000;
 const MAX_FILE_NAME_LENGTH = 255;
@@ -126,10 +131,15 @@ export const setupSocketHandlers = (io: Server) => {
         const ip = getClientIp(socket);
         
         try {
-          await pinRateLimiter.consume(ip);
+          await getPinRateLimiter().consume(ip);
         } catch (rejRes) {
-          socket.emit(EVENTS.WRONG_PASSWORD, { message: 'Too many attempts. Please wait 15 minutes before trying again.' });
-          return;
+          if (rejRes instanceof Error) {
+            console.error('RateLimiter error (PIN):', rejRes);
+            // On internal error, don't block
+          } else {
+            socket.emit(EVENTS.WRONG_PASSWORD, { message: 'Too many attempts. Please wait 15 minutes before trying again.' });
+            return;
+          }
         }
 
         const hashBuffer = await pbkdf2Async(password, room.passwordSalt!, 100_000, 32, 'sha256');
@@ -139,7 +149,9 @@ export const setupSocketHandlers = (io: Server) => {
           return;
         }
         // Successful auth: reset attempts for this IP
-        await pinRateLimiter.delete(ip);
+        if (pinRateLimiter) {
+          await pinRateLimiter.delete(ip);
+        }
       }
 
       // Cancel disconnect timer if rejoining

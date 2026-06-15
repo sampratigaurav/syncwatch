@@ -8,24 +8,36 @@ export const roomRouter = Router();
 
 const pbkdf2Async = promisify(crypto.pbkdf2);
 
-const rateLimiter = new RateLimiterRedis({
-  storeClient: redisClient,
-  keyPrefix: 'rate_limit_rooms',
-  points: 10, // 10 requests
-  duration: 60, // per 60 seconds
-});
+let rateLimiter: RateLimiterRedis | null = null;
 
-const createRoomLimiter = (req: Request, res: Response, next: NextFunction) => {
+const getRateLimiter = () => {
+  if (!rateLimiter) {
+    rateLimiter = new RateLimiterRedis({
+      storeClient: redisClient,
+      keyPrefix: 'rate_limit_rooms',
+      points: 10, // 10 requests
+      duration: 60, // per 60 seconds
+    });
+  }
+  return rateLimiter;
+};
+
+const createRoomLimiter = async (req: Request, res: Response, next: NextFunction) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   const ipStr = Array.isArray(ip) ? ip[0] : (ip || 'unknown');
   
-  rateLimiter.consume(ipStr)
-    .then(() => {
+  try {
+    await getRateLimiter().consume(ipStr);
+    next();
+  } catch (rejRes) {
+    if (rejRes instanceof Error) {
+      // Redis connection error or RateLimiter error. Let it pass to not break app.
+      console.error('RateLimiter error:', rejRes);
       next();
-    })
-    .catch(() => {
+    } else {
       res.status(429).json({ error: 'Too many rooms created. Please try again later.' });
-    });
+    }
+  }
 };
 
 roomRouter.post('/', createRoomLimiter, async (req, res) => {
