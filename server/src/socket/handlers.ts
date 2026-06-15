@@ -1,7 +1,8 @@
 import { Server, Socket } from 'socket.io';
 import crypto from 'crypto';
 import { promisify } from 'util';
-import { getRoom, setRoom, deleteRoom } from '../rooms/RoomManager';
+import { getRoom, setRoom, deleteRoom, redisClient } from '../rooms/RoomManager';
+import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { EVENTS } from '../../../shared/socketEvents';
 import { Participant, RoomState, PlaybackEvent, ControlPolicy } from '../../../shared/types';
 
@@ -10,8 +11,7 @@ const pbkdf2Async = promisify(crypto.pbkdf2);
 const disconnectTimers = new Map<string, NodeJS.Timeout>();
 const bufferingTimers = new Map<string, NodeJS.Timeout>();
 const lastReactionTimes = new Map<string, number>();
-// PIN attempts keyed by IP, not socket id, to prevent bypass via reconnection
-const pinAttemptTimes = new Map<string, number[]>();
+// PIN attempts will be managed by RateLimiterRedis
 const lastChatTimes = new Map<string, number[]>();
 
 // Reconnect tokens: token → { roomId, nickname, role }
@@ -24,6 +24,13 @@ const MAX_NICKNAME_LENGTH = 50;
 const MAX_MESSAGE_LENGTH = 1000;
 const MAX_PIN_ATTEMPTS = 5;
 const PIN_WINDOW_MS = 60_000;
+
+const pinRateLimiter = new RateLimiterRedis({
+  storeClient: redisClient,
+  keyPrefix: 'rate_limit_pin',
+  points: 5, // 5 attempts
+  duration: 900, // block for 15 minutes (900 seconds)
+});
 const MAX_CHAT_PER_WINDOW = 5;
 const CHAT_WINDOW_MS = 3_000;
 const MAX_FILE_NAME_LENGTH = 255;
@@ -115,25 +122,24 @@ export const setupSocketHandlers = (io: Server) => {
           return;
         }
 
-        // Rate limit PIN attempts per IP (not socket id) to prevent bypass via reconnect
+        // Rate limit PIN attempts per IP globally
         const ip = getClientIp(socket);
-        const now = Date.now();
-        const recentAttempts = (pinAttemptTimes.get(ip) || []).filter(t => now - t < PIN_WINDOW_MS);
-        if (recentAttempts.length >= MAX_PIN_ATTEMPTS) {
-          socket.emit(EVENTS.WRONG_PASSWORD, { message: 'Too many attempts. Please wait before trying again.' });
+        
+        try {
+          await pinRateLimiter.consume(ip);
+        } catch (rejRes) {
+          socket.emit(EVENTS.WRONG_PASSWORD, { message: 'Too many attempts. Please wait 15 minutes before trying again.' });
           return;
         }
 
         const hashBuffer = await pbkdf2Async(password, room.passwordSalt!, 100_000, 32, 'sha256');
         const hash = hashBuffer.toString('hex');
         if (hash !== room.password) {
-          recentAttempts.push(now);
-          pinAttemptTimes.set(ip, recentAttempts);
           socket.emit(EVENTS.WRONG_PASSWORD, { message: 'Incorrect PIN' });
           return;
         }
-        // Successful auth: clear attempt history for this IP
-        pinAttemptTimes.delete(ip);
+        // Successful auth: reset attempts for this IP
+        await pinRateLimiter.delete(ip);
       }
 
       // Cancel disconnect timer if rejoining
