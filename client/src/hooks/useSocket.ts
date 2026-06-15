@@ -4,6 +4,7 @@ import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { EVENTS } from '../../../shared/socketEvents';
 import type { Participant } from '../../../shared/types';
+import toast from 'react-hot-toast';
 import { SERVER_URL } from '../lib/config';
 
 export const socket: Socket = io(SERVER_URL, {
@@ -72,6 +73,7 @@ export const useSocket = (navigate?: (to: string) => void) => {
         setConnectionStatus('disconnected');
       } else {
         setConnectionStatus('reconnecting');
+        toast.loading('Connection lost, reconnecting...', { id: 'reconnect' });
       }
     });
 
@@ -90,6 +92,8 @@ export const useSocket = (navigate?: (to: string) => void) => {
     socket.on('reconnect', () => {
       setConnectionStatus('connected');
       setReconnectAttempt(0);
+      toast.dismiss('reconnect');
+      toast.success('Reconnected successfully!');
       // NOTE: socket.io fires both 'reconnect' AND 'connect' on a successful reconnect.
       // emitJoinRoom() is debounced to prevent double-emitting JOIN_ROOM which would
       // consume the single-use reconnect token on the first call, then assign viewer
@@ -138,10 +142,16 @@ export const useSocket = (navigate?: (to: string) => void) => {
         
         if (participant.status === 'removed') {
           setParticipants(state.participants.filter(p => p.id !== participant.id));
+          if (participant.id !== socket.id) {
+            toast(`${participant.nickname} left`, { icon: '👋', id: `leave-${participant.id}` });
+          }
         } else if (existing) {
           setParticipants(state.participants.map(p => p.id === participant.id ? participant : p));
         } else {
           setParticipants([...state.participants, participant]);
+          if (participant.id !== socket.id) {
+            toast.success(`${participant.nickname} joined`, { id: `join-${participant.id}` });
+          }
         }
       }, 0);
     });

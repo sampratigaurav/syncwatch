@@ -147,6 +147,7 @@ export const useWebRTC = create<WebRTCState>((set, get) => ({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
+          autoGainControl: true,
           sampleRate: 48000
         },
         video: false

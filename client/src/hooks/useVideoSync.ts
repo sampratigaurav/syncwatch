@@ -5,6 +5,8 @@ import { socket } from './useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import type { PlaybackEvent } from '../../../shared/types';
 
+import toast from 'react-hot-toast';
+
 export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>) => {
   const { setLastActionAt } = useRoomStore(useShallow(state => ({
     setLastActionAt: state.setLastActionAt
@@ -33,6 +35,7 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
       }
 
       if (event.action === 'play') {
+        if (event.lastActionNickname) toast(`${event.lastActionNickname} played the video`, { icon: '▶️', id: 'play' });
         if (Math.abs(video.currentTime - event.currentTime) > 2.0) {
           video.currentTime = event.currentTime;
         }
@@ -45,6 +48,7 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
           }
         }
       } else if (event.action === 'pause') {
+        if (event.lastActionNickname) toast(`${event.lastActionNickname} paused the video`, { icon: '⏸️', id: 'pause' });
         video.currentTime = event.currentTime;
         if (!video.paused) {
           video.pause();

@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
 import Home from './pages/Home'
 import WaitingRoom from './pages/WaitingRoom'
 import Room from './pages/Room'
@@ -6,6 +7,13 @@ import Room from './pages/Room'
 function App() {
   return (
     <div className="min-h-screen font-sans selection:bg-teal-500/30 transition-colors duration-300">
+      <Toaster position="bottom-right" toastOptions={{
+        style: {
+          background: '#18181b',
+          color: '#fff',
+          border: '1px solid #27272a',
+        },
+      }} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/room/:roomId" element={<Home />} />

@@ -1,10 +1,11 @@
 import { forwardRef, useState, useEffect, useRef, useCallback } from 'react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
-import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Minimize, Subtitles } from 'lucide-react';
+import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Minimize, Subtitles, Activity } from 'lucide-react';
 import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import { ReactionButton } from './ReactionButton';
+import { StatsForNerds } from './StatsForNerds';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -61,6 +62,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
+    const [showStats, setShowStats] = useState(false);
     
     // Controls visibility
     const [showControls, setShowControls] = useState(true);
@@ -193,6 +195,37 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
 
     const progressPercentage = (currentTime / (duration || 1)) * 100;
 
+    useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+        switch (e.key.toLowerCase()) {
+          case ' ':
+            e.preventDefault();
+            togglePlay();
+            break;
+          case 'f':
+            e.preventDefault();
+            toggleFullscreen();
+            break;
+          case 'm':
+            e.preventDefault();
+            toggleMute();
+            break;
+          case 'arrowleft':
+            e.preventDefault();
+            skipBackward();
+            break;
+          case 'arrowright':
+            e.preventDefault();
+            skipForward();
+            break;
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [hasControl, isMuted, volume]);
+
     return (
       <div 
         ref={containerRef} 
@@ -249,6 +282,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
             />
           )}
         </video>
+        
+        <StatsForNerds isVisible={showStats} videoRef={internalVideoRef} />
 
         {/* Following Badge */}
         {!hasControl && controlPolicy === 'host_only' && (
@@ -391,6 +426,18 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 {subtitleEnabled && (
                   <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-400 rounded-full tablet:hidden" aria-hidden="true" />
                 )}
+              </button>
+
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowStats(!showStats); }}
+                aria-label="Toggle Stats for Nerds"
+                title="Toggle Stats for Nerds"
+                className={cn(
+                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
+                  showStats ? "text-teal-400" : "text-white [.light_&]:text-zinc-600 hover:text-teal-400 [.light_&]:hover:text-teal-500"
+                )}
+              >
+                <Activity className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />
               </button>
 
               <ReactionButton 
