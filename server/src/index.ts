@@ -158,7 +158,7 @@ app.get('/health', (req, res) => {
 
   setupSocketHandlers(io);
 
-  server.listen(PORT, () => {
-    console.log(`Server listening on ${PORT}`);
+  server.listen(Number(PORT), '0.0.0.0', () => {
+    console.log(`Server listening on ${PORT} (0.0.0.0)`);
   });
 })();
