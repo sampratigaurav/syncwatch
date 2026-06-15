@@ -1,21 +1,32 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { promisify } from 'util';
-import rateLimit from 'express-rate-limit';
-import { createRoom, getRoom } from '../rooms/RoomManager';
+import { RateLimiterRedis } from 'rate-limiter-flexible';
+import { createRoom, getRoom, redisClient } from '../rooms/RoomManager';
 
 export const roomRouter = Router();
 
 const pbkdf2Async = promisify(crypto.pbkdf2);
 
-// Max 10 room creations per IP per minute
-const createRoomLimiter = rateLimit({
-  windowMs: 60_000,
-  max: 10,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many rooms created. Please try again later.' }
+const rateLimiter = new RateLimiterRedis({
+  storeClient: redisClient,
+  keyPrefix: 'rate_limit_rooms',
+  points: 10, // 10 requests
+  duration: 60, // per 60 seconds
 });
+
+const createRoomLimiter = (req: Request, res: Response, next: NextFunction) => {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const ipStr = Array.isArray(ip) ? ip[0] : (ip || 'unknown');
+  
+  rateLimiter.consume(ipStr)
+    .then(() => {
+      next();
+    })
+    .catch(() => {
+      res.status(429).json({ error: 'Too many rooms created. Please try again later.' });
+    });
+};
 
 roomRouter.post('/', createRoomLimiter, async (req, res) => {
   const { password } = req.body || {};

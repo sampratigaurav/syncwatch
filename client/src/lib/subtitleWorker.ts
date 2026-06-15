@@ -1,4 +1,4 @@
-import { parseSubtitles } from './subtitleUtils';
+import { parseSubtitles, fetchWithRetry } from './subtitleUtils';
 
 async function fetchSrtFromOpenSubtitles(fileName: string, apiKey: string): Promise<string> {
   const cleanFileName = fileName.replace(/\.[^/.]+$/, "").replace(/[.\-_]/g, ' ');
@@ -9,12 +9,12 @@ async function fetchSrtFromOpenSubtitles(fileName: string, apiKey: string): Prom
   searchUrl.searchParams.append('order_by', 'download_count');
   searchUrl.searchParams.append('order_direction', 'desc');
 
-  const searchRes = await fetch(searchUrl.toString(), {
+  const searchRes = await fetchWithRetry(searchUrl.toString(), {
     headers: {
       'Api-Key': apiKey,
       'Content-Type': 'application/json',
     }
-  });
+  }, 3);
 
   if (!searchRes.ok) throw new Error(`Search failed: ${searchRes.statusText}`);
   const searchData = await searchRes.json();
@@ -25,7 +25,7 @@ async function fetchSrtFromOpenSubtitles(fileName: string, apiKey: string): Prom
 
   const fileId = searchData.data[0].attributes.files[0].file_id;
 
-  const downloadRes = await fetch('https://api.opensubtitles.com/api/v1/download', {
+  const downloadRes = await fetchWithRetry('https://api.opensubtitles.com/api/v1/download', {
     method: 'POST',
     headers: {
       'Api-Key': apiKey,
@@ -33,7 +33,7 @@ async function fetchSrtFromOpenSubtitles(fileName: string, apiKey: string): Prom
       'Accept': 'application/json'
     },
     body: JSON.stringify({ file_id: fileId })
-  });
+  }, 3);
 
   if (!downloadRes.ok) throw new Error(`Download failed: ${downloadRes.statusText}`);
   const downloadData = await downloadRes.json();
@@ -41,7 +41,7 @@ async function fetchSrtFromOpenSubtitles(fileName: string, apiKey: string): Prom
   const fileLink = downloadData.link;
   if (!fileLink) throw new Error('Could not get file download link.');
 
-  const srtRes = await fetch(fileLink);
+  const srtRes = await fetchWithRetry(fileLink, {}, 3);
   if (!srtRes.ok) throw new Error(`Failed to fetch SRT content: ${srtRes.statusText}`);
 
   return await srtRes.text();

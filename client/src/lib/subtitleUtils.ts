@@ -94,3 +94,34 @@ export function blocksToVttWithOffset(blocks: SubtitleBlock[], offsetMs: number 
   }
   return vtt;
 }
+
+/**
+ * Resilient fetch wrapper that automatically retries failed requests with exponential backoff.
+ */
+export async function fetchWithRetry(url: string, options: RequestInit, retries: number = 3): Promise<Response> {
+  let lastError: Error = new Error('Unknown error in fetchWithRetry');
+  
+  for (let attempt = 0; attempt < retries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok) {
+        return response;
+      }
+      // If it's a 4xx error (except 429 Rate Limit), usually no point in retrying
+      if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+        return response; 
+      }
+      lastError = new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+    } catch (err: any) {
+      lastError = err;
+    }
+    
+    // Wait before retrying (exponential backoff: 500ms, 1000ms, 2000ms)
+    if (attempt < retries - 1) {
+      const waitTime = Math.pow(2, attempt) * 500;
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+  
+  throw lastError;
+}
