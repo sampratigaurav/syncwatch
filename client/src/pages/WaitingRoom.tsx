@@ -6,7 +6,7 @@ import { useFileVerify } from '../hooks/useFileVerify';
 import { useNavigate, useParams } from 'react-router-dom';
 import ParticipantList from '../components/ParticipantList';
 import ControlPolicySelector from '../components/ControlPolicySelector';
-import { Copy, Check, Play, AlertTriangle, Loader2, WifiOff, Lock } from 'lucide-react';
+import { Copy, Check, Play, AlertTriangle, Loader2, WifiOff, Lock, Link2 } from 'lucide-react';
 
 export default function WaitingRoom() {
   const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast } = useRoomStore(useShallow(state => ({
@@ -26,7 +26,7 @@ export default function WaitingRoom() {
   const { verifyFile, mismatchError, forceAccept } = useFileVerify();
   const fileName = useRoomStore(state => state.fileName);
 
-  const [copied, setCopied] = useState(false);
+  const [copiedType, setCopiedType] = useState<'link' | 'code' | null>(null);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
 
   // Show server-driven error messages as an in-app banner
@@ -47,24 +47,24 @@ export default function WaitingRoom() {
     }
   }, [roomId, urlId, navigate]);
 
-  const handleCopyLink = () => {
-    const url = `${window.location.origin}/room/${roomId}`;
+  const handleCopy = (type: 'link' | 'code') => {
+    const text = type === 'link' ? `${window.location.origin}/room/${roomId}` : (roomId || '');
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+      navigator.clipboard.writeText(text).then(() => {
+        setCopiedType(type);
+        setTimeout(() => setCopiedType(null), 2000);
       }).catch(err => console.error("Clipboard copy failed", err));
     } else {
       // Fallback for non-HTTPS local IPs
       const textArea = document.createElement("textarea");
-      textArea.value = url;
+      textArea.value = text;
       document.body.appendChild(textArea);
       textArea.focus();
       textArea.select();
       try {
         document.execCommand('copy');
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        setCopiedType(type);
+        setTimeout(() => setCopiedType(null), 2000);
       } catch (err) {
         console.error('Fallback copy failed', err);
       }
@@ -299,14 +299,24 @@ export default function WaitingRoom() {
               </div>
               <p className="text-2xl font-mono font-bold text-white tracking-widest leading-none">{roomId}</p>
             </div>
-            <button 
-              onClick={handleCopyLink} 
-              className="p-3 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-lg text-zinc-300 transition-all active:scale-95 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70"
-              aria-label="Copy room link"
-              title="Copy room link"
-            >
-              {copied ? <Check className="w-5 h-5 text-teal-500" /> : <Copy className="w-5 h-5" />}
-            </button>
+            <div className="flex flex-col gap-2">
+              <button 
+                onClick={() => handleCopy('code')} 
+                className="px-3 py-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-lg text-zinc-300 text-xs font-medium transition-all active:scale-95 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 w-[110px]"
+                aria-label="Copy room code"
+              >
+                {copiedType === 'code' ? <Check className="w-4 h-4 text-teal-500" /> : <Copy className="w-4 h-4" />}
+                Copy Code
+              </button>
+              <button 
+                onClick={() => handleCopy('link')} 
+                className="px-3 py-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-lg text-zinc-300 text-xs font-medium transition-all active:scale-95 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 w-[110px]"
+                aria-label="Copy room link"
+              >
+                {copiedType === 'link' ? <Check className="w-4 h-4 text-teal-500" /> : <Link2 className="w-4 h-4" />}
+                Copy Link
+              </button>
+            </div>
           </div>
           
           <ParticipantList variant="waiting-room" />
