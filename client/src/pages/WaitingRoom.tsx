@@ -301,7 +301,9 @@ export default function WaitingRoom() {
             </div>
             <button 
               onClick={handleCopyLink} 
-              className="p-3 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-lg text-zinc-300 transition-all active:scale-95 flex items-center justify-center"
+              className="p-3 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-lg text-zinc-300 transition-all active:scale-95 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70"
+              aria-label="Copy room link"
+              title="Copy room link"
             >
               {copied ? <Check className="w-5 h-5 text-teal-500" /> : <Copy className="w-5 h-5" />}
             </button>

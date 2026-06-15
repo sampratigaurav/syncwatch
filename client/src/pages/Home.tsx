@@ -359,7 +359,11 @@ export default function Home() {
                        setLockRoom(!lockRoom);
                        if (createError) setCreateError('');
                      }}
-                     className={cn("w-10 h-5 rounded-full relative transition-colors focus:outline-none", lockRoom ? "bg-teal-500" : "bg-zinc-700 [.light_&]:bg-zinc-300")}
+                     role="switch"
+                     aria-checked={lockRoom}
+                     aria-label="Lock room with a PIN"
+                     title={lockRoom ? "Unlock room" : "Lock room"}
+                     className={cn("w-10 h-5 rounded-full relative transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900", lockRoom ? "bg-teal-500" : "bg-zinc-700 [.light_&]:bg-zinc-300")}
                    >
                      <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[2px] transition-transform", lockRoom ? "translate-x-[22px]" : "translate-x-0.5")} />
                    </button>
@@ -599,7 +603,8 @@ export default function Home() {
                 </span>
                 <button 
                   onClick={handleCopyUPI}
-                  className="w-10 h-10 tablet:w-8 tablet:h-8 flex-shrink-0 flex items-center justify-center rounded-lg hover:bg-zinc-800 [.light_&]:hover:bg-zinc-200 text-zinc-400 [.light_&]:text-zinc-600 transition-colors"
+                  className="w-10 h-10 tablet:w-8 tablet:h-8 flex-shrink-0 flex items-center justify-center rounded-lg hover:bg-zinc-800 [.light_&]:hover:bg-zinc-200 text-zinc-400 [.light_&]:text-zinc-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70"
+                  aria-label="Copy UPI ID"
                   title="Copy UPI ID"
                 >
                   {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
