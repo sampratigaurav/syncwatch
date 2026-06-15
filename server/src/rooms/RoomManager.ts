@@ -1,5 +1,6 @@
 import { createClient } from 'redis';
 import { RoomState, Participant } from '../../../shared/types';
+import { logger } from '../utils/logger';
 
 // Serialized form stored in Redis — participants as array instead of Map
 interface SerializedRoomState extends Omit<RoomState, 'participants'> {
@@ -8,7 +9,7 @@ interface SerializedRoomState extends Omit<RoomState, 'participants'> {
 
 export const redisClient = createClient({ url: process.env.REDIS_URL });
 
-redisClient.on('error', (err) => console.error('Redis client error:', err));
+redisClient.on('error', (err) => logger.error('Redis client error:', err));
 
 redisClient.connect();
 

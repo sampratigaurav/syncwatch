@@ -123,6 +123,8 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/api/rooms', roomRouter);
 
+import { logger } from './utils/logger';
+
 // Background GC: cleans up expired, idle entries every 5 minutes.
 setInterval(() => {
   const now = Date.now();
@@ -145,12 +147,15 @@ app.get('/health', (req, res) => {
   });
 });
 
-(async () => {
-  const pubClient = createClient({ url: process.env.REDIS_URL });
-  const subClient = pubClient.duplicate();
+let pubClient: ReturnType<typeof createClient>;
+let subClient: ReturnType<typeof createClient>;
 
-  pubClient.on('error', (err) => console.error('Redis pub error:', err));
-  subClient.on('error', (err) => console.error('Redis sub error:', err));
+(async () => {
+  pubClient = createClient({ url: process.env.REDIS_URL });
+  subClient = pubClient.duplicate();
+
+  pubClient.on('error', (err) => logger.error('Redis pub error:', err));
+  subClient.on('error', (err) => logger.error('Redis sub error:', err));
 
   await Promise.all([pubClient.connect(), subClient.connect()]);
 
@@ -159,6 +164,31 @@ app.get('/health', (req, res) => {
   setupSocketHandlers(io);
 
   server.listen(Number(PORT), '0.0.0.0', () => {
-    console.log(`Server listening on ${PORT} (0.0.0.0)`);
+    logger.info(`Server listening on ${PORT} (0.0.0.0)`);
   });
 })();
+
+// Graceful Shutdown implementation
+const gracefulShutdown = async (signal: string) => {
+  logger.info(`Received ${signal}. Starting graceful shutdown...`);
+  
+  server.close(() => {
+    logger.info('HTTP server closed.');
+  });
+  
+  // Close all socket connections
+  io.disconnectSockets(true);
+  
+  try {
+    if (pubClient?.isOpen) await pubClient.quit();
+    if (subClient?.isOpen) await subClient.quit();
+    logger.info('Redis clients disconnected.');
+    process.exit(0);
+  } catch (err) {
+    logger.error('Error during Redis disconnection:', err);
+    process.exit(1);
+  }
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));

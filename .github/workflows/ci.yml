@@ -1,0 +1,51 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install Root Dependencies
+      run: npm ci
+
+    - name: Install Client Dependencies
+      run: npm ci
+      working-directory: ./client
+
+    - name: Install Server Dependencies
+      run: npm ci
+      working-directory: ./server
+
+    - name: Client Type Check
+      run: npm run type-check || npx tsc --noEmit
+      working-directory: ./client
+
+    - name: Client Tests
+      run: npx vitest run
+      working-directory: ./client
+
+    - name: Server Type Check
+      run: npm run build || npx tsc --noEmit
+      working-directory: ./server
+
+    - name: Server Tests
+      run: npx jest
+      working-directory: ./server
