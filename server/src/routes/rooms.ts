@@ -23,8 +23,7 @@ const getRateLimiter = () => {
 };
 
 const createRoomLimiter = async (req: Request, res: Response, next: NextFunction) => {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  const ipStr = Array.isArray(ip) ? ip[0] : (ip || 'unknown');
+  const ipStr = req.ip || 'unknown';
   
   try {
     await getRateLimiter().consume(ipStr);
