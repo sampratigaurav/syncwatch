@@ -284,7 +284,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto pt-16 tablet:pt-20 pb-12 selection:bg-teal-500/30 transition-colors duration-500 animate-in fade-in duration-500">
+    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto pt-16 tablet:pt-20 pb-12 selection:bg-teal-500/30 bg-zinc-950 transition-colors duration-500 animate-in fade-in duration-500">
         
       {/* Cinematic Background Orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
@@ -299,7 +299,7 @@ export default function Home() {
       <div className="relative z-10 w-full max-w-[900px] flex flex-col items-center px-4 tablet:px-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
           
         {/* Logo Section */}
-        <div className="flex flex-col items-center mb-10 tablet:mb-14 desktop:mb-20 relative w-full">
+        <div className="flex flex-col items-center mb-10 tablet:mb-14 desktop:mb-20 relative w-full bg-zinc-950">
            <h1 className="text-5xl tablet:text-6xl desktop:text-7xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-400 [.light_&]:from-zinc-800 [.light_&]:to-zinc-500 pb-2 text-center drop-shadow-[0_0_15px_rgba(29,158,117,0.05)] animate-wordmark animate-cinematic-glow delay-[200ms]" style={{ WebkitTextStroke: '1px rgba(128,128,128,0.2)' }}>
              SyncWatch
            </h1>
