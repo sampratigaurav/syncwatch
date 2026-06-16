@@ -507,7 +507,7 @@ export default function Home() {
               isVisible ? "opacity-100" : "opacity-0"
             )} />
 
-            <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-4 gap-6 desktop:gap-4 relative w-full">
+            <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-4 gap-8 desktop:gap-8 relative w-full">
               {STEPS.map((step, i) => (
                 <div 
                   key={i} 
@@ -536,9 +536,9 @@ export default function Home() {
                       0{i + 1}
                     </div>
 
-                    <step.icon className="text-[#1D9E75] w-[28px] h-[28px] mb-4 transition-transform duration-300 group-hover:scale-110" />
+                    <step.icon className="text-emerald-400 w-[28px] h-[28px] mb-4 transition-transform duration-300 group-hover:scale-110" />
                     <h4 className="text-white [.light_&]:text-zinc-900 font-semibold text-[15px] mb-1.5 relative z-10">{step.title}</h4>
-                    <p className="text-zinc-400 [.light_&]:text-zinc-600 text-[13px] font-light leading-[1.6] relative z-10">
+                    <p className="text-zinc-400 [.light_&]:text-zinc-600 text-sm leading-[1.6] relative z-10">
                       {step.desc}
                     </p>
                   </div>
