@@ -284,7 +284,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto pt-16 tablet:pt-20 pb-12 selection:bg-teal-500/30 bg-[#080810] [.light_&]:bg-[#FAFAF8] transition-colors duration-500 bg-noise animate-in fade-in duration-500">
+    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto pt-16 tablet:pt-20 pb-12 selection:bg-teal-500/30 transition-colors duration-500 animate-in fade-in duration-500">
         
       {/* Cinematic Background Orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
