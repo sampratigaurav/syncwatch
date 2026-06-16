@@ -335,7 +335,7 @@ export default function Home() {
            <div className="w-full flex flex-col tablet:flex-row items-stretch justify-center gap-4 tablet:gap-8">
 
              {/* Create Room Card */}
-              <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 flex flex-col gap-4">
+              <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 flex flex-col gap-4 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
                <div className="flex items-center gap-2">
                  <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg">Start a New Room</h3>
                  {lockRoom && <Lock size={16} className="text-teal-400 mt-0.5" />}
@@ -350,7 +350,7 @@ export default function Home() {
                         if (createError) setCreateError('');
                       }}
                       className={cn(
-                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg",
+                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-500 transition-all duration-200 font-medium text-base tablet:text-lg",
                         isCreateNicknameError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
                       )}
                       placeholder="Enter your nickname"
@@ -397,7 +397,7 @@ export default function Home() {
                           if (createError) setCreateError('');
                         }}
                         className={cn(
-                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-600 transition-colors font-mono tracking-widest text-lg",
+                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-600 transition-all duration-200 font-mono tracking-widest text-lg",
                           isCreatePinError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
                         )}
                         placeholder="4-8 character PIN"
@@ -415,14 +415,14 @@ export default function Home() {
                <button 
                  onClick={handleCreateRoom}
                  disabled={isLoading}
-                 className="w-full h-12 tablet:h-[52px] min-h-[48px] rounded-lg font-medium px-5 py-2.5 transition-colors disabled:opacity-50 active:scale-[0.98] shadow-sm bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center text-base tablet:text-lg"
+                 className="w-full h-12 tablet:h-[52px] min-h-[48px] rounded-lg font-medium px-5 py-2.5 transition-all duration-200 disabled:opacity-50 active:scale-[0.98] shadow-sm bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center text-base tablet:text-lg"
                >
                  Create Room
                </button>
              </div>
 
              {/* Join Room Card */}
-             <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 flex flex-col justify-between gap-4 z-10">
+             <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 flex flex-col justify-between gap-4 z-10 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
                
                <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg relative z-10">Join Existing</h3>
                <div className="flex flex-col gap-4 relative z-10">
@@ -436,7 +436,7 @@ export default function Home() {
                         if (joinError === 'Please enter a nickname to continue') setJoinError('');
                       }}
                       className={cn(
-                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg",
+                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-500 transition-all duration-200 font-medium text-base tablet:text-lg",
                         isJoinNicknameError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
                       )}
                       placeholder="Enter your nickname"
@@ -453,7 +453,7 @@ export default function Home() {
                         if (joinError === 'Please enter a room code') setJoinError('');
                       }}
                       className={cn(
-                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-500 font-mono tracking-widest uppercase transition-all text-base tablet:text-lg",
+                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-500 font-mono tracking-widest uppercase transition-all duration-200 text-base tablet:text-lg",
                         isJoinCodeError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
                       )}
                       placeholder="ROOM CODE"
@@ -479,7 +479,7 @@ export default function Home() {
                         }}
                         autoFocus
                         className={cn(
-                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-600 transition-all font-mono tracking-widest text-lg",
+                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-600 transition-all duration-200 font-mono tracking-widest text-lg",
                           isJoinPinError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
                         )}
                         placeholder="Enter PIN"
@@ -496,7 +496,7 @@ export default function Home() {
                <button 
                  onClick={handleJoinRoom}
                  disabled={isLoading}
-                 className="w-full h-12 tablet:h-[52px] min-h-[48px] rounded-lg font-medium px-5 py-2.5 transition-colors disabled:opacity-50 active:scale-[0.98] bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white flex items-center justify-center text-base tablet:text-lg"
+                 className="w-full h-12 tablet:h-[52px] min-h-[48px] rounded-lg font-medium px-5 py-2.5 transition-all duration-200 disabled:opacity-50 active:scale-[0.98] bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white flex items-center justify-center text-base tablet:text-lg"
                >
                  Join Room
                </button>
