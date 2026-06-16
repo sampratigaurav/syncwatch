@@ -56,6 +56,9 @@ No CDN. No encoding. No legal grey areas. Just sync.
 | **Emoji Reactions** | Floating animated emoji overlay during playback. |
 | **Chrome Extension** | Watch YouTube together via the companion browser extension. |
 | **Light / Dark Mode** | Full theme toggle, persisted in `localStorage`. |
+| **Presence Indicators** | Real-time typing indicators, active speaker rings, and subtle UI sound effects. |
+| **Stats for Nerds** | Technical real-time metrics overlay for geeks. |
+| **Accessible UI** | Full screen reader support, ARIA labels, and keyboard focus states. |
 
 ---
 
@@ -351,26 +354,7 @@ If the first 10MB of the file lacks the `moov` atom (making it undecodable), the
 | `host_left` | — | Host disconnected (30s GC pending) |
 | `pong` | `{ sentAt }` | Latency reply |
 
----
 
-## 🔭 Roadmap
-
-- [x] Core sync engine (play / pause / seek / drift correction)
-- [x] Perceptual Sync (Audio Fingerprinting for quality mismatch)
-- [x] P2P Subtitle Asset Sharing (WebRTC)
-- [x] Latency-aware playback sync (RTT compensation)
-- [x] Room PIN protection (PBKDF2)
-- [x] Control policy (host-only / everyone / selected)
-- [x] Voice chat (WebRTC P2P)
-- [x] Emoji reactions (floating overlay)
-- [x] Chrome Extension (YouTube sync)
-- [x] Redis-backed horizontal scaling
-- [ ] Host transfer (pass the remote)
-- [ ] Mobile-responsive layout improvements
-- [ ] Persistent nicknames (no auth required)
-- [ ] Room history / replay (post-MVP)
-
----
 
 ## 🤝 Contributing
 
