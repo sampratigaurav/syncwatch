@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Coffee, Copy, Check, Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield, HelpCircle } from 'lucide-react';
+import { Coffee, Copy, Check, Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield, HelpCircle, Github, Linkedin, Twitter } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../lib/config';
@@ -598,45 +598,49 @@ export default function Home() {
         </div>
 
         {/* Support Section */}
-        <div className="w-full max-w-[440px] tablet:max-w-full mt-12 tablet:mt-16 pt-8 border-t border-white/5 [.light_&]:border-black/10 pb-4">
+        <div className="w-full max-w-[600px] mt-12 tablet:mt-16 pt-8 border-t border-white/5 [.light_&]:border-black/10 pb-4">
           <div className="flex flex-col items-center text-center mb-6 px-4">
             <p className="text-zinc-200 [.light_&]:text-zinc-700 font-medium mb-1 text-[15px] tablet:text-[16px]">
               SyncWatch is free and open source.
             </p>
             <p className="text-[13px] tablet:text-[14px] text-zinc-500 [.light_&]:text-zinc-500">
-              If it made your movie night better, consider supporting the project.
+              If it made your movie night better, consider starring the project or connecting with me.
             </p>
           </div>
           
-          <div className="flex flex-col tablet:flex-row items-stretch tablet:items-end justify-center gap-3 tablet:gap-4 max-w-lg mx-auto">
-            {/* Ko-fi Button */}
+          <div className="flex flex-col tablet:flex-row items-center justify-center gap-3 tablet:gap-4 max-w-lg mx-auto">
+            {/* GitHub Button */}
             <a 
-              href="https://ko-fi.com/sampratigaurav" 
+              href="https://github.com/sampratigaurav/syncwatch" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex-1 min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-4 py-3 font-medium transition-colors active:scale-[0.98]"
+              className="w-full tablet:w-auto min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-5 py-2 font-medium transition-colors active:scale-[0.98]"
             >
-              <Coffee size={18} color="#FF5E5B" />
-              <span className="text-sm tablet:text-base">Support this project</span>
+              <Github size={18} />
+              <span className="text-sm tablet:text-base">Star on GitHub</span>
             </a>
 
-            {/* UPI Element */}
-            <div className="flex-1 flex flex-col" title="UPI (India)">
-              <span className="text-[10px] tablet:text-[11px] text-zinc-500 [.light_&]:text-zinc-500 uppercase tracking-wider mb-1 ml-1 font-semibold text-center tablet:text-left">UPI (India)</span>
-              <div className="min-h-[48px] tablet:min-h-[44px] flex items-center justify-between bg-zinc-900/50 [.light_&]:bg-zinc-100/80 border border-zinc-800 [.light_&]:border-zinc-200 rounded-xl pl-4 pr-2 tablet:pl-3 tablet:pr-1 py-1">
-                <span className="font-mono text-sm tablet:text-xs text-zinc-400 [.light_&]:text-zinc-600 truncate mr-2">
-                  sampratigaurav123@okaxis
-                </span>
-                <button 
-                  onClick={handleCopyUPI}
-                  className="w-10 h-10 tablet:w-8 tablet:h-8 flex-shrink-0 flex items-center justify-center rounded-lg hover:bg-zinc-800 [.light_&]:hover:bg-zinc-200 text-zinc-400 [.light_&]:text-zinc-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70"
-                  aria-label="Copy UPI ID"
-                  title="Copy UPI ID"
-                >
-                  {copied ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
-                </button>
-              </div>
-            </div>
+            {/* LinkedIn Button */}
+            <a 
+              href="https://linkedin.com/in/sampratigaurav" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full tablet:w-auto min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-5 py-2 font-medium transition-colors active:scale-[0.98]"
+            >
+              <Linkedin size={18} />
+              <span className="text-sm tablet:text-base">Connect</span>
+            </a>
+
+            {/* X Button */}
+            <a 
+              href="https://x.com/sampratigaurav" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full tablet:w-auto min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-5 py-2 font-medium transition-colors active:scale-[0.98]"
+            >
+              <Twitter size={18} />
+              <span className="text-sm tablet:text-base">Follow</span>
+            </a>
           </div>
         </div>
 
