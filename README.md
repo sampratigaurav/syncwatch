@@ -34,7 +34,7 @@ SyncWatch is a **zero-upload watch party platform**. Instead of streaming video 
 
 > "A shared remote control over the internet for your local video player."
 
-No CDN. No encoding. No legal grey areas. Just sync.
+No CDN. No encoding. No legal grey areas. Only sync.
 
 ---
 
