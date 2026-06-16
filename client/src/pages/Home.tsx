@@ -626,7 +626,7 @@ export default function Home() {
 
             {/* X Button */}
             <a 
-              href="https://x.com/sampratigaurav" 
+              href="https://x.com/Sampratigaurav0" 
               target="_blank" 
               rel="noopener noreferrer"
               className="w-full tablet:w-auto min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-5 py-2 font-medium transition-colors active:scale-[0.98]"
