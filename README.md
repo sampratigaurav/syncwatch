@@ -2,7 +2,7 @@
 
 <br />
 
-<img src="client/public/favicon.svg" width="72" height="72" alt="SyncWatch logo" />
+<img src="client/public/logo.png" width="128" alt="SyncWatch logo" />
 
 <h1>SyncWatch</h1>
 
