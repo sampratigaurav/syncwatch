@@ -122,18 +122,20 @@ export default function SubtitleLoader({ onSubtitleLoaded, onSubtitleCleared }: 
           <div className="flex items-center gap-1.5 bg-zinc-800 [.light_&]:bg-zinc-200 rounded px-1.5 py-0.5">
             <button 
               onClick={() => setOffsetMs(o => o - 100)} 
-              className="text-zinc-400 hover:text-white [.light_&]:text-zinc-500 [.light_&]:hover:text-black p-0.5"
+              className="text-zinc-400 hover:text-white [.light_&]:text-zinc-500 [.light_&]:hover:text-black p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded"
               title="-100ms"
+              aria-label="Decrease subtitle offset by 100 milliseconds"
             >
               <Minus size={12} />
             </button>
-            <span className="text-[10px] font-mono text-zinc-300 [.light_&]:text-zinc-600 w-12 text-center">
+            <span aria-live="polite" className="text-[10px] font-mono text-zinc-300 [.light_&]:text-zinc-600 w-12 text-center">
               {offsetMs > 0 ? '+' : ''}{offsetMs / 1000}s
             </span>
             <button 
               onClick={() => setOffsetMs(o => o + 100)}
-              className="text-zinc-400 hover:text-white [.light_&]:text-zinc-500 [.light_&]:hover:text-black p-0.5"
+              className="text-zinc-400 hover:text-white [.light_&]:text-zinc-500 [.light_&]:hover:text-black p-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded"
               title="+100ms"
+              aria-label="Increase subtitle offset by 100 milliseconds"
             >
               <Plus size={12} />
             </button>
@@ -187,8 +189,9 @@ export default function SubtitleLoader({ onSubtitleLoaded, onSubtitleCleared }: 
           </div>
           <button 
             onClick={handleClear}
-            className="text-teal-500 [.light_&]:text-teal-600 hover:text-white [.light_&]:hover:text-black hover:bg-teal-500/50 [.light_&]:hover:bg-teal-500/20 p-1 rounded transition-colors ml-2 flex-shrink-0"
+            className="text-teal-500 [.light_&]:text-teal-600 hover:text-white [.light_&]:hover:text-black hover:bg-teal-500/50 [.light_&]:hover:bg-teal-500/20 p-1 rounded transition-colors ml-2 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70"
             title="Remove subtitles"
+            aria-label="Remove subtitles"
           >
             <X size={14} />
           </button>
