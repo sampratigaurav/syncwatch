@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield, HelpCircle, Github, Linkedin, Twitter } from 'lucide-react';
+import { SyncSimulator } from '../components/SyncSimulator';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../lib/config';
@@ -579,6 +580,8 @@ export default function Home() {
            )}
 
         </div>
+
+        <SyncSimulator />
 
         {/* How it works section */}
         <div ref={sectionRef} className="w-full mt-12 tablet:mt-16 pt-8 tablet:pt-12 border-t border-white/5 [.light_&]:border-black/5 flex flex-col items-center">
