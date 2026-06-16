@@ -317,25 +317,22 @@ export default function Home() {
            
            {/* Greeting */}
            <h2 className="text-xl tablet:text-[22px] desktop:text-2xl font-light text-zinc-300 [.light_&]:text-zinc-600 tracking-wide text-center">
-             {greeting.replace(/(morning|afternoon|evening)/, '')}
-             <span className="font-medium text-white [.light_&]:text-zinc-800 tracking-wider">
-               {greeting.match(/(morning|afternoon|evening)/)?.[0]}
-             </span>
-             {greeting.slice(greeting.indexOf(',') || greeting.length)}
+             Good <span className="font-medium text-white [.light_&]:text-zinc-800 tracking-wider">
+               {greeting.match(/(morning|afternoon|evening)/)?.[0] || 'day'}
+             </span>,
            </h2>
 
            {/* Create / Join Container */}
            <div className="w-full flex flex-col tablet:flex-row items-stretch justify-center gap-4 tablet:gap-6">
 
              {/* Create Room Card */}
-              <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-950/60 [.light_&]:bg-zinc-100/60 backdrop-blur-xl border border-white/10 [.light_&]:border-black/5 rounded-2xl p-5 tablet:p-6 flex flex-col gap-4 shadow-xl">
+              <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-5 tablet:p-6 flex flex-col gap-4">
                <div className="flex items-center gap-2">
                  <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg">Start a New Room</h3>
                  {lockRoom && <Lock size={16} className="text-teal-400 mt-0.5" />}
                </div>
                <div className="flex flex-col gap-2">
-                 <div className="relative group w-full">
-                   <div className="absolute -inset-[2px] bg-gradient-to-r from-teal-400/50 via-cyan-400/40 to-emerald-400/50 rounded-xl blur-[4px] opacity-80 group-hover:opacity-100 transition duration-500"></div>
+                 <div className="relative w-full">
                    <input 
                      type="text"
                      value={createNickname}
@@ -343,7 +340,7 @@ export default function Home() {
                        setCreateNickname(e.target.value);
                        if (createError) setCreateError('');
                      }}
-                     className="relative w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 backdrop-blur-xl border border-white/10 [.light_&]:border-white/60 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)] [.light_&]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
+                     className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg"
                      placeholder="Enter your nickname"
                      maxLength={20}
                    />
@@ -380,7 +377,7 @@ export default function Home() {
                          setCreatePin(val);
                          if (createError) setCreateError('');
                        }}
-                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 border border-zinc-700 [.light_&]:border-zinc-300 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:border-teal-500 placeholder-zinc-600 transition-colors font-mono tracking-widest text-lg shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]"
+                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-zinc-600 transition-colors font-mono tracking-widest text-lg"
                        placeholder="4-8 character PIN"
                        maxLength={8}
                      />
@@ -406,9 +403,7 @@ export default function Home() {
              </div>
 
              {/* Join Room Card */}
-             <div className="group/card relative w-full tablet:w-1/2 max-w-[440px] mx-auto bg-white/[0.02] [.light_&]:bg-white/80 backdrop-blur-xl border border-white/[0.06] [.light_&]:border-black/[0.08] hover:border-white/[0.12] [.light_&]:hover:border-black/[0.15] rounded-2xl p-5 tablet:p-6 flex flex-col justify-between gap-4 shadow-[0_20px_60px_rgba(0,0,0,0.4)] [.light_&]:shadow-[0_20px_60px_rgba(0,0,0,0.08)] transition-all duration-300 z-10">
-               <div className="absolute inset-0 rounded-2xl border-t border-white/[0.08] [.light_&]:border-black/[0.05] pointer-events-none mix-blend-overlay"></div>
-               <div className="absolute -inset-4 bg-[#7F77DD]/20 [.light_&]:bg-[#7F77DD]/10 rounded-[2rem] blur-2xl opacity-0 group-hover/card:opacity-100 transition-opacity duration-500 pointer-events-none -z-10"></div>
+             <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-5 tablet:p-6 flex flex-col justify-between gap-4 z-10">
                
                <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg relative z-10">Join Existing</h3>
                <div className="flex flex-col gap-4 relative z-10">
@@ -420,7 +415,7 @@ export default function Home() {
                      setJoinNickname(e.target.value);
                      if (joinError === 'Please enter a nickname to continue') setJoinError('');
                    }}
-                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 backdrop-blur-xl border border-white/10 [.light_&]:border-black/10 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:shadow-[0_0_0_3px_rgba(29,158,117,0.15)] focus:border-teal-500 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)] [.light_&]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
+                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg"
                    placeholder="Enter your nickname"
                    maxLength={20}
                  />
@@ -431,7 +426,7 @@ export default function Home() {
                      setInputRoomId(e.target.value.toUpperCase());
                      if (joinError === 'Please enter a room code') setJoinError('');
                    }}
-                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 backdrop-blur-xl border border-white/10 [.light_&]:border-black/10 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:shadow-[0_0_0_3px_rgba(29,158,117,0.15)] focus:border-teal-500 placeholder-zinc-500 font-mono tracking-widest uppercase transition-all text-base tablet:text-lg shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)] [.light_&]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
+                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-zinc-500 font-mono tracking-widest uppercase transition-all text-base tablet:text-lg"
                    placeholder="ROOM CODE"
                    maxLength={6}
                    disabled={requiresPin}
@@ -452,7 +447,7 @@ export default function Home() {
                          if (joinError) setJoinError('');
                        }}
                        autoFocus
-                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-[#151515]/90 [.light_&]:bg-[#fcfbf9]/90 backdrop-blur-xl border border-white/10 [.light_&]:border-black/10 rounded-xl px-4 tablet:px-5 text-teal-400 [.light_&]:text-teal-600 focus:outline-none focus:shadow-[0_0_0_3px_rgba(29,158,117,0.15)] focus:border-teal-500 placeholder-zinc-600 transition-all font-mono tracking-widest text-lg shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)] [.light_&]:shadow-[inset_0_2px_4px_rgba(0,0,0,0.05)]"
+                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-teal-400 [.light_&]:text-teal-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-zinc-600 transition-all font-mono tracking-widest text-lg"
                        placeholder="Enter PIN"
                        maxLength={8}
                      />
