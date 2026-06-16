@@ -328,7 +328,10 @@ export default function Home() {
            </h2>
 
            {/* Create / Join Container */}
-           <div className="w-full flex flex-col tablet:flex-row items-stretch justify-center gap-4 tablet:gap-8">
+           <div className="w-full relative flex flex-col tablet:flex-row items-stretch justify-center gap-4 tablet:gap-8">
+             
+             {/* Radial Background Glow */}
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] pointer-events-none -z-10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.05)_0%,transparent_60%)]" />
 
              {/* Create Room Card */}
               <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 flex flex-col gap-4 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
@@ -355,11 +358,11 @@ export default function Home() {
                     {isCreateNicknameError && <div className="text-red-400 text-xs mt-1 ml-1">{createError}</div>}
                  </div>
                  
-                 <div className="flex items-center justify-between mt-2 mb-1 px-1">
+                 <div className="flex items-center justify-between mt-2 mb-1 px-1 relative z-10">
                    <div className="flex items-center gap-2">
                      {lockRoom ? <Lock size={16} className="text-teal-400" /> : <Unlock size={16} className="text-zinc-500" />}
                      <div className="flex items-center gap-1.5 cursor-help group/tooltip relative">
-                       <span className="text-sm font-medium text-zinc-300 [.light_&]:text-zinc-700">Lock room with a PIN</span>
+                       <span className="text-sm font-medium text-zinc-400">Lock room with a PIN</span>
                        <HelpCircle size={14} className="text-zinc-500 hover:text-zinc-300 transition-colors" />
                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[180px] p-2 bg-zinc-800 text-zinc-300 text-xs rounded-md shadow-lg opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity z-20 text-center border border-zinc-700">
                          Requires users to enter the correct PIN to join
