@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Coffee, Copy, Check, Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield } from 'lucide-react';
+import { Coffee, Copy, Check, Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield, HelpCircle } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../lib/config';
@@ -349,7 +349,13 @@ export default function Home() {
                  <div className="flex items-center justify-between mt-2 mb-1 px-1">
                    <div className="flex items-center gap-2">
                      {lockRoom ? <Lock size={16} className="text-teal-400" /> : <Unlock size={16} className="text-zinc-500" />}
-                     <span className="text-sm font-medium text-zinc-300 [.light_&]:text-zinc-700">Lock room with a PIN</span>
+                     <div className="flex items-center gap-1.5 cursor-help group/tooltip relative">
+                       <span className="text-sm font-medium text-zinc-300 [.light_&]:text-zinc-700">Lock room with a PIN</span>
+                       <HelpCircle size={14} className="text-zinc-500 hover:text-zinc-300 transition-colors" />
+                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[180px] p-2 bg-zinc-800 text-zinc-300 text-xs rounded-md shadow-lg opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity z-20 text-center border border-zinc-700">
+                         Requires users to enter the correct PIN to join
+                       </div>
+                     </div>
                    </div>
                    <button 
                      onClick={() => {
