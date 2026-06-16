@@ -123,9 +123,10 @@ export default function SubtitleLoader({ onSubtitleLoaded, onSubtitleCleared }: 
             <button 
               onClick={() => setOffsetMs(o => o - 100)} 
               className="text-zinc-400 hover:text-white [.light_&]:text-zinc-500 [.light_&]:hover:text-black p-0.5"
+              aria-label="Decrease subtitle delay by 100 milliseconds"
               title="-100ms"
             >
-              <Minus size={12} />
+              <Minus size={12} aria-hidden="true" />
             </button>
             <span className="text-[10px] font-mono text-zinc-300 [.light_&]:text-zinc-600 w-12 text-center">
               {offsetMs > 0 ? '+' : ''}{offsetMs / 1000}s
@@ -133,9 +134,10 @@ export default function SubtitleLoader({ onSubtitleLoaded, onSubtitleCleared }: 
             <button 
               onClick={() => setOffsetMs(o => o + 100)}
               className="text-zinc-400 hover:text-white [.light_&]:text-zinc-500 [.light_&]:hover:text-black p-0.5"
+              aria-label="Increase subtitle delay by 100 milliseconds"
               title="+100ms"
             >
-              <Plus size={12} />
+              <Plus size={12} aria-hidden="true" />
             </button>
           </div>
         )}
@@ -188,9 +190,10 @@ export default function SubtitleLoader({ onSubtitleLoaded, onSubtitleCleared }: 
           <button 
             onClick={handleClear}
             className="text-teal-500 [.light_&]:text-teal-600 hover:text-white [.light_&]:hover:text-black hover:bg-teal-500/50 [.light_&]:hover:bg-teal-500/20 p-1 rounded transition-colors ml-2 flex-shrink-0"
+            aria-label="Remove subtitles"
             title="Remove subtitles"
           >
-            <X size={14} />
+            <X size={14} aria-hidden="true" />
           </button>
         </div>
       )}
