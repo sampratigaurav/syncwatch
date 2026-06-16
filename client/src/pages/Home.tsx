@@ -392,7 +392,7 @@ export default function Home() {
                <button 
                  onClick={handleCreateRoom}
                  disabled={isLoading}
-                 className="w-full h-12 tablet:h-[52px] min-h-[48px] rounded-lg font-medium px-5 transition-all duration-200 disabled:opacity-50 active:scale-[0.98] shadow-sm bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center text-base tablet:text-lg"
+                 className="w-full h-12 tablet:h-[52px] min-h-[48px] rounded-lg font-medium px-5 py-2.5 transition-colors disabled:opacity-50 active:scale-[0.98] shadow-sm bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center text-base tablet:text-lg"
                >
                  Create Room
                </button>
@@ -457,7 +457,7 @@ export default function Home() {
                <button 
                  onClick={handleJoinRoom}
                  disabled={isLoading}
-                 className="w-full h-12 tablet:h-[52px] min-h-[48px] rounded-lg font-medium px-5 transition-all duration-200 disabled:opacity-50 active:scale-[0.98] bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center text-base tablet:text-lg"
+                 className="w-full h-12 tablet:h-[52px] min-h-[48px] rounded-lg font-medium px-5 py-2.5 transition-colors disabled:opacity-50 active:scale-[0.98] bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white flex items-center justify-center text-base tablet:text-lg"
                >
                  Join Room
                </button>
