@@ -392,13 +392,9 @@ export default function Home() {
                <button 
                  onClick={handleCreateRoom}
                  disabled={isLoading}
-                 className="relative w-full h-12 tablet:h-[52px] min-h-[48px] overflow-hidden rounded-xl font-medium px-5 transition-all disabled:opacity-50 active:scale-[0.98] shadow-xl group bg-gradient-to-b from-[#358d86] to-[#1a5a54] [.light_&]:from-[#40A89F] [.light_&]:to-[#277D76] border border-[#42b5ab]/20 [.light_&]:border-[#48BDB3]/30"
+                 className="w-full h-12 tablet:h-[52px] min-h-[48px] rounded-lg font-medium px-5 transition-all duration-200 disabled:opacity-50 active:scale-[0.98] shadow-sm bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center text-base tablet:text-lg"
                >
-                 <div className="absolute top-0 left-0 right-0 h-[48%] bg-gradient-to-b from-white/30 to-transparent opacity-60"></div>
-                 <div className="absolute inset-0 rounded-xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)] pointer-events-none"></div>
-                 <span className="relative drop-shadow-sm text-base tablet:text-lg text-[#fff] font-semibold tracking-wide flex items-center justify-center">
-                   Create Room
-                 </span>
+                 Create Room
                </button>
              </div>
 
@@ -461,7 +457,7 @@ export default function Home() {
                <button 
                  onClick={handleJoinRoom}
                  disabled={isLoading}
-                 className="relative w-full h-12 tablet:h-[52px] min-h-[48px] overflow-hidden rounded-xl font-medium px-5 transition-all duration-300 disabled:opacity-50 hover:brightness-110 shadow-xl group/btn bg-zinc-800/80 hover:bg-zinc-700/80 [.light_&]:bg-white [.light_&]:hover:bg-zinc-50 text-white [.light_&]:text-zinc-900 border border-white/10 [.light_&]:border-zinc-200 active:scale-[0.98] hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(127,119,221,0.2)] z-10 flex items-center justify-center text-base tablet:text-lg"
+                 className="w-full h-12 tablet:h-[52px] min-h-[48px] rounded-lg font-medium px-5 transition-all duration-200 disabled:opacity-50 active:scale-[0.98] bg-zinc-800 hover:bg-zinc-700 text-white flex items-center justify-center text-base tablet:text-lg"
                >
                  Join Room
                </button>
