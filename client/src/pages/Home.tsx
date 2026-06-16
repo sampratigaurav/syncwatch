@@ -128,9 +128,9 @@ export default function Home() {
 
   useEffect(() => {
     const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good morning,');
-    else if (hour < 18) setGreeting('Good afternoon,');
-    else setGreeting('Good evening,');
+    if (hour < 12) setGreeting('Good morning.');
+    else if (hour < 18) setGreeting('Good afternoon.');
+    else setGreeting('Good evening.');
   }, []);
 
   useEffect(() => {
@@ -321,10 +321,8 @@ export default function Home() {
         <div className="w-full flex flex-col items-center space-y-10 animate-in fade-in fill-mode-both duration-700 delay-[700ms]">
            
            {/* Greeting */}
-           <h2 className="text-xl tablet:text-[22px] desktop:text-2xl font-light text-zinc-300 [.light_&]:text-zinc-600 tracking-wide text-center">
-             Good <span className="font-medium text-white [.light_&]:text-zinc-800 tracking-wider">
-               {greeting.match(/(morning|afternoon|evening)/)?.[0] || 'day'}
-             </span>,
+           <h2 className="text-zinc-300 font-medium text-lg">
+             {greeting}
            </h2>
 
            {/* Create / Join Container */}
