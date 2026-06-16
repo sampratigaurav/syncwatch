@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield, HelpCircle, Github, Linkedin, Twitter } from 'lucide-react';
-import { SyncSimulator } from '../components/SyncSimulator';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../lib/config';
@@ -368,12 +367,12 @@ export default function Home() {
       <Particles />
       
       {/* Content Container */}
-      <div className="relative z-10 w-full max-w-[900px] flex flex-col items-center px-4 tablet:px-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+      <div className="relative z-10 w-full max-w-[1000px] flex flex-col items-center px-4 tablet:px-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
           
         <div className="w-full flex flex-col items-center space-y-10 animate-in fade-in fill-mode-both duration-700 delay-[700ms]">
            
            {/* Greeting */}
-           <h2 className="text-zinc-300 font-medium text-lg">
+           <h2 className="text-2xl tablet:text-3xl font-semibold bg-gradient-to-r from-zinc-200 to-zinc-400 bg-clip-text text-transparent drop-shadow-sm pb-1">
              {greeting}
            </h2>
 
@@ -384,7 +383,7 @@ export default function Home() {
              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] pointer-events-none -z-10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.05)_0%,transparent_60%)]" />
 
              {/* Create Room Card */}
-              <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 flex flex-col gap-4 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
+              <div className="w-full tablet:w-1/2 max-w-[480px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 tablet:p-8 flex flex-col gap-5 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
                <div className="flex items-center gap-2">
                  <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg">Start a New Room</h3>
                  {lockRoom && <Lock size={16} className="text-teal-400 mt-0.5" />}
@@ -471,7 +470,7 @@ export default function Home() {
              </div>
 
              {/* Join Room Card */}
-             <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 flex flex-col justify-between gap-4 z-10 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
+             <div className="w-full tablet:w-1/2 max-w-[480px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 tablet:p-8 flex flex-col justify-between gap-5 z-10 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
                
                <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg relative z-10">Join Existing</h3>
                <div className="flex flex-col gap-4 relative z-10">
@@ -580,8 +579,6 @@ export default function Home() {
            )}
 
         </div>
-
-        <SyncSimulator />
 
         {/* How it works section */}
         <div ref={sectionRef} className="w-full mt-12 tablet:mt-16 pt-8 tablet:pt-12 border-t border-white/5 [.light_&]:border-black/5 flex flex-col items-center">
