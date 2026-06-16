@@ -116,6 +116,56 @@ export default function Home() {
 
   const joinNicknameInputRef = useRef<HTMLInputElement>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  const handleOtpChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    if (!val && e.target.value !== '') return;
+    
+    let currentStr = inputRoomId.padEnd(6, ' ');
+    const newRoomId = currentStr.split('');
+    newRoomId[index] = val.slice(-1) || ' ';
+    
+    setInputRoomId(newRoomId.join('').trimEnd());
+    if (joinError === 'Please enter a room code' || joinError === 'Please enter a 6-character room code') setJoinError('');
+    
+    if (val && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    let currentStr = inputRoomId.padEnd(6, ' ');
+    if (e.key === 'Backspace') {
+      if (currentStr[index] === ' ' && index > 0) {
+        otpRefs.current[index - 1]?.focus();
+        const newRoomId = currentStr.split('');
+        newRoomId[index - 1] = ' ';
+        setInputRoomId(newRoomId.join('').trimEnd());
+      } else {
+        const newRoomId = currentStr.split('');
+        newRoomId[index] = ' ';
+        setInputRoomId(newRoomId.join('').trimEnd());
+      }
+    } else if (e.key === 'ArrowLeft' && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowRight' && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 6);
+    if (!pasted) return;
+    
+    setInputRoomId(pasted);
+    if (joinError === 'Please enter a room code' || joinError === 'Please enter a 6-character room code') setJoinError('');
+    
+    const nextIndex = Math.min(pasted.length, 5);
+    otpRefs.current[nextIndex === 6 ? 5 : nextIndex]?.focus();
+  };
+
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -193,8 +243,9 @@ export default function Home() {
       setShowExpiredError(false);
       return;
     }
-    if (!inputRoomId.trim()) {
-      setJoinError('Please enter a room code');
+    const parsedCode = inputRoomId.replace(/\s/g, '').toUpperCase();
+    if (parsedCode.length < 6) {
+      setJoinError('Please enter a 6-character room code');
       setShowExpiredError(false);
       return;
     }
@@ -210,7 +261,7 @@ export default function Home() {
     localStorage.setItem('syncwatch_nickname', trimmed);
     
     try {
-      const code = inputRoomId.trim().toUpperCase();
+      const code = parsedCode;
       
       if (!requiresPin) {
         const res = await fetch(`${SERVER_URL}/api/rooms/${code}/exists`);
@@ -442,21 +493,25 @@ export default function Home() {
                     {isJoinNicknameError && <div className="text-red-400 text-xs mt-1 ml-1">{joinError}</div>}
                   </div>
                   <div>
-                    <input 
-                      type="text"
-                      value={inputRoomId}
-                      onChange={e => {
-                        setInputRoomId(e.target.value.toUpperCase());
-                        if (joinError === 'Please enter a room code') setJoinError('');
-                      }}
-                      className={cn(
-                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest uppercase",
-                        isJoinCodeError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
-                      )}
-                      placeholder="ROOM CODE"
-                      maxLength={6}
-                      disabled={requiresPin}
-                    />
+                    <div className="flex justify-between gap-2">
+                      {[0, 1, 2, 3, 4, 5].map((index) => (
+                        <input
+                          key={index}
+                          ref={el => { otpRefs.current[index] = el; }}
+                          type="text"
+                          value={inputRoomId.padEnd(6, ' ')[index] === ' ' ? '' : inputRoomId.padEnd(6, ' ')[index]}
+                          onChange={e => handleOtpChange(index, e)}
+                          onKeyDown={e => handleOtpKeyDown(index, e)}
+                          onPaste={handleOtpPaste}
+                          disabled={requiresPin}
+                          maxLength={1}
+                          className={cn(
+                            "w-10 h-10 tablet:w-12 tablet:h-12 text-center text-lg font-mono uppercase bg-zinc-900/80 border rounded-lg text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200",
+                            isJoinCodeError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
+                          )}
+                        />
+                      ))}
+                    </div>
                     {isJoinCodeError && <div className="text-red-400 text-xs mt-1 ml-1">{joinError}</div>}
                   </div>
                  
