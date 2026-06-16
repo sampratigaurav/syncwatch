@@ -323,7 +323,7 @@ export default function Home() {
            </h2>
 
            {/* Create / Join Container */}
-           <div className="w-full flex flex-col tablet:flex-row items-stretch justify-center gap-4 tablet:gap-6">
+           <div className="w-full flex flex-col tablet:flex-row items-stretch justify-center gap-4 tablet:gap-8">
 
              {/* Create Room Card */}
               <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 flex flex-col gap-4">
