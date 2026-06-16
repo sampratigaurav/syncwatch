@@ -69,6 +69,13 @@ html.light .bg-zinc-800 { @apply bg-zinc-100; }
   50% { transform: scale(1.05); }
 }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+}
+
 .animate-orb-1 { animation: orb-float-1 20s ease-in-out infinite; }
 .animate-orb-2 { animation: orb-float-2 25s ease-in-out infinite; }
 .animate-orb-3 { animation: orb-float-3 30s ease-in-out infinite; }
@@ -76,6 +83,7 @@ html.light .bg-zinc-800 { @apply bg-zinc-100; }
 .animate-dash { animation: dash-flow 2s linear infinite; }
 .animate-wordmark { animation: wordmark-reveal 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .animate-pulse-scale { animation: pulse-scale 3s ease-in-out infinite; }
+.animate-shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-orb-1, .animate-orb-2, .animate-orb-3, 

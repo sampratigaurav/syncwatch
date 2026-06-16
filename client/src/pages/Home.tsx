@@ -283,6 +283,15 @@ export default function Home() {
     }
   };
 
+  const isCreateNicknameError = createError === 'Please enter a nickname to continue';
+  const isCreatePinError = createError === 'Please enter a PIN' || createError === 'PIN must be 4-8 alphanumeric characters';
+  const isGlobalCreateError = createError && !isCreateNicknameError && !isCreatePinError;
+
+  const isJoinNicknameError = joinError === 'Please enter a nickname to continue';
+  const isJoinCodeError = joinError === 'Please enter a room code' || joinError === 'Room not found';
+  const isJoinPinError = joinError === 'PIN must be 4-8 alphanumeric characters' || joinError === 'Incorrect PIN. Please try again.';
+  const isGlobalJoinError = joinError && !isJoinNicknameError && !isJoinCodeError && !isJoinPinError;
+
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto pt-16 tablet:pt-20 pb-12 selection:bg-teal-500/30 bg-zinc-950 transition-colors duration-500 animate-in fade-in duration-500">
         
@@ -333,17 +342,21 @@ export default function Home() {
                </div>
                <div className="flex flex-col gap-2">
                  <div className="relative w-full">
-                   <input 
-                     type="text"
-                     value={createNickname}
-                     onChange={e => {
-                       setCreateNickname(e.target.value);
-                       if (createError) setCreateError('');
-                     }}
-                     className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border border-zinc-700 rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-emerald-500 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg"
-                     placeholder="Enter your nickname"
-                     maxLength={20}
-                   />
+                    <input 
+                      type="text"
+                      value={createNickname}
+                      onChange={e => {
+                        setCreateNickname(e.target.value);
+                        if (createError) setCreateError('');
+                      }}
+                      className={cn(
+                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg",
+                        isCreateNicknameError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
+                      )}
+                      placeholder="Enter your nickname"
+                      maxLength={20}
+                    />
+                    {isCreateNicknameError && <div className="text-red-400 text-xs mt-1 ml-1">{createError}</div>}
                  </div>
                  
                  <div className="flex items-center justify-between mt-2 mb-1 px-1">
@@ -375,24 +388,28 @@ export default function Home() {
                  {lockRoom && (
                    <div className="animate-in fade-in slide-in-from-top-2 duration-300 mt-1">
                      <p className="text-xs text-zinc-500 mb-1.5 ml-1">Anyone joining will need this PIN</p>
-                     <input
-                       type="password"
-                       value={createPin}
-                       onChange={e => {
-                         const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
-                         setCreatePin(val);
-                         if (createError) setCreateError('');
-                       }}
-                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border border-zinc-700 rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-emerald-500 placeholder-zinc-600 transition-colors font-mono tracking-widest text-lg"
-                       placeholder="4-8 character PIN"
-                       maxLength={8}
-                     />
+                      <input
+                        type="password"
+                        value={createPin}
+                        onChange={e => {
+                          const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
+                          setCreatePin(val);
+                          if (createError) setCreateError('');
+                        }}
+                        className={cn(
+                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-600 transition-colors font-mono tracking-widest text-lg",
+                          isCreatePinError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
+                        )}
+                        placeholder="4-8 character PIN"
+                        maxLength={8}
+                      />
+                      {isCreatePinError && <div className="text-red-400 text-xs mt-1 ml-1">{createError}</div>}
                    </div>
                  )}
                  
 
-               {createError && (
-                   <div className="text-red-400 [.light_&]:text-red-600 text-sm font-medium px-1 leading-tight">{createError}</div>
+                {isGlobalCreateError && (
+                    <div className="text-red-400 [.light_&]:text-red-600 text-sm font-medium px-1 leading-tight">{createError}</div>
                  )}
                </div>
                <button 
@@ -409,30 +426,42 @@ export default function Home() {
                
                <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg relative z-10">Join Existing</h3>
                <div className="flex flex-col gap-4 relative z-10">
-                 <input 
-                   ref={joinNicknameInputRef}
-                   type="text"
-                   value={joinNickname}
-                   onChange={e => {
-                     setJoinNickname(e.target.value);
-                     if (joinError === 'Please enter a nickname to continue') setJoinError('');
-                   }}
-                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border border-zinc-700 rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-emerald-500 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg"
-                   placeholder="Enter your nickname"
-                   maxLength={20}
-                 />
-                 <input 
-                   type="text"
-                   value={inputRoomId}
-                   onChange={e => {
-                     setInputRoomId(e.target.value.toUpperCase());
-                     if (joinError === 'Please enter a room code') setJoinError('');
-                   }}
-                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border border-zinc-700 rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-emerald-500 placeholder-zinc-500 font-mono tracking-widest uppercase transition-all text-base tablet:text-lg"
-                   placeholder="ROOM CODE"
-                   maxLength={6}
-                   disabled={requiresPin}
-                 />
+                  <div>
+                    <input 
+                      ref={joinNicknameInputRef}
+                      type="text"
+                      value={joinNickname}
+                      onChange={e => {
+                        setJoinNickname(e.target.value);
+                        if (joinError === 'Please enter a nickname to continue') setJoinError('');
+                      }}
+                      className={cn(
+                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg",
+                        isJoinNicknameError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
+                      )}
+                      placeholder="Enter your nickname"
+                      maxLength={20}
+                    />
+                    {isJoinNicknameError && <div className="text-red-400 text-xs mt-1 ml-1">{joinError}</div>}
+                  </div>
+                  <div>
+                    <input 
+                      type="text"
+                      value={inputRoomId}
+                      onChange={e => {
+                        setInputRoomId(e.target.value.toUpperCase());
+                        if (joinError === 'Please enter a room code') setJoinError('');
+                      }}
+                      className={cn(
+                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-500 font-mono tracking-widest uppercase transition-all text-base tablet:text-lg",
+                        isJoinCodeError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
+                      )}
+                      placeholder="ROOM CODE"
+                      maxLength={6}
+                      disabled={requiresPin}
+                    />
+                    {isJoinCodeError && <div className="text-red-400 text-xs mt-1 ml-1">{joinError}</div>}
+                  </div>
                  
                  {requiresPin && (
                    <div className="animate-in fade-in slide-in-from-top-2 duration-300 mt-1">
@@ -440,25 +469,29 @@ export default function Home() {
                        <Lock size={14} className="text-teal-400" />
                        <span className="text-sm font-medium text-zinc-300 [.light_&]:text-zinc-700">This room is locked</span>
                      </div>
-                     <input
-                       type="password"
-                       value={joinPin}
-                       onChange={e => {
-                         const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
-                         setJoinPin(val);
-                         if (joinError) setJoinError('');
-                       }}
-                       autoFocus
-                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border border-zinc-700 rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-emerald-500 placeholder-zinc-600 transition-all font-mono tracking-widest text-lg"
-                       placeholder="Enter PIN"
-                       maxLength={8}
-                     />
+                      <input
+                        type="password"
+                        value={joinPin}
+                        onChange={e => {
+                          const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
+                          setJoinPin(val);
+                          if (joinError) setJoinError('');
+                        }}
+                        autoFocus
+                        className={cn(
+                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-600 transition-all font-mono tracking-widest text-lg",
+                          isJoinPinError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
+                        )}
+                        placeholder="Enter PIN"
+                        maxLength={8}
+                      />
+                      {isJoinPinError && <div className="text-red-400 text-xs mt-1 ml-1">{joinError}</div>}
                    </div>
                  )}
                </div>
                
-               {joinError && (
-                 <div className="text-red-400 [.light_&]:text-red-600 text-sm font-medium px-1 leading-tight mt-[-4px] relative z-10">{joinError}</div>
+                {isGlobalJoinError && (
+                  <div className="text-red-400 [.light_&]:text-red-600 text-sm font-medium px-1 leading-tight mt-[-4px] relative z-10">{joinError}</div>
                )}
                <button 
                  onClick={handleJoinRoom}
