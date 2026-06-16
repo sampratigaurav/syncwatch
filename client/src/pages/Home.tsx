@@ -340,7 +340,7 @@ export default function Home() {
     <div className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto pt-24 tablet:pt-28 pb-12 selection:bg-teal-500/30 bg-zinc-950 transition-colors duration-500 animate-in fade-in duration-500">
         
       {/* Sticky Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between backdrop-blur-md bg-zinc-950/50 border-b border-zinc-900/50 px-6 py-4">
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between backdrop-blur-md bg-zinc-950/50 border-b border-zinc-900/50 px-6 py-4 animate-in fade-in slide-in-from-top-4 duration-500">
         <h1 className="text-xl tablet:text-2xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-400 [.light_&]:from-zinc-800 [.light_&]:to-zinc-500 drop-shadow-[0_0_15px_rgba(29,158,117,0.05)]" style={{ WebkitTextStroke: '0.5px rgba(128,128,128,0.2)' }}>
           SyncWatch
         </h1>
@@ -369,7 +369,7 @@ export default function Home() {
       {/* Content Container */}
       <div className="relative z-10 w-full max-w-[1000px] flex flex-col items-center px-4 tablet:px-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
           
-        <div className="w-full flex flex-col items-center space-y-10 animate-in fade-in fill-mode-both duration-700 delay-[700ms]">
+        <div className="w-full flex flex-col items-center space-y-10 animate-in fade-in slide-in-from-bottom-8 fill-mode-both duration-700 delay-200">
            
            {/* Greeting */}
            <h2 className="text-2xl tablet:text-3xl font-semibold bg-gradient-to-r from-zinc-200 to-zinc-400 bg-clip-text text-transparent drop-shadow-sm pb-1">
@@ -581,7 +581,7 @@ export default function Home() {
         </div>
 
         {/* How it works section */}
-        <div ref={sectionRef} className="w-full mt-12 tablet:mt-16 pt-8 tablet:pt-12 border-t border-white/5 [.light_&]:border-black/5 flex flex-col items-center">
+        <div ref={sectionRef} className="w-full mt-12 tablet:mt-16 pt-8 tablet:pt-12 border-t border-white/5 [.light_&]:border-black/5 flex flex-col items-center animate-in fade-in slide-in-from-bottom-8 fill-mode-both duration-700 delay-[400ms]">
           
           <div className={cn(
             "text-center transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0",
