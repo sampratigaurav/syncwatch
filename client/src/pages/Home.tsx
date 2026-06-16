@@ -507,7 +507,7 @@ export default function Home() {
               isVisible ? "opacity-100" : "opacity-0"
             )} />
 
-            <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-4 gap-8 desktop:gap-8 relative w-full">
+            <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-4 gap-8 desktop:gap-12 relative w-full">
               {STEPS.map((step, i) => (
                 <div 
                   key={i} 
@@ -530,15 +530,11 @@ export default function Home() {
                     </div>
                   )}
 
-                  {/* Card */}
-                  <div className="w-full bg-zinc-950/60 [.light_&]:bg-white/60 backdrop-blur-xl border border-white/10 [.light_&]:border-black/5 rounded-2xl p-5 tablet:p-6 relative overflow-hidden group hover:border-teal-500/30 [.light_&]:hover:border-teal-400/50 transition-colors shadow-lg [.light_&]:shadow-sm">
-                    <div className="absolute top-1 right-3 text-[56px] font-light text-white/[0.04] [.light_&]:text-black/[0.04] leading-none select-none pointer-events-none">
-                      0{i + 1}
-                    </div>
-
+                  {/* Step Container */}
+                  <div className="w-full relative group">
                     <step.icon className="text-emerald-400 w-[28px] h-[28px] mb-4 transition-transform duration-300 group-hover:scale-110" />
-                    <h4 className="text-white [.light_&]:text-zinc-900 font-semibold text-[15px] mb-1.5 relative z-10">{step.title}</h4>
-                    <p className="text-zinc-400 [.light_&]:text-zinc-600 text-sm leading-[1.6] relative z-10">
+                    <h4 className="text-zinc-200 [.light_&]:text-zinc-900 font-medium text-[15px] mb-1.5">{step.title}</h4>
+                    <p className="text-zinc-400 [.light_&]:text-zinc-600 text-sm leading-[1.6]">
                       {step.desc}
                     </p>
                   </div>
