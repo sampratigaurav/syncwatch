@@ -347,7 +347,7 @@ export default function Home() {
                         if (createError) setCreateError('');
                       }}
                       className={cn(
-                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal",
+                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal",
                         isCreateNicknameError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
                       )}
                       placeholder="Enter your nickname"
@@ -394,7 +394,7 @@ export default function Home() {
                           if (createError) setCreateError('');
                         }}
                         className={cn(
-                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest",
+                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest",
                           isCreatePinError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
                         )}
                         placeholder="4-8 character PIN"
@@ -433,7 +433,7 @@ export default function Home() {
                         if (joinError === 'Please enter a nickname to continue') setJoinError('');
                       }}
                       className={cn(
-                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal",
+                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal",
                         isJoinNicknameError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
                       )}
                       placeholder="Enter your nickname"
@@ -450,7 +450,7 @@ export default function Home() {
                         if (joinError === 'Please enter a room code') setJoinError('');
                       }}
                       className={cn(
-                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest uppercase",
+                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest uppercase",
                         isJoinCodeError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
                       )}
                       placeholder="ROOM CODE"
@@ -476,7 +476,7 @@ export default function Home() {
                         }}
                         autoFocus
                         className={cn(
-                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest",
+                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest",
                           isJoinPinError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
                         )}
                         placeholder="Enter PIN"
