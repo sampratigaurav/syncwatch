@@ -326,7 +326,7 @@ export default function Home() {
            <div className="w-full flex flex-col tablet:flex-row items-stretch justify-center gap-4 tablet:gap-6">
 
              {/* Create Room Card */}
-              <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-5 tablet:p-6 flex flex-col gap-4">
+              <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 flex flex-col gap-4">
                <div className="flex items-center gap-2">
                  <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg">Start a New Room</h3>
                  {lockRoom && <Lock size={16} className="text-teal-400 mt-0.5" />}
@@ -340,7 +340,7 @@ export default function Home() {
                        setCreateNickname(e.target.value);
                        if (createError) setCreateError('');
                      }}
-                     className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg"
+                     className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-emerald-500 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg"
                      placeholder="Enter your nickname"
                      maxLength={20}
                    />
@@ -377,7 +377,7 @@ export default function Home() {
                          setCreatePin(val);
                          if (createError) setCreateError('');
                        }}
-                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-zinc-600 transition-colors font-mono tracking-widest text-lg"
+                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-emerald-500 placeholder-zinc-600 transition-colors font-mono tracking-widest text-lg"
                        placeholder="4-8 character PIN"
                        maxLength={8}
                      />
@@ -399,7 +399,7 @@ export default function Home() {
              </div>
 
              {/* Join Room Card */}
-             <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-5 tablet:p-6 flex flex-col justify-between gap-4 z-10">
+             <div className="w-full tablet:w-1/2 max-w-[440px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 flex flex-col justify-between gap-4 z-10">
                
                <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg relative z-10">Join Existing</h3>
                <div className="flex flex-col gap-4 relative z-10">
@@ -411,7 +411,7 @@ export default function Home() {
                      setJoinNickname(e.target.value);
                      if (joinError === 'Please enter a nickname to continue') setJoinError('');
                    }}
-                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg"
+                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-emerald-500 placeholder-zinc-500 transition-all font-medium text-base tablet:text-lg"
                    placeholder="Enter your nickname"
                    maxLength={20}
                  />
@@ -422,7 +422,7 @@ export default function Home() {
                      setInputRoomId(e.target.value.toUpperCase());
                      if (joinError === 'Please enter a room code') setJoinError('');
                    }}
-                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-white [.light_&]:text-zinc-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-zinc-500 font-mono tracking-widest uppercase transition-all text-base tablet:text-lg"
+                   className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-emerald-500 placeholder-zinc-500 font-mono tracking-widest uppercase transition-all text-base tablet:text-lg"
                    placeholder="ROOM CODE"
                    maxLength={6}
                    disabled={requiresPin}
@@ -443,7 +443,7 @@ export default function Home() {
                          if (joinError) setJoinError('');
                        }}
                        autoFocus
-                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-teal-400 [.light_&]:text-teal-600 focus:outline-none focus:ring-2 focus:ring-emerald-500 placeholder-zinc-600 transition-all font-mono tracking-widest text-lg"
+                       className="w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-950 border border-zinc-800 rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 focus:ring-emerald-500 placeholder-zinc-600 transition-all font-mono tracking-widest text-lg"
                        placeholder="Enter PIN"
                        maxLength={8}
                      />
