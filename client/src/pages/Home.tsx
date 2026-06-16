@@ -286,8 +286,26 @@ export default function Home() {
   const isGlobalJoinError = joinError && !isJoinNicknameError && !isJoinCodeError && !isJoinPinError;
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto pt-16 tablet:pt-20 pb-12 selection:bg-teal-500/30 bg-zinc-950 transition-colors duration-500 animate-in fade-in duration-500">
+    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto pt-24 tablet:pt-28 pb-12 selection:bg-teal-500/30 bg-zinc-950 transition-colors duration-500 animate-in fade-in duration-500">
         
+      {/* Sticky Header */}
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between backdrop-blur-md bg-zinc-950/50 border-b border-zinc-900/50 px-6 py-4">
+        <h1 className="text-xl tablet:text-2xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-400 [.light_&]:from-zinc-800 [.light_&]:to-zinc-500 drop-shadow-[0_0_15px_rgba(29,158,117,0.05)]" style={{ WebkitTextStroke: '0.5px rgba(128,128,128,0.2)' }}>
+          SyncWatch
+        </h1>
+        <div className="flex items-center gap-6">
+          <a href="https://github.com/sampratigaurav/syncwatch" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-zinc-200 transition-colors">
+            <Github size={20} />
+          </a>
+          <a href="#" className="text-zinc-400 hover:text-zinc-200 text-sm font-medium transition-colors">
+            Docs
+          </a>
+          <a href="#" className="text-zinc-400 hover:text-zinc-200 text-sm font-medium transition-colors">
+            Extension
+          </a>
+        </div>
+      </div>
+
       {/* Cinematic Background Orbs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute -top-[10%] -left-[10%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] bg-[#1D9E75]/[0.06] [.light_&]:bg-teal-500/[0.1] rounded-full blur-[140px] mix-blend-screen [.light_&]:mix-blend-multiply animate-orb-1" />
@@ -300,21 +318,6 @@ export default function Home() {
       {/* Content Container */}
       <div className="relative z-10 w-full max-w-[900px] flex flex-col items-center px-4 tablet:px-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
           
-        {/* Logo Section */}
-        <div className="flex flex-col items-center mb-10 tablet:mb-14 desktop:mb-20 relative w-full bg-transparent">
-           <h1 className="text-5xl tablet:text-6xl desktop:text-7xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-400 [.light_&]:from-zinc-800 [.light_&]:to-zinc-500 pb-2 text-center drop-shadow-[0_0_15px_rgba(29,158,117,0.05)] animate-wordmark animate-cinematic-glow delay-[200ms]" style={{ WebkitTextStroke: '1px rgba(128,128,128,0.2)' }}>
-             SyncWatch
-           </h1>
-           <div className="flex items-center gap-4 w-full justify-center opacity-60 mt-1 text-zinc-300 [.light_&]:text-zinc-600 animate-in fade-in fill-mode-both duration-700 delay-[500ms]">
-             <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-current relative overflow-hidden"><div className="absolute inset-0 bg-white/50 animate-shimmer" /></div>
-             <p className="text-sm tablet:text-base font-medium tracking-wider uppercase relative overflow-hidden">
-               Same movie. Same moment.
-               <span className="absolute inset-0 -translate-x-[150%] animate-shimmer fill-mode-both delay-1000 bg-gradient-to-r from-transparent via-white/50 [.light_&]:via-black/20 to-transparent mix-blend-overlay" />
-             </p>
-             <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-current relative overflow-hidden"><div className="absolute inset-0 bg-white/50 animate-shimmer" /></div>
-           </div>
-        </div>
-
         <div className="w-full flex flex-col items-center space-y-10 animate-in fade-in fill-mode-both duration-700 delay-[700ms]">
            
            {/* Greeting */}
