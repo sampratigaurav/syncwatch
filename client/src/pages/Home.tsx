@@ -349,8 +349,8 @@ export default function Home() {
                         if (createError) setCreateError('');
                       }}
                       className={cn(
-                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-500 transition-all duration-200 font-medium text-base tablet:text-lg",
-                        isCreateNicknameError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
+                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal",
+                        isCreateNicknameError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
                       )}
                       placeholder="Enter your nickname"
                       maxLength={20}
@@ -396,8 +396,8 @@ export default function Home() {
                           if (createError) setCreateError('');
                         }}
                         className={cn(
-                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-600 transition-all duration-200 font-mono tracking-widest text-lg",
-                          isCreatePinError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
+                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest",
+                          isCreatePinError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
                         )}
                         placeholder="4-8 character PIN"
                         maxLength={8}
@@ -435,8 +435,8 @@ export default function Home() {
                         if (joinError === 'Please enter a nickname to continue') setJoinError('');
                       }}
                       className={cn(
-                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-500 transition-all duration-200 font-medium text-base tablet:text-lg",
-                        isJoinNicknameError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
+                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal",
+                        isJoinNicknameError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
                       )}
                       placeholder="Enter your nickname"
                       maxLength={20}
@@ -452,8 +452,8 @@ export default function Home() {
                         if (joinError === 'Please enter a room code') setJoinError('');
                       }}
                       className={cn(
-                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-500 font-mono tracking-widest uppercase transition-all duration-200 text-base tablet:text-lg",
-                        isJoinCodeError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
+                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest uppercase",
+                        isJoinCodeError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
                       )}
                       placeholder="ROOM CODE"
                       maxLength={6}
@@ -478,8 +478,8 @@ export default function Home() {
                         }}
                         autoFocus
                         className={cn(
-                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:border-transparent focus:ring-2 placeholder-zinc-600 transition-all duration-200 font-mono tracking-widest text-lg",
-                          isJoinPinError ? "border-red-500/50 focus:ring-red-500 animate-shake" : "border-zinc-700 focus:ring-emerald-500"
+                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-xl px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest",
+                          isJoinPinError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
                         )}
                         placeholder="Enter PIN"
                         maxLength={8}
