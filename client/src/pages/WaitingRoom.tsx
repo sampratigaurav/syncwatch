@@ -140,9 +140,9 @@ export default function WaitingRoom() {
         </div>
       )}
 
-      <div className="w-full max-w-5xl grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-3 gap-6 tablet:gap-8 mt-4 font-sans">
+      <div className="w-full max-w-5xl mx-auto grid grid-cols-1 tablet:grid-cols-12 gap-6 tablet:gap-8 mt-4 font-sans">
         
-        <div className="tablet:col-span-1 desktop:col-span-2 space-y-6">
+        <div className="tablet:col-span-7 space-y-6">
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 tablet:p-10 shadow-xl">
             <h1 className="text-2xl tablet:text-3xl font-bold text-white mb-1 tablet:mb-2 tracking-tight">Waiting Room</h1>
             <p className="text-sm tablet:text-base text-zinc-400 mb-6 tablet:mb-8">Select the video file you want to watch.</p>
@@ -225,14 +225,13 @@ export default function WaitingRoom() {
               </div>
             ) : (
               <div className="flex flex-col gap-4">
-                <div className="relative border-2 border-dashed border-zinc-700 hover:border-teal-500/50 rounded-2xl h-40 tablet:h-auto tablet:p-16 flex flex-col items-center justify-center text-center bg-zinc-950/50 hover:bg-zinc-800/30 transition-all cursor-pointer group">
+                <div className="relative border-2 border-dashed border-zinc-800 hover:border-emerald-500/50 rounded-xl h-40 tablet:h-auto tablet:p-16 flex flex-col items-center justify-center text-center bg-zinc-950/50 hover:bg-emerald-500/5 transition-colors cursor-pointer group">
                   <input type="file" accept="video/*" onChange={onFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Select Video" />
-                  <div className="w-12 h-12 tablet:w-20 tablet:h-20 bg-zinc-800 group-hover:bg-zinc-700/80 rounded-full flex items-center justify-center mb-3 tablet:mb-6 transition-colors shadow-lg">
-                    <Play className="w-6 h-6 tablet:w-10 tablet:h-10 text-teal-500 ml-1 tablet:ml-1.5" />
+                  <div className="w-12 h-12 tablet:w-16 tablet:h-16 bg-zinc-900 group-hover:bg-zinc-800 rounded-full flex items-center justify-center mb-3 tablet:mb-4 transition-colors shadow-sm">
+                    <Play className="w-6 h-6 tablet:w-8 tablet:h-8 text-emerald-500 ml-1" />
                   </div>
-                  <span className="block tablet:hidden text-lg font-medium text-white px-4">Tap to select your movie file</span>
-                  <span className="hidden tablet:block text-xl font-medium text-white mb-2">Click to browse</span>
-                  <span className="hidden tablet:block text-sm text-zinc-500">or drag and drop your local video file here</span>
+                  <span className="block text-lg tablet:text-xl font-medium text-white px-4 mb-2">Select your video file</span>
+                  <span className="hidden tablet:block text-sm text-zinc-500">Drag and drop or click to browse. Supports .mp4, .webm</span>
                 </div>
                 
                 {'showDirectoryPicker' in window && (
@@ -285,36 +284,30 @@ export default function WaitingRoom() {
           </div>
         </div>
 
-        <div className="tablet:col-span-1 space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 tablet:p-5 shadow-xl flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <p className="text-[11px] text-zinc-500 uppercase tracking-widest font-semibold leading-none">Room Code</p>
-                {useRoomStore.getState().roomHasPassword && (
-                  <div className="flex items-center gap-1 text-zinc-500 bg-zinc-800/50 px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wide">
-                    <Lock size={10} className="mb-[1px]" />
-                    <span>Private</span>
-                  </div>
-                )}
+        <div className="tablet:col-span-5 space-y-6">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="bg-emerald-500/10 text-emerald-400 font-mono tracking-widest px-4 py-1.5 rounded-md text-lg font-bold">
+                {roomId}
               </div>
-              <p className="text-2xl font-mono font-bold text-white tracking-widest leading-none">{roomId}</p>
+              {useRoomStore.getState().roomHasPassword && <Lock size={14} className="text-zinc-500" />}
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-1">
               <button 
                 onClick={() => handleCopy('code')} 
-                className="px-3 py-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-lg text-zinc-300 text-xs font-medium transition-all active:scale-95 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 w-[110px]"
+                className="p-2 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-zinc-300 transition-colors"
+                title="Copy Code"
                 aria-label="Copy room code"
               >
-                {copiedType === 'code' ? <Check className="w-4 h-4 text-teal-500" /> : <Copy className="w-4 h-4" />}
-                Copy Code
+                {copiedType === 'code' ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
               </button>
               <button 
                 onClick={() => handleCopy('link')} 
-                className="px-3 py-2 bg-zinc-950 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 rounded-lg text-zinc-300 text-xs font-medium transition-all active:scale-95 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 w-[110px]"
+                className="p-2 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-zinc-300 transition-colors"
+                title="Copy Link"
                 aria-label="Copy room link"
               >
-                {copiedType === 'link' ? <Check className="w-4 h-4 text-teal-500" /> : <Link2 className="w-4 h-4" />}
-                Copy Link
+                {copiedType === 'link' ? <Check className="w-4 h-4 text-emerald-500" /> : <Link2 className="w-4 h-4" />}
               </button>
             </div>
           </div>

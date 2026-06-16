@@ -62,8 +62,8 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
   );
 
   return (
-    <div className={clsx("bg-zinc-900 border border-zinc-800 rounded-xl w-full overflow-hidden shadow-lg", isWaitingRoom ? "max-w-full" : "max-w-sm")}>
-      <div className={clsx("bg-zinc-950/50 px-4 py-3 border-b border-zinc-800", isWaitingRoom && "hidden tablet:block")}>
+    <div className={clsx("bg-zinc-900 border border-zinc-800 rounded-xl w-full shadow-lg", isWaitingRoom ? "max-w-full p-4" : "max-w-sm overflow-hidden")}>
+      <div className={clsx("bg-zinc-950/50 px-4 py-3 border-b border-zinc-800", isWaitingRoom && "hidden")}>
         <h3 className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">In this room</h3>
       </div>
       {horizontalChips}
@@ -120,15 +120,24 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
                 </div>
               </div>
               
-              <div className="flex flex-col items-end px-2">
-                {p.status === 'disconnected' ? (
-                  <WifiOff className="w-4 h-4 text-red-500 opacity-80" />
-                ) : (
-                  <div className="flex items-center text-[10px] font-mono text-zinc-500 bg-zinc-950 px-1.5 py-0.5 rounded">
-                    <Wifi className="w-3 h-3 mr-1 text-teal-600/70" />
-                    {p.latencyMs}ms
-                  </div>
+              <div className="flex items-center gap-3 px-2">
+                {isWaitingRoom && (
+                  p.status === 'ready' ? (
+                    <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md border border-emerald-500/20">Ready</span>
+                  ) : (
+                    <span className="bg-zinc-800 text-zinc-400 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md border border-zinc-700">Waiting</span>
+                  )
                 )}
+                <div className="flex flex-col items-end">
+                  {p.status === 'disconnected' ? (
+                    <WifiOff className="w-4 h-4 text-red-500 opacity-80" />
+                  ) : (
+                    <div className="flex items-center text-[10px] font-mono text-zinc-500 bg-zinc-950 px-1.5 py-0.5 rounded">
+                      <Wifi className="w-3 h-3 mr-1 text-teal-600/70" />
+                      {p.latencyMs}ms
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           );
