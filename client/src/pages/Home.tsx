@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Coffee, Copy, Check, Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield, HelpCircle, Github, Linkedin, Twitter } from 'lucide-react';
+import { Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield, HelpCircle, Github, Linkedin, Twitter } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../lib/config';
@@ -113,7 +113,6 @@ export default function Home() {
   const [showExpiredError, setShowExpiredError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [greeting, setGreeting] = useState('');
-  const [copied, setCopied] = useState(false);
 
   const joinNicknameInputRef = useRef<HTMLInputElement>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -126,12 +125,6 @@ export default function Home() {
     if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
   }, []);
-
-  const handleCopyUPI = () => {
-    navigator.clipboard.writeText('sampratigaurav123@okaxis');
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   useEffect(() => {
     const hour = new Date().getHours();
