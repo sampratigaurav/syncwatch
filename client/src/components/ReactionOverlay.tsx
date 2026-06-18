@@ -68,30 +68,6 @@ export function ReactionOverlay() {
 
   return (
     <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
-      <style>{`
-        @keyframes floatingUp {
-          0% {
-            transform: translateY(20px) scale(0.8);
-            opacity: 0;
-          }
-          10% {
-            transform: translateY(-10%) scale(1.2);
-            opacity: 1;
-          }
-          20% {
-            transform: translateY(-20%) scale(1.0);
-            opacity: 1;
-          }
-          75% {
-            opacity: 1;
-          }
-          100% {
-            transform: translateY(-80vh) scale(1.0);
-            opacity: 0;
-          }
-        }
-      `}</style>
-
       {activeReactions.map(reaction => (
         <div
           key={reaction.id}

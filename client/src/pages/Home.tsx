@@ -55,14 +55,6 @@ const Particles = () => {
           }}
         />
       ))}
-      <style>{`
-        @keyframes particleFloat {
-          0% { transform: translateY(10vh); opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { transform: translateY(-40vh); opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 };
