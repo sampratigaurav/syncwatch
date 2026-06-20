@@ -241,17 +241,6 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           }
         }}
       >
-        <style>{`
-          video::cue {
-            font-size: 1.1rem;
-            font-family: var(--font);
-            background: rgba(0, 0, 0, 0.75);
-            color: white;
-            border-radius: 4px;
-            padding: 2px 6px;
-            line-height: 1.5;
-          }
-        `}</style>
         <video
           ref={setRefs}
           src={src}
