@@ -1,7 +1,7 @@
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { socket } from '../hooks/useSocket';
-import { User, Wifi, WifiOff, Gamepad2, Crown, MicOff, Check, Loader2 } from 'lucide-react';
+import { Wifi, WifiOff, Gamepad2, Crown, MicOff, Check, Loader2 } from 'lucide-react';
 import { useWebRTC } from '../hooks/useWebRTC';
 import clsx from 'clsx';
 

@@ -6,7 +6,7 @@ import { useFileVerify } from '../hooks/useFileVerify';
 import { useNavigate, useParams } from 'react-router-dom';
 import ParticipantList from '../components/ParticipantList';
 import ControlPolicySelector from '../components/ControlPolicySelector';
-import { Copy, Check, Play, AlertTriangle, Loader2, WifiOff, Lock, Link2, UploadCloud, Ticket } from 'lucide-react';
+import { Copy, Check, AlertTriangle, Loader2, WifiOff, Lock, Link2, UploadCloud, Ticket } from 'lucide-react';
 
 export default function WaitingRoom() {
   const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast } = useRoomStore(useShallow(state => ({
