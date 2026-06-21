@@ -1,9 +1,21 @@
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { socket } from '../hooks/useSocket';
-import { User, Wifi, WifiOff, Gamepad2, Crown, MicOff } from 'lucide-react';
+import { User, Wifi, WifiOff, Gamepad2, Crown, MicOff, Check, Loader2 } from 'lucide-react';
 import { useWebRTC } from '../hooks/useWebRTC';
 import clsx from 'clsx';
+
+const getGradient = (name: string) => {
+  const colors = [
+    "from-teal-400 to-emerald-500",
+    "from-indigo-400 to-cyan-400",
+    "from-pink-400 to-rose-500",
+    "from-amber-400 to-orange-500",
+    "from-violet-400 to-fuchsia-500"
+  ];
+  const charCode = name.charCodeAt(0) || 0;
+  return colors[charCode % colors.length];
+};
 
 export default function ParticipantList({ variant = 'default' }: { variant?: 'default' | 'waiting-room' }) {
   const { participants, controlPolicy, controllerIds } = useRoomStore(useShallow(state => ({
@@ -35,10 +47,11 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
            <div key={`chip-${p.id}`} className="flex-shrink-0 flex items-center bg-zinc-800/80 rounded-full pr-4 pl-1.5 py-1.5 border border-zinc-700 shadow-sm relative">
              <div className="relative">
                <div className={clsx(
-                 "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-zinc-300 uppercase tracking-widest transition-all",
-                 vp?.isSpeaking ? "bg-zinc-900 ring-2 ring-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.5)]" : "bg-zinc-900 border border-zinc-700"
+                 "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white uppercase transition-all bg-gradient-to-br shadow-inner",
+                 getGradient(p.nickname),
+                 vp?.isSpeaking ? "ring-2 ring-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.5)]" : ""
                )}>
-                 {p.nickname.substring(0,2)}
+                 {p.nickname.substring(0,1).toUpperCase()}
                </div>
                <div className={clsx(
                  "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-zinc-800",
@@ -85,10 +98,11 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
               <div className="flex items-center space-x-3">
                 <div className="relative">
                   <div className={clsx(
-                    "w-10 h-10 rounded-full flex items-center justify-center transition-all",
-                    vp?.isSpeaking ? "bg-zinc-800 ring-2 ring-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.5)]" : "bg-zinc-800"
+                    "w-10 h-10 rounded-full flex items-center justify-center transition-all bg-gradient-to-br shadow-inner text-white font-bold text-lg uppercase",
+                    getGradient(p.nickname),
+                    vp?.isSpeaking ? "ring-2 ring-teal-500 shadow-[0_0_15px_rgba(20,184,166,0.5)]" : ""
                   )}>
-                    <User className="w-5 h-5 text-zinc-400" />
+                    {p.nickname.substring(0,1)}
                   </div>
                   <div className={clsx(
                     "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-zinc-900",
@@ -123,9 +137,13 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
               <div className="flex items-center gap-3 px-2">
                 {isWaitingRoom && (
                   p.status === 'ready' ? (
-                    <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md border border-emerald-500/20">Ready</span>
+                    <span className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1.5 rounded-md border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                      <Check className="w-3 h-3" /> Ready
+                    </span>
                   ) : (
-                    <span className="bg-zinc-800 text-zinc-400 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md border border-zinc-700">Waiting</span>
+                    <span className="flex items-center gap-1.5 bg-zinc-800/50 text-zinc-400 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1.5 rounded-md border border-zinc-700/50">
+                      <Loader2 className="w-3 h-3 animate-spin" /> Waiting
+                    </span>
                   )
                 )}
                 <div className="flex flex-col items-end">

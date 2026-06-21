@@ -6,7 +6,7 @@ import { useFileVerify } from '../hooks/useFileVerify';
 import { useNavigate, useParams } from 'react-router-dom';
 import ParticipantList from '../components/ParticipantList';
 import ControlPolicySelector from '../components/ControlPolicySelector';
-import { Copy, Check, Play, AlertTriangle, Loader2, WifiOff, Lock, Link2 } from 'lucide-react';
+import { Copy, Check, Play, AlertTriangle, Loader2, WifiOff, Lock, Link2, UploadCloud, Ticket } from 'lucide-react';
 
 export default function WaitingRoom() {
   const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast } = useRoomStore(useShallow(state => ({
@@ -120,8 +120,9 @@ export default function WaitingRoom() {
   if (!roomId) return null;
 
   return (
-    <div className="min-h-screen p-4 tablet:p-8 flex flex-col items-center pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-x-hidden relative">
+    <div className="min-h-screen p-4 tablet:p-8 flex flex-col items-center pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-x-hidden relative selection:bg-teal-500/30">
       
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[800px] h-[600px] bg-teal-500/5 blur-[120px] pointer-events-none -z-10" />
       {connectionStatus === 'reconnecting' && (
         <div className="absolute top-0 left-0 right-0 z-[90] bg-black/80 backdrop-blur-lg border-b border-white/10 flex flex-col items-center justify-center py-3 shadow-2xl animate-in slide-in-from-top-full duration-300">
           <div className="flex items-center gap-3">
@@ -225,13 +226,16 @@ export default function WaitingRoom() {
               </div>
             ) : (
               <div className="flex flex-col gap-4">
-                <div className="relative border-2 border-dashed border-zinc-800 hover:border-emerald-500/50 rounded-xl h-40 tablet:h-auto tablet:p-16 flex flex-col items-center justify-center text-center bg-zinc-950/50 hover:bg-emerald-500/5 transition-colors cursor-pointer group">
-                  <input type="file" accept="video/*" onChange={onFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Select Video" />
-                  <div className="w-12 h-12 tablet:w-16 tablet:h-16 bg-zinc-900 group-hover:bg-zinc-800 rounded-full flex items-center justify-center mb-3 tablet:mb-4 transition-colors shadow-sm">
-                    <Play className="w-6 h-6 tablet:w-8 tablet:h-8 text-emerald-500 ml-1" />
+                <div className="relative border-2 border-dashed border-teal-500/30 hover:border-teal-500/70 rounded-2xl h-48 tablet:h-auto tablet:p-20 flex flex-col items-center justify-center text-center bg-zinc-900/40 backdrop-blur-sm hover:bg-teal-500/5 transition-all duration-300 cursor-pointer group shadow-xl overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-b from-teal-500/0 via-teal-500/0 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <input type="file" accept="video/*" onChange={onFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="Select Video" />
+                  
+                  <div className="relative w-16 h-16 tablet:w-20 tablet:h-20 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center mb-5 transition-transform duration-300 group-hover:-translate-y-2 group-hover:shadow-[0_0_20px_rgba(20,184,166,0.2)] group-hover:border-teal-500/30">
+                    <UploadCloud className="w-8 h-8 tablet:w-10 tablet:h-10 text-teal-500" />
                   </div>
-                  <span className="block text-lg tablet:text-xl font-medium text-white px-4 mb-2">Select your video file</span>
-                  <span className="hidden tablet:block text-sm text-zinc-500">Drag and drop or click to browse. Supports .mp4, .webm</span>
+                  
+                  <span className="block text-xl tablet:text-2xl font-bold text-white px-4 mb-2 tracking-tight group-hover:text-teal-50">Select your video file</span>
+                  <span className="hidden tablet:block text-sm text-zinc-400 font-medium">Drag and drop or click to browse. Supports .mp4, .webm</span>
                 </div>
                 
                 {'showDirectoryPicker' in window && (
@@ -285,29 +289,36 @@ export default function WaitingRoom() {
         </div>
 
         <div className="tablet:col-span-5 space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-emerald-500/10 text-emerald-400 font-mono tracking-widest px-4 py-1.5 rounded-md text-lg font-bold">
+          <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-2xl p-6 relative overflow-hidden shadow-2xl flex flex-col items-center text-center">
+            {/* Ticket Notches */}
+            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#09090b] rounded-full border-r border-zinc-800" />
+            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#09090b] rounded-full border-l border-zinc-800" />
+            
+            <Ticket className="w-6 h-6 text-teal-500/50 mb-3" />
+            <span className="text-zinc-400 text-sm font-medium uppercase tracking-widest mb-1">Room Code</span>
+            <div className="flex items-center gap-3 mb-6 mt-2">
+              <div className="text-4xl tablet:text-5xl font-mono font-bold tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400 drop-shadow-[0_0_15px_rgba(20,184,166,0.2)] ml-2">
                 {roomId}
               </div>
-              {useRoomStore.getState().roomHasPassword && <Lock size={14} className="text-zinc-500" />}
+              {useRoomStore.getState().roomHasPassword && <Lock size={20} className="text-zinc-500 -ml-1" />}
             </div>
-            <div className="flex items-center gap-1">
+            
+            <div className="flex items-center gap-3 w-full max-w-[260px]">
               <button 
                 onClick={() => handleCopy('code')} 
-                className="p-2 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-zinc-300 transition-colors"
+                className="flex-1 py-2.5 bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700 rounded-xl text-zinc-300 font-medium transition-all active:scale-95 flex items-center justify-center gap-2"
                 title="Copy Code"
-                aria-label="Copy room code"
               >
                 {copiedType === 'code' ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                <span className="text-xs">Copy Code</span>
               </button>
               <button 
                 onClick={() => handleCopy('link')} 
-                className="p-2 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-zinc-300 transition-colors"
+                className="flex-1 py-2.5 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 text-teal-400 rounded-xl font-medium transition-all active:scale-95 flex items-center justify-center gap-2"
                 title="Copy Link"
-                aria-label="Copy room link"
               >
                 {copiedType === 'link' ? <Check className="w-4 h-4 text-emerald-500" /> : <Link2 className="w-4 h-4" />}
+                <span className="text-xs">Copy Link</span>
               </button>
             </div>
           </div>
