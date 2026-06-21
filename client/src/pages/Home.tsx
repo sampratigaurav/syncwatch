@@ -7,9 +7,13 @@ import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../lib/config';
 import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
+import React, { Suspense, lazy } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useMediaQuery } from '../hooks/useMediaQuery';
+import CssOrb from '../components/CssOrb';
+const FloatingAppMockup = lazy(() => import('../components/FloatingAppMockup'));
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -63,14 +67,14 @@ const STEPS = [
 
 const TechTicker = () => {
   return (
-    <div className="w-full max-w-3xl mx-auto mt-12 overflow-hidden relative z-10 opacity-60">
-      <div className="absolute inset-0 z-20 pointer-events-none" style={{ background: 'linear-gradient(90deg, #050505 0%, transparent 15%, transparent 85%, #050505 100%)' }} />
+    <div className="w-full mt-12 overflow-hidden relative z-10 opacity-60">
+      <div className="absolute inset-0 z-20 pointer-events-none" style={{ background: 'linear-gradient(90deg, #050505 0%, transparent 5%, transparent 95%, #050505 100%)' }} />
       <motion.div 
         className="flex items-center gap-8 whitespace-nowrap w-max"
         animate={{ x: ["0%", "-50%"] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+        transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
       >
-        {[...Array(2)].map((_, i) => (
+        {[...Array(8)].map((_, i) => (
           <div key={i} className="flex items-center gap-8 text-xs tablet:text-sm font-medium text-zinc-400 uppercase tracking-widest pr-8">
             <span className="flex items-center gap-2"><ShieldCheck size={16} className="text-teal-500" /> 100% Private</span>
             <span className="text-zinc-700">•</span>
@@ -119,6 +123,7 @@ const StickyScrollSteps = () => {
 };
 
 export default function Home() {
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const navigate = useNavigate();
   const { roomId: urlRoomId } = useParams();
   const { setRoomId } = useRoomStore(useShallow(state => ({
@@ -361,17 +366,35 @@ export default function Home() {
       </div>
 
       {/* Main Content Area */}
-      <div className="relative z-10 w-full max-w-[1000px] flex flex-col items-center px-4 tablet:px-8 pt-32 tablet:pt-40">
+      <div className="relative z-10 w-full max-w-[1200px] flex flex-col items-center px-4 tablet:px-8 pt-24 tablet:pt-32">
           
-        {/* Hero Section */}
-        <div className="w-full flex flex-col items-center justify-center mb-16 tablet:mb-24">
-           
-           <h2 className="text-5xl tablet:text-7xl font-bold bg-gradient-to-br from-white via-zinc-200 to-zinc-600 bg-clip-text text-transparent pb-4 tracking-tight leading-[1.1] text-center px-4 max-w-3xl drop-shadow-2xl">
-             Watch together.<br className="hidden tablet:block" /> In perfect sync.
-           </h2>
+        {/* Row 1: Full-Width Centered Typography */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="flex flex-col items-center w-full mb-12 tablet:mb-16"
+        >
+          <h2 className="text-5xl tablet:text-[4.5rem] font-bold bg-gradient-to-br from-white via-zinc-200 to-zinc-600 bg-clip-text text-transparent pb-4 tracking-tight leading-[1.1] text-center max-w-4xl drop-shadow-2xl">
+            Watch together.<br className="hidden tablet:block" /> In perfect sync.
+          </h2>
+          <p className="text-zinc-400 text-lg tablet:text-xl text-center max-w-2xl">
+            Experience movies and shows with your friends in real-time, no matter where they are.
+          </p>
+        </motion.div>
 
-           {/* Unified Action Box */}
-           <div className="w-full max-w-[440px] mx-auto mt-8 bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 tablet:p-8 relative z-10 overflow-hidden">
+        {/* Row 2: 50/50 Split Grid */}
+        <div className="w-full grid grid-cols-1 tablet:grid-cols-2 gap-8 tablet:gap-12 items-center">
+          
+          {/* Left Column: Action Box */}
+          <motion.div 
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+            className="flex flex-col items-center tablet:items-center order-1 tablet:order-1 w-full"
+          >
+            {/* Unified Action Box */}
+            <div className="w-full max-w-[440px] bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 tablet:p-8 relative z-10 overflow-hidden self-center tablet:self-start">
              {/* Inner subtle glow */}
              <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none" />
              
@@ -563,13 +586,39 @@ export default function Home() {
                           className="w-full h-12 rounded-xl font-medium transition-all duration-200 active:scale-[0.98] bg-white text-zinc-900 hover:bg-zinc-200 flex items-center justify-center text-base disabled:opacity-50 shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:shadow-[0_0_25px_rgba(255,255,255,0.4)]"
                         >
                           Join Room
-                        </button>
-                     </motion.div>
+                         </button>
+                      </motion.div>
                    )}
                  </AnimatePresence>
                 </div>
               </div>
             </div>
+          
+            {/* Removed TechTicker from here */}
+          </motion.div>
+
+          {/* Right Column: 3D Orb / Mobile Fallback */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+            className="w-full h-full min-h-[300px] tablet:min-h-[500px] order-2 tablet:order-2 flex items-center justify-center relative"
+          >
+            {isMobile ? (
+              <CssOrb />
+            ) : (
+              <Suspense fallback={<div className="w-full h-full min-h-[500px]" />}>
+                <FloatingAppMockup />
+              </Suspense>
+            )}
+          </motion.div>
+        </div>
+
+        {/* Row 3: Full-Width Tech Ticker (Bounded to Container) */}
+        <div className="w-full relative mt-16 tablet:mt-24 mb-8 tablet:mb-12">
+          {/* Edge Fade Masks for the Marquee */}
+          <div className="absolute inset-y-0 left-0 w-8 tablet:w-16 bg-gradient-to-r from-[#050505] to-transparent z-10 pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-8 tablet:w-16 bg-gradient-to-l from-[#050505] to-transparent z-10 pointer-events-none" />
           
           <TechTicker />
         </div>
