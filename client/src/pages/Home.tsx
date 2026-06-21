@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield, HelpCircle, Github, Linkedin, Twitter, Eye, EyeOff } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -343,12 +344,12 @@ export default function Home() {
           <a href="https://github.com/sampratigaurav/syncwatch" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-zinc-200 transition-colors">
             <Github size={20} />
           </a>
-          <a href="#" className="text-zinc-400 hover:text-zinc-200 text-sm font-medium transition-colors">
+          <Link to="/docs" className="text-zinc-400 hover:text-zinc-200 text-sm font-medium transition-colors">
             Docs
-          </a>
-          <a href="#" className="text-zinc-400 hover:text-zinc-200 text-sm font-medium transition-colors">
+          </Link>
+          <button onClick={() => toast('Extension is coming soon!', { icon: '🚀' })} className="text-zinc-400 hover:text-zinc-200 text-sm font-medium transition-colors">
             Extension
-          </a>
+          </button>
         </div>
       </div>
 

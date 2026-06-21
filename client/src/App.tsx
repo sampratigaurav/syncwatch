@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast'
 import Home from './pages/Home'
 import WaitingRoom from './pages/WaitingRoom'
 import Room from './pages/Room'
+import Docs from './pages/Docs'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/room/:roomId" element={<Home />} />
         <Route path="/room/:roomId/waiting" element={<WaitingRoom />} />
         <Route path="/room/:roomId/watch" element={<Room />} />
+        <Route path="/docs" element={<Docs />} />
       </Routes>
     </div>
   )
