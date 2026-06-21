@@ -61,6 +61,32 @@ const STEPS = [
   }
 ];
 
+const TechTicker = () => {
+  return (
+    <div className="w-full max-w-3xl mx-auto mt-12 overflow-hidden relative z-10 opacity-60">
+      <div className="absolute inset-0 z-20 pointer-events-none" style={{ background: 'linear-gradient(90deg, #050505 0%, transparent 15%, transparent 85%, #050505 100%)' }} />
+      <motion.div 
+        className="flex items-center gap-8 whitespace-nowrap w-max"
+        animate={{ x: ["0%", "-50%"] }}
+        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+      >
+        {[...Array(2)].map((_, i) => (
+          <div key={i} className="flex items-center gap-8 text-xs tablet:text-sm font-medium text-zinc-400 uppercase tracking-widest pr-8">
+            <span className="flex items-center gap-2"><ShieldCheck size={16} className="text-teal-500" /> 100% Private</span>
+            <span className="text-zinc-700">•</span>
+            <span className="flex items-center gap-2"><Link2 size={16} className="text-emerald-500" /> WebRTC Powered</span>
+            <span className="text-zinc-700">•</span>
+            <span className="flex items-center gap-2"><FileVideo size={16} className="text-blue-500" /> Zero Cloud Uploads</span>
+            <span className="text-zinc-700">•</span>
+            <span className="flex items-center gap-2"><Github size={16} className="text-zinc-400" /> Open Source</span>
+            <span className="text-zinc-700">•</span>
+          </div>
+        ))}
+      </motion.div>
+    </div>
+  );
+};
+
 const StickyScrollSteps = () => {
   return (
     <div className="w-full max-w-[800px] mx-auto mt-32 relative z-10 pb-24">
@@ -544,6 +570,8 @@ export default function Home() {
                </div>
              </div>
            </div>
+          
+          <TechTicker />
         </div>
 
         <StickyScrollSteps />
