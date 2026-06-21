@@ -6,6 +6,7 @@ import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import { ReactionButton } from './ReactionButton';
 import { StatsForNerds } from './StatsForNerds';
+import SubtitleLoader from './SubtitleLoader';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -22,6 +23,8 @@ interface VideoPlayerProps {
   subtitleBlobUrl: string | null;
   subtitleEnabled: boolean;
   onSubtitleToggle: () => void;
+  onSubtitleLoaded: (url: string) => void;
+  onSubtitleCleared: () => void;
 }
 
 function cn(...inputs: (string | undefined | null | false)[]) {
@@ -29,7 +32,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 }
 
 export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
-  ({ src, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate, onEnded, subtitleBlobUrl, subtitleEnabled, onSubtitleToggle }, externalRef) => {
+  ({ src, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate, onEnded, subtitleBlobUrl, subtitleEnabled, onSubtitleToggle, onSubtitleLoaded, onSubtitleCleared }, externalRef) => {
     const { participants, controlPolicy } = useRoomStore(useShallow(state => ({
       participants: state.participants,
       controlPolicy: state.controlPolicy,
@@ -63,6 +66,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const [isMuted, setIsMuted] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [showStats, setShowStats] = useState(false);
+    const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
     
     // Controls visibility
     const [showControls, setShowControls] = useState(true);
@@ -233,6 +237,10 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
         onMouseMove={resetControlsTimeout}
         onMouseLeave={() => isPlaying ? setShowControls(false) : null}
         onClick={() => {
+          if (showSubtitleMenu) {
+             setShowSubtitleMenu(false);
+             return;
+          }
           if (!showControls) {
              setShowControls(true);
              resetControlsTimeout();
@@ -287,8 +295,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
         {/* Controls Overlay */}
         <div 
           className={cn(
-            "absolute bottom-0 left-0 right-0 p-2 tablet:p-6 bg-gradient-to-t from-zinc-950/90 via-zinc-950/40 to-transparent transition-opacity duration-300 flex flex-col tablet:gap-4",
-            showControls ? "opacity-100" : "opacity-0 pointer-events-none"
+            "absolute bottom-0 left-0 right-0 p-2 tablet:px-6 tablet:pt-16 tablet:pb-6 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-300 flex flex-col tablet:gap-4",
+            showControls || showSubtitleMenu ? "opacity-100" : "opacity-0 pointer-events-none"
           )}
         >
           
@@ -311,15 +319,15 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               className="absolute inset-0 w-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
             />
             {/* Base track */}
-            <div className="absolute w-full h-[6px] tablet:h-[3px] bg-white/30 tablet:bg-white/20 rounded-full group-hover/scrubber:h-[12px] tablet:group-hover/scrubber:h-[5px] transition-all" />
+            <div className="absolute w-full h-[6px] tablet:h-[4px] bg-white/20 rounded-full group-hover/scrubber:h-[12px] tablet:group-hover/scrubber:h-[8px] transition-all duration-200" />
             {/* Fill track */}
             <div 
-              className="absolute h-[6px] tablet:h-[3px] bg-teal-500 rounded-full group-hover/scrubber:h-[12px] tablet:group-hover/scrubber:h-[5px] transition-all" 
+              className="absolute h-[6px] tablet:h-[4px] bg-teal-500 rounded-full group-hover/scrubber:h-[12px] tablet:group-hover/scrubber:h-[8px] transition-all duration-200" 
               style={{ width: `${progressPercentage}%` }}
             />
             {/* Scrubber dot */}
             <div 
-              className="absolute h-5 w-5 tablet:h-3 tablet:w-3 bg-white rounded-full tablet:scale-0 group-hover/scrubber:scale-100 transition-transform -ml-2.5 tablet:-ml-1.5 z-0 shadow-lg" 
+              className="absolute h-5 w-5 tablet:h-4 tablet:w-4 bg-white rounded-full tablet:scale-0 group-hover/scrubber:scale-100 transition-transform -ml-2.5 tablet:-ml-2 z-0 shadow-lg" 
               style={{ left: `${progressPercentage}%` }}
             />
           </div>
@@ -397,25 +405,61 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
             </div>
 
             <div className="flex items-center gap-1 tablet:gap-4">
-              <button 
-                onClick={(e) => { 
-                   e.stopPropagation(); 
-                   if (subtitleBlobUrl) onSubtitleToggle(); 
-                }}
-                disabled={!subtitleBlobUrl}
-                aria-label={!subtitleBlobUrl ? 'Load a subtitle file to enable captions' : subtitleEnabled ? 'Disable captions' : 'Enable captions'}
-                title={!subtitleBlobUrl ? "Load a subtitle file in the sidebar to enable captions" : subtitleEnabled ? "Disable Captions" : "Enable Captions"}
-                className={cn(
-                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded max-[360px]:hidden group relative",
-                  !subtitleBlobUrl ? "text-white/30 [.light_&]:text-zinc-400 cursor-not-allowed" :
-                  subtitleEnabled ? "text-teal-400" : "text-white [.light_&]:text-zinc-600 hover:text-teal-400 [.light_&]:hover:text-teal-500"
+              {/* Subtitles Menu Wrapper */}
+              <div className="relative">
+                {/* The Popover */}
+                {showSubtitleMenu && (
+                  <div 
+                    className="absolute bottom-full right-0 mb-4 w-[280px] tablet:w-72 bg-zinc-950/95 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden p-4 origin-bottom-right animate-in zoom-in-95 duration-200"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-white font-medium text-sm">Subtitles</h4>
+                      {subtitleBlobUrl && (
+                        <button 
+                          onClick={() => onSubtitleToggle()}
+                          className={cn(
+                            "w-10 h-5 rounded-full relative transition-colors",
+                            subtitleEnabled ? "bg-teal-500" : "bg-zinc-700"
+                          )}
+                        >
+                          <div className={cn(
+                            "w-3.5 h-3.5 bg-white rounded-full absolute top-[3px] transition-transform",
+                            subtitleEnabled ? "left-6 -ml-0.5" : "left-1"
+                          )} />
+                        </button>
+                      )}
+                    </div>
+                    <SubtitleLoader 
+                      onSubtitleLoaded={(url) => {
+                        onSubtitleLoaded(url);
+                        setShowSubtitleMenu(false);
+                      }}
+                      onSubtitleCleared={() => {
+                        onSubtitleCleared();
+                        setShowSubtitleMenu(false);
+                      }}
+                    />
+                  </div>
                 )}
-              >
-                <Subtitles className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />
-                {subtitleEnabled && (
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-400 rounded-full tablet:hidden" aria-hidden="true" />
-                )}
-              </button>
+                <button 
+                  onClick={(e) => { 
+                     e.stopPropagation(); 
+                     setShowSubtitleMenu(!showSubtitleMenu);
+                  }}
+                  aria-label="Subtitles menu"
+                  title="Subtitles"
+                  className={cn(
+                    "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded group relative",
+                    subtitleEnabled ? "text-teal-400" : "text-white/80 hover:text-white"
+                  )}
+                >
+                  <Subtitles className="w-6 h-6 tablet:w-6 tablet:h-6 drop-shadow" aria-hidden="true" />
+                  {subtitleEnabled && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-400 rounded-full" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
 
               <button
                 onClick={(e) => { e.stopPropagation(); setShowStats(!showStats); }}

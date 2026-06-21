@@ -10,12 +10,12 @@ import ParticipantList from '../components/ParticipantList';
 import { VideoPlayer } from '../components/VideoPlayer';
 import Chat from '../components/Chat';
 import SyncStatus from '../components/SyncStatus';
-import SubtitleLoader from '../components/SubtitleLoader';
+
 import ControlPolicySelector from '../components/ControlPolicySelector';
 import { VoiceChat } from '../components/VoiceChat';
 import { ReactionOverlay } from '../components/ReactionOverlay';
 import { EVENTS } from '../../../shared/socketEvents';
-import { Settings, Users, MessageSquare, Info, Loader2, WifiOff } from 'lucide-react';
+import { Settings, Users, MessageSquare, Info, Loader2, WifiOff, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -61,7 +61,9 @@ export default function Room() {
 
   const [showSettings, setShowSettings] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'participants' | 'chat' | 'info' | null>(null);
+  const [activeMobileTab, setActiveMobileTab] = useState<'participants' | 'chat' | 'info' | null>(null);
+  const [desktopTab, setDesktopTab] = useState<'chat' | 'people'>('chat');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   
   const hasControl = useRoomStore(state => state.canIControl());
@@ -183,7 +185,7 @@ export default function Room() {
   return (
     <div 
       className="h-[100dvh] w-full bg-black flex flex-col tablet:flex-row overflow-hidden relative font-sans"
-      style={{ paddingBottom: keyboardHeight > 0 && !activeTab ? undefined : 0 }} 
+      style={{ paddingBottom: keyboardHeight > 0 && !activeMobileTab ? undefined : 0 }} 
     >
       
       {connectionStatus === 'reconnecting' && (
@@ -230,6 +232,14 @@ export default function Room() {
                       subtitleState: { isEnabled: newState, trackIndex: 0 }
                     });
                   }
+                }}
+                onSubtitleLoaded={(url) => {
+                  setSubtitleBlobUrl(url);
+                  setSubtitleEnabled(true);
+                }}
+                onSubtitleCleared={() => {
+                  setSubtitleBlobUrl(null);
+                  setSubtitleEnabled(false);
                 }}
                 onEnded={handleEnded}
               />
@@ -278,10 +288,19 @@ export default function Room() {
 
               {/* Floating button for landscape mobile */}
               <button 
-                onClick={() => setActiveTab(activeTab ? null : 'chat')}
+                onClick={() => setActiveMobileTab(activeMobileTab ? null : 'chat')}
                 className="hidden mobile:landscape:block tablet:hidden absolute top-[calc(1rem+env(safe-area-inset-top))] right-[calc(1rem+env(safe-area-inset-right))] z-[60] bg-zinc-950/80 backdrop-blur-md p-3 rounded-full text-white/80 hover:text-white border border-white/10 shadow-xl"
               >
                 <MessageSquare size={22} />
+              </button>
+
+              {/* Collapse Sidebar Button (Desktop) */}
+              <button 
+                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                className="hidden tablet:flex absolute top-4 right-4 z-[60] bg-zinc-950/50 hover:bg-zinc-950/80 backdrop-blur-md p-2.5 rounded-xl text-white/50 hover:text-white border border-white/5 hover:border-zinc-800 shadow-xl transition-all"
+                title={isSidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}
+              >
+                {isSidebarCollapsed ? <PanelRightOpen size={20} /> : <PanelRightClose size={20} />}
               </button>
 
               {/* Responsive subtle Buffering Banner BELOW video content */}
@@ -306,15 +325,15 @@ export default function Room() {
 
         {/* Mobile Persistent Bottom Bar */}
         <div className="mt-auto tablet:hidden w-full h-[64px] bg-zinc-950/95 backdrop-blur border-t border-zinc-900 pb-[env(safe-area-inset-bottom)] flex items-center justify-around absolute bottom-0 z-30 landscape:hidden pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]">
-          <button onClick={() => setActiveTab(activeTab === 'participants' ? null : 'participants')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeTab === 'participants' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
+          <button onClick={() => setActiveMobileTab(activeMobileTab === 'participants' ? null : 'participants')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeMobileTab === 'participants' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
             <Users size={22} className="mb-0.5" />
             <span className="text-[10px] font-medium tracking-wider uppercase">People</span>
           </button>
-          <button onClick={() => setActiveTab(activeTab === 'chat' ? null : 'chat')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeTab === 'chat' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
+          <button onClick={() => setActiveMobileTab(activeMobileTab === 'chat' ? null : 'chat')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeMobileTab === 'chat' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
             <MessageSquare size={22} className="mb-0.5" />
             <span className="text-[10px] font-medium tracking-wider uppercase">Chat</span>
           </button>
-          <button onClick={() => setActiveTab(activeTab === 'info' ? null : 'info')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeTab === 'info' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
+          <button onClick={() => setActiveMobileTab(activeMobileTab === 'info' ? null : 'info')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeMobileTab === 'info' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
              <Info size={22} className="mb-0.5" />
              <span className="text-[10px] font-medium tracking-wider uppercase">Info</span>
           </button>
@@ -325,21 +344,22 @@ export default function Room() {
       <div 
         className={cn(
           "fixed inset-0 bg-black/50 z-10 transition-opacity duration-300 tablet:hidden landscape:hidden",
-          activeTab ? "opacity-100" : "opacity-0 pointer-events-none"
+          activeMobileTab ? "opacity-100" : "opacity-0 pointer-events-none"
         )} 
-        onClick={() => setActiveTab(null)}
+        onClick={() => setActiveMobileTab(null)}
       />
 
       {/* Side Panel (Desktop) / Bottom Sheet (Mobile) */}
       <div 
         className={cn(
-          "bg-zinc-950 flex flex-col transition-transform duration-300 z-20 overflow-hidden pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]",
+          "bg-zinc-950 flex flex-col transition-all duration-300 z-20 overflow-hidden pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]",
           // Desktop specific overrides
-          "tablet:relative tablet:w-80 desktop:w-96 tablet:flex-shrink-0 tablet:h-screen tablet:border-l tablet:border-zinc-900 tablet:translate-y-0",
+          "tablet:relative tablet:flex-shrink-0 tablet:h-screen tablet:border-l tablet:border-zinc-900 tablet:translate-y-0",
+          isSidebarCollapsed ? "tablet:w-0 tablet:border-l-0 opacity-0" : "tablet:w-80 desktop:w-96 opacity-100",
           // Mobile specific overrides
           "fixed left-0 right-0 rounded-t-3xl shadow-[0_-15px_40px_rgba(0,0,0,0.8)] pb-[calc(1rem+env(safe-area-inset-bottom))] tablet:rounded-none tablet:shadow-none tablet:pb-0 landscape:hidden tablet:landscape:flex",
           "h-[65dvh] tablet:h-screen",
-          activeTab ? "translate-y-0" : "translate-y-[120%] tablet:translate-y-0"
+          activeMobileTab ? "translate-y-0" : "translate-y-[120%] tablet:translate-y-0"
         )}
         style={{
            bottom: keyboardHeight > 0 ? keyboardHeight : 'calc(64px + env(safe-area-inset-bottom))',
@@ -348,11 +368,29 @@ export default function Room() {
         }}
       >
         {/* Drag Handle (Mobile only) */}
-        <div className="w-full flex justify-center pt-3 pb-2 flex-shrink-0 tablet:hidden cursor-pointer" onClick={() => setActiveTab(null)}>
+        <div className="w-full flex justify-center pt-3 pb-2 flex-shrink-0 tablet:hidden cursor-pointer" onClick={() => setActiveMobileTab(null)}>
            <div className="w-12 h-1.5 bg-zinc-800 rounded-full"></div>
         </div>
 
-        <div className={cn("p-4 border-b border-zinc-900 space-y-4 flex-shrink-0", activeTab === 'info' || !activeTab ? "block" : "hidden tablet:block")}>
+        {/* Desktop Tabs Header */}
+        <div className="hidden tablet:flex p-2 border-b border-zinc-900 bg-zinc-950">
+          <div className="flex bg-zinc-900/50 rounded-lg p-1 w-full gap-1">
+            <button 
+              onClick={() => setDesktopTab('chat')}
+              className={cn("flex-1 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors", desktopTab === 'chat' ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50")}
+            >
+              Chat
+            </button>
+            <button 
+              onClick={() => setDesktopTab('people')}
+              className={cn("flex-1 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors", desktopTab === 'people' ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50")}
+            >
+              People
+            </button>
+          </div>
+        </div>
+
+        <div className={cn("p-4 border-b border-zinc-900 space-y-4 flex-shrink-0", activeMobileTab === 'info' || (desktopTab === 'people' && !activeMobileTab) ? "block" : "hidden")}>
           <div className="flex items-center justify-between">
             <h2 className="text-white font-bold text-xl tracking-tight">Room <span className="font-mono text-teal-500 ml-1">{roomId}</span></h2>
             <div className="flex items-center gap-2">
@@ -365,33 +403,22 @@ export default function Room() {
             </div>
           </div>
           <SyncStatus />
-          <SubtitleLoader
-            onSubtitleLoaded={(url) => {
-              setSubtitleBlobUrl(url);
-              setSubtitleEnabled(true);
-            }}
-            onSubtitleCleared={() => {
-              setSubtitleBlobUrl(null);
-              setSubtitleEnabled(false);
-            }}
-          />
         </div>
         
         {showSettings && role === 'host' ? (
-          <div className={cn("p-4 flex-shrink-0 border-b border-zinc-900 overflow-y-auto max-h-[50vh]", activeTab === 'info' || !activeTab ? "block" : "hidden tablet:block")}>
+          <div className={cn("p-4 flex-shrink-0 border-b border-zinc-900 overflow-y-auto max-h-[50vh]", activeMobileTab === 'info' || (desktopTab === 'people' && !activeMobileTab) ? "block" : "hidden")}>
             <ControlPolicySelector />
           </div>
         ) : null}
 
-        <div className={cn("p-4 flex-shrink-0 border-b border-zinc-900", activeTab === 'participants' || !activeTab ? "block" : "hidden tablet:block")}>
-          <ParticipantList />
-        </div>
-
-        <div className={cn("border-b border-zinc-900", activeTab === 'participants' || !activeTab ? "block" : "hidden tablet:block")}>
+        <div className={cn("flex-shrink-0 border-b border-zinc-900", activeMobileTab === 'participants' || (desktopTab === 'people' && !activeMobileTab) ? "block" : "hidden")}>
+          <div className="p-4 border-b border-zinc-900/50">
+            <ParticipantList />
+          </div>
           <VoiceChat />
         </div>
 
-        <div className={cn("flex-grow p-4 min-h-0", activeTab === 'chat' || !activeTab ? "flex flex-col h-full" : "hidden tablet:flex tablet:flex-col")}>
+        <div className={cn("flex-grow p-4 min-h-0", activeMobileTab === 'chat' || (desktopTab === 'chat' && !activeMobileTab) ? "flex flex-col h-full" : "hidden")}>
           <Chat />
         </div>
       </div>
