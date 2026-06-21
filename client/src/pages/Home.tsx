@@ -21,25 +21,11 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 const AmbientBackground = () => (
   <div className="fixed inset-0 pointer-events-none z-0 bg-[#050505] overflow-hidden">
-    <m.div 
-      animate={{ 
-        scale: [1, 1.1, 1],
-        opacity: [0.3, 0.5, 0.3],
-        rotate: [0, 90, 0]
-      }}
-      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-      style={{ willChange: 'transform, opacity' }}
-      className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] max-w-[800px] max-h-[800px] bg-teal-900/30 rounded-full blur-[120px] mix-blend-screen" 
+    <div 
+      className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] max-w-[800px] max-h-[800px] bg-teal-900/30 rounded-full blur-[120px] mix-blend-screen animate-orb-1" 
     />
-    <m.div 
-      animate={{ 
-        scale: [1, 1.2, 1],
-        opacity: [0.2, 0.4, 0.2],
-        rotate: [0, -90, 0]
-      }}
-      transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-      style={{ willChange: 'transform, opacity' }}
-      className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] bg-slate-800/40 rounded-full blur-[150px] mix-blend-screen" 
+    <div 
+      className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] bg-slate-800/40 rounded-full blur-[150px] mix-blend-screen animate-orb-2" 
     />
   </div>
 );
@@ -374,7 +360,7 @@ export default function Home() {
           SyncWatch
         </h1>
         <div className="flex items-center gap-6">
-          <a href="https://github.com/sampratigaurav/syncwatch" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-white transition-colors">
+          <a href="https://github.com/sampratigaurav/syncwatch" aria-label="GitHub Repository" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-white transition-colors">
             <Github size={20} />
           </a>
           <Link to="/docs" className="text-zinc-400 hover:text-white text-sm font-medium transition-colors hidden tablet:block">
@@ -423,8 +409,9 @@ export default function Home() {
                
                {/* Nickname Input */}
                <div className="flex flex-col gap-2">
-                 <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider ml-1">Your Identity</label>
+                 <label htmlFor="nickname" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider ml-1">Your Identity</label>
                  <input 
+                   id="nickname"
                    type="text"
                    value={nickname}
                    onChange={e => {
@@ -502,6 +489,8 @@ export default function Home() {
                           >
                              <div className="relative w-full">
                                <input
+                                 id="create-pin"
+                                 aria-label="Create PIN"
                                  type={showPin ? "text" : "password"}
                                  value={pin}
                                  onChange={e => {
@@ -543,13 +532,14 @@ export default function Home() {
                        className="flex flex-col gap-5 w-full"
                      >
                         <div className="flex flex-col gap-2">
-                           <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider ml-1">Room Code</label>
-                           <div className="flex justify-between gap-2">
+                           <label htmlFor="roomCode" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider ml-1">Room Code</label>
+                           <div id="roomCode" className="flex justify-between gap-2" aria-label="Room Code Input">
                              {[0, 1, 2, 3, 4, 5].map((index) => (
                                <input
                                  key={index}
                                  ref={el => { otpRefs.current[index] = el; }}
                                  type="text"
+                                 aria-label={`Digit ${index + 1}`}
                                  value={inputRoomId.padEnd(6, ' ')[index] === ' ' ? '' : inputRoomId.padEnd(6, ' ')[index]}
                                  onChange={e => handleOtpChange(index, e)}
                                  onKeyDown={e => handleOtpKeyDown(index, e)}
@@ -576,6 +566,8 @@ export default function Home() {
                              </div>
                              <div className="relative w-full">
                                <input
+                                 id="join-pin"
+                                 aria-label="Enter Room PIN"
                                  type={showPin ? "text" : "password"}
                                  value={pin}
                                  onChange={e => {

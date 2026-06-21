@@ -7,7 +7,7 @@ export default function FloatingAppMockup() {
   const videoRef = useRef<HTMLVideoElement>(null);
   
   const [isPlaying, setIsPlaying] = useState(true);
-  const [progress, setProgress] = useState(0);
+  const progressRef = useRef<HTMLDivElement>(null);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -21,11 +21,11 @@ export default function FloatingAppMockup() {
   };
 
   const handleTimeUpdate = () => {
-    if (videoRef.current) {
+    if (videoRef.current && progressRef.current) {
       const current = videoRef.current.currentTime;
       const total = videoRef.current.duration;
       if (total > 0) {
-        setProgress((current / total) * 100);
+        progressRef.current.style.width = `${(current / total) * 100}%`;
       }
     }
   };
@@ -128,6 +128,8 @@ export default function FloatingAppMockup() {
              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/30 via-transparent to-green-900/30 mix-blend-overlay pointer-events-none" />
              <div 
                onClick={togglePlay}
+               role="button"
+               aria-label={isPlaying ? "Pause Video" : "Play Video"}
                className="relative z-10 w-14 h-14 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-2xl transition-all hover:scale-110 hover:bg-white/20 cursor-pointer"
              >
                {isPlaying ? (
@@ -142,8 +144,9 @@ export default function FloatingAppMockup() {
           <div className="h-10 border-t border-white/5 bg-white/[0.02] flex items-center px-4 gap-4">
              <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden relative">
                 <div 
+                  ref={progressRef}
                   className="absolute inset-y-0 left-0 bg-teal-500 transition-all duration-100 ease-linear" 
-                  style={{ width: `${progress}%` }} 
+                  style={{ width: `0%` }} 
                 />
              </div>
              <Volume2 size={14} className="text-zinc-500" />
