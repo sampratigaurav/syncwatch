@@ -7,17 +7,15 @@
 <h1>SyncWatch</h1>
 
 <p>
-  <strong>Watch together. Stay in sync. Zero uploads.</strong><br />
-  A real-time, peer-to-peer synchronized watch party — your video never leaves your device.
+  <strong>Watch together. In perfect sync.</strong><br />
+  A premium, real-time, zero-upload watch party experience — right from your browser.
 </p>
 
 <p>
   <a href="https://syncwatch-eosin.vercel.app"><img src="https://img.shields.io/badge/Live-Demo-1D9E75?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" /></a>
   <img src="https://img.shields.io/badge/TypeScript-100%25-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React 19" />
-  <img src="https://img.shields.io/badge/Socket.IO-4.x-010101?style=for-the-badge&logo=socket.io&logoColor=white" alt="Socket.IO" />
-  <img src="https://img.shields.io/badge/Redis-Backed-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" />
-  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" alt="MIT License" />
+  <a href="./ARCHITECTURE.md"><img src="https://img.shields.io/badge/Architecture-Docs-010101?style=for-the-badge&logo=readthedocs&logoColor=white" alt="Architecture" /></a>
 </p>
 
 <br />
@@ -28,366 +26,92 @@
 
 ---
 
-## ✨ What is SyncWatch?
+## ✨ Tired of counting down "3... 2... 1... press play"?
 
-SyncWatch is a **zero-upload watch party platform**. Instead of streaming video through a server, everyone loads their own local copy of the same file. SyncWatch acts as an ultra-low-latency **signaling relay** — broadcasting play, pause, and seek commands in real time to keep all viewers perfectly in sync.
+Say hello to **SyncWatch**. 
 
-> "A shared remote control over the internet for your local video player."
+SyncWatch is a beautifully designed, lightning-fast web app that lets you watch local video files with your friends in absolute perfect sync. 
 
-No CDN. No encoding. No legal grey areas. Only sync.
+There are **zero uploads**, no massive video files hogging your bandwidth, and absolutely no legal grey areas. You just pick a local video file on your computer, your friends pick the same file on theirs, and SyncWatch handles the rest. 
 
----
-
-## 🎯 Key Features
-
-| Feature | Description |
-|---|---|
-| **Zero-Upload Sync** | Watch any file — even 4K — instantly. Media never hits the network. |
-| **Sub-Second Sync** | Custom drift-correction loop keeps all viewers within ≤500 ms of the host. |
-| **Perceptual Sync** | Audio fingerprinting allows viewers with different encodings of the same video to join seamlessly. |
-| **P2P Asset Sharing** | Load `.srt` or `.vtt` subtitles — host broadcasts subtitle data directly to viewers via WebRTC Data Channels. |
-| **Latency Compensation** | Frame-perfect playback pause sync by accounting for average Round Trip Time (RTT). |
-| **Host Authority + Delegation** | The room host controls playback by default. Optionally grant control to everyone or selected participants. |
-| **Room PIN Protection** | Lock rooms with a 4–8 character PIN, stored as a PBKDF2 hash server-side. |
-| **Real-Time Chat** | Built-in chat panel with system messages and emoji reactions. |
-| **Voice Chat** | WebRTC peer-to-peer voice with speaking indicators and mute controls. |
-| **Smart Buffering** | If any participant buffers, the room auto-pauses and resumes when everyone is ready. |
-| **Reconnection Grace** | 30-second reconnect window with cryptographic token-based role reclamation. |
-| **Emoji Reactions** | Floating animated emoji overlay during playback. |
-| **Chrome Extension** | Watch YouTube together via the companion browser extension. |
-| **Light / Dark Mode** | Full theme toggle, persisted in `localStorage`. |
-| **Presence Indicators** | Real-time typing indicators, active speaker rings, and subtle UI sound effects. |
-| **Stats for Nerds** | Technical real-time metrics overlay for geeks. |
-| **Accessible UI** | Full screen reader support, ARIA labels, and keyboard focus states. |
+It acts like an incredibly fast, sub-second shared remote control. When you pause to grab popcorn, the movie pauses for everyone else. When you seek back to catch a missed joke, everyone travels back in time with you.
 
 ---
 
-## 🏗️ Architecture
+## 🍿 The Premium Experience
 
-```
-┌──────────────────────────────────────────────────────┐
-│                     Browser (Alice)                  │
-│  ┌───────────────┐   File: movie.mp4 (local)         │
-│  │  VideoPlayer  │   Hash: Perceptual Audio          │
-│  │  (HTML5 <vid>)│   Fingerprint (RMS Energy Bins)   │
-│  └──────┬────────┘                                   │
-│         │ play/pause/seek events                     │
-│  ┌──────▼────────┐                                   │
-│  │  useVideoSync │ ──── Socket.IO ────►              │
-│  └───────────────┘                   │               │
-└──────────────────────────────────────┼───────────────┘
-                                       │
-                             ┌─────────▼──────────┐
-                             │   SyncWatch Server  │
-                             │  (Express + Socket) │
-                             │   Redis-backed room │
-                             │   state & pub/sub   │
-                             └─────────┬──────────┘
-                                       │
-┌──────────────────────────────────────┼───────────────┐
-│                     Browser (Bob)    │               │
-│  ┌──────────────┐   ◄───────────────┘               │
-│  │ useDriftCorr │  playback_broadcast                │
-│  └──────┬───────┘                                   │
-│  ┌──────▼────────┐                                   │
-│  │  VideoPlayer  │   File: movie.mp4 (local)         │
-│  └───────────────┘                                   │
-└──────────────────────────────────────────────────────┘
-```
+We obsessed over every detail to make SyncWatch feel like magic. 
 
-### Sync Engine
-
-```
-Host emits    → playback_event { action, currentTime, timestamp }
-Server        → validates authority → broadcasts to room
-Viewers apply → echo-suppressed via isApplyingRemoteEvent flag
-Drift check   → every 5s host emits sync_check; viewers correct if |Δt| > 500ms
-Latency comp  → Frame-perfect pause sync delays local playback by half RTT (latencyMs / 2)
-```
+- 🏎️ **Zero-Upload Sync:** Watch any file — even massive 4K rips — instantly. Your media never leaves your computer.
+- ⏱️ **Sub-Second Magic:** Our custom drift-correction engine keeps everyone within a blink of an eye (≤500ms) of the host. 
+- 🧠 **Smart Quality Agnostic:** Got a 4K copy while your friend has 1080p? No problem. Our acoustic fingerprinting lets you sync different encodings of the same video seamlessly.
+- 💬 **Real-Time Banter:** Built in chat, floating emoji reactions, and live typing indicators.
+- 🎙️ **Voice Chat Built-in:** Crisp WebRTC peer-to-peer voice chat so you can hear your friends laugh in real time. 
+- 🔒 **Secure Rooms:** Lock your watch party with a PIN to keep crashers out.
+- 🎥 **YouTube Extension:** Don't have local files? Grab our Chrome Extension to sync YouTube videos directly on the YouTube website!
 
 ---
 
-## 🛠️ Tech Stack
+## 🚀 Quick Start (Be watching in 60 seconds)
 
-### Frontend (`/client`)
-| Layer | Technology |
-|---|---|
-| Framework | React 19 + Vite 8 |
-| Language | TypeScript (strict) |
-| Styling | Tailwind CSS v4 |
-| State | Zustand v5 |
-| Realtime | Socket.IO Client v4 |
-| Routing | React Router v7 |
-| Perceptual Sync | Web Worker + Web Audio API |
-| P2P Transport | WebRTC + RTCDataChannel + Web Audio API |
+### What you need:
+- Node.js installed on your machine.
+- A local or cloud Redis instance.
 
-### Backend (`/server`)
-| Layer | Technology |
-|---|---|
-| Runtime | Node.js ≥ 20 |
-| Framework | Express v5 |
-| Realtime | Socket.IO v4 |
-| Language | TypeScript |
-| State Store | Redis (TTL-based room GC) |
-| Pub/Sub | `@socket.io/redis-adapter` |
-| Security | Helmet, CORS whitelist, rate limiting, PBKDF2 PINs |
-
-### Chrome Extension (`/extension`)
-| Layer | Technology |
-|---|---|
-| Build | Vite + @crxjs/vite-plugin |
-| UI | React 18 + inline styles |
-| Player | YouTube DOM adapter (MAIN world) |
-| Messaging | Chrome extension message bus |
-
-### Infrastructure
-| Component | Platform |
-|---|---|
-| Frontend | Vercel |
-| Backend | Render (free tier) |
-| Database | Redis (Upstash or Render Redis) |
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js **v20+**
-- npm **v10+**
-- Redis instance (local or remote)
-
-### 1. Clone & Install
+### Run it locally:
 
 ```bash
+# 1. Grab the code
 git clone https://github.com/sampratigaurav/syncwatch.git
 cd syncwatch
+
+# 2. Install dependencies
 npm install
-```
 
-### 2. Configure Environment
-
-```bash
-# server/.env (create this file)
-PORT=3001
+# 3. Create a .env in the server folder
+# (Point REDIS_URL to your redis instance)
+echo "PORT=3001
 REDIS_URL=redis://localhost:6379
-CLIENT_ORIGIN=http://localhost:5174
-NODE_ENV=development
-```
+CLIENT_ORIGIN=http://localhost:5174" > server/.env
 
-### 3. Run Locally
-
-```bash
-# Boot both client + server concurrently
+# 4. Boot it up!
 npm run dev
 ```
 
-| Service | URL |
-|---|---|
-| Client | `http://localhost:5174` |
-| Server | `http://localhost:3001` |
-| Health | `http://localhost:3001/health` |
+Boom. You're live. Head over to `http://localhost:5174` and start a room.
 
 ---
 
-## 🌍 Deployment
+## 🤓 For the Hardcore Engineers
 
-### Backend → Render
+Are you wondering how we calculate Perceptual Sync using an RMS Energy Web Worker? Want to see the Socket.IO event reference table? Intrigued by how we achieve frame-perfect playback pausing through RTT Latency Compensation?
 
-1. Create a **Web Service** on [Render](https://render.com)
-2. Set the following:
+We moved all the juicy technical details into a dedicated architecture doc so we wouldn't scare away the normal folks.
 
-| Setting | Value |
-|---|---|
-| Build Command | `npm install && npm run build:server` |
-| Start Command | `npm run start:server` |
-| `CLIENT_ORIGIN` env | `https://your-app.vercel.app` |
-| `REDIS_URL` env | Your Redis connection string |
-
-### Frontend → Vercel
-
-1. Import repository at [vercel.com](https://vercel.com)
-2. Set **Root Directory** to `client`
-3. Set **Framework Preset** to `Vite`
-4. Add env variable:
-
-```
-VITE_SERVER_URL=https://your-render-backend.onrender.com
-```
-
-### Chrome Extension
-
-```bash
-cd extension
-npm install
-npm run build          # Generates dist/ + icons
-```
-
-Load the `dist/` folder as an **unpacked extension** in `chrome://extensions`.
+👉 **[Dive into the ARCHITECTURE.md 🏗️](./ARCHITECTURE.md)**
 
 ---
 
-## 📁 Project Structure
+## 🌍 Deploying to Production
 
-```
-syncwatch/
-├── client/                        # React frontend (Vite)
-│   └── src/
-│       ├── components/            # UI components
-│       │   ├── VideoPlayer.tsx    # HTML5 <video> wrapper + custom controls
-│       │   ├── Chat.tsx           # Real-time chat panel
-│       │   ├── ParticipantList.tsx
-│       │   ├── VoiceChat.tsx      # WebRTC voice
-│       │   ├── ReactionOverlay.tsx
-│       │   └── SubtitleLoader.tsx
-│       ├── hooks/
-│       │   ├── useVideoSync.ts    # Core sync logic + echo suppression
-│       │   ├── useDriftCorrection.ts
-│       │   ├── useSocket.ts       # Socket.IO connection management
-│       │   ├── useFileVerify.ts   # Web Worker file hashing
-│       │   └── useVoiceChat.ts    # WebRTC peer connections
-│       ├── pages/
-│       │   ├── Home.tsx           # Create / join room
-│       │   ├── WaitingRoom.tsx    # File selection + verification
-│       │   └── Room.tsx           # Active watch room
-│       ├── store/
-│       │   └── roomStore.ts       # Zustand global state
-│       └── lib/
-│           ├── audioFingerprintWorker.ts # Web Worker (Acoustic Fingerprint & Pearson Corr)
-│           └── config.ts          # Server URL config
-│
-├── server/
-│   └── src/
-│       ├── rooms/
-│       │   └── RoomManager.ts     # Redis CRUD + TTL management
-│       ├── socket/
-│       │   └── handlers.ts        # All Socket.IO event handlers
-│       └── routes/
-│           └── rooms.ts           # REST endpoints
-│
-├── shared/
-│   ├── types.ts                   # Shared TypeScript interfaces
-│   └── socketEvents.ts            # Typed event name constants
-│
-└── extension/                     # Chrome extension (YouTube sync)
-    └── src/
-        ├── background/            # Service worker + socket relay
-        ├── content/               # Bridge + keep-alive port
-        ├── page/                  # YouTube player adapter (MAIN world)
-        └── popup/                 # Extension UI (React)
-```
+You can deploy SyncWatch to the web completely for free. 
+- **Frontend:** Works perfectly on Vercel or Netlify (Make sure to set `VITE_SERVER_URL` to your backend).
+- **Backend:** Deploy the Node.js Express server to Render (Free Tier) or Railway.
+- **Database:** Spin up a free Redis database on Upstash.
+
+*Need detailed deployment steps? [Read the guide in the Architecture docs](./ARCHITECTURE.md).*
 
 ---
 
-## 🔐 Security
+## 💛 Support the Project
 
-SyncWatch is built with production security in mind:
+SyncWatch is 100% free and open source. If it made your movie nights a little less chaotic and a lot more fun, please consider supporting the project:
 
-- **CORS whitelist** — only known origins may connect via HTTP and WebSocket
-- **Helmet** — sets `X-Content-Type-Options`, `X-Frame-Options`, CSP, and HSTS headers
-- **PBKDF2 room PINs** — passwords are never stored in plaintext; 100,000 iterations with a random salt
-- **IP-based rate limiting** — WebSocket connections (20/min/IP), room creation (10/min/IP), PIN attempts (5/min/IP), and chat (5 messages / 3s)
-- **Server-side authority** — the server validates that only the current host (or delegated controllers) can emit playback events; viewers cannot fake host commands
-- **Reconnect tokens** — cryptographic 32-byte random tokens are issued on join and consumed on reconnect to prevent nickname-based role hijacking
-- **Payload validation** — all incoming socket payloads are validated for type, length, and format before processing
-- **HTTPS enforcement** — HTTP requests are 301-redirected to HTTPS in production
-
----
-
-## 🧠 How Perceptual Sync (File Verification) Works
-
-To support different encodings and qualities of the same video (e.g., 4K vs 1080p), SyncWatch uses an acoustic fingerprinting system instead of strict hashing.
-
-```
-1. Host picks file   → Web Audio API decodes the first 10MB of the audio track
-                       → Web Worker calculates RMS energy across 100ms bins
-                       → Yields an array of ~100 floats (Acoustic Fingerprint)
-
-2. Host emits        → Caches fingerprint locally
-                       → Broadcasts it directly to peers via WebRTC Data Channels
-                       → Sends a dummy 'file_verified' hash to trick server into 'ready' state
-
-3. Viewer picks file → Computes their own local acoustic fingerprint
-
-4. Viewer compares   → Receives host's fingerprint via WebRTC
-                       → Web Worker runs Pearson Correlation (requires > 0.85 match)
-
-5. Server compares   → If local Web Worker approves, viewer sends the identical dummy hash
-                       → Server sees a 100% hash match and sets viewer.status = 'ready'
-
-6. Room is ready     → all participants.status === 'ready'
-```
-
-If the first 10MB of the file lacks the `moov` atom (making it undecodable), the system gracefully falls back to passing the `file.size` over WebRTC and ensuring viewers are within a ±5% size tolerance. Analysis runs entirely **off the main thread** via a Web Worker — even a 10 GB file does not freeze the UI.
-
----
-
-## 📡 Socket Event Reference
-
-### Client → Server
-
-| Event | Payload | Description |
-|---|---|---|
-| `join_room` | `{ roomId, nickname, password?, reconnectToken? }` | Join or rejoin a room |
-| `file_verified` | `{ hash, size, name }` | Submit file verification |
-| `playback_event` | `{ action, currentTime, timestamp, subtitleState? }` | Host playback command |
-| `buffering_state` | `{ isBuffering }` | Report buffer stall |
-| `set_control_policy` | `{ policy, controllerIds }` | Change who can control |
-| `chat_message` | `{ text }` | Send chat message |
-| `send_reaction` | `{ emoji }` | Send floating emoji |
-| `voice_join` / `voice_leave` | — | Join/leave voice channel |
-| `webrtc_offer/answer/ice_candidate` | WebRTC signaling | Voice peer negotiation |
-| `ping` | `{ sentAt }` | Latency measurement |
-
-### Server → Client
-
-| Event | Payload | Description |
-|---|---|---|
-| `room_state` | Full room snapshot | Sent on join |
-| `playback_broadcast` | `{ action, currentTime, timestamp }` | Relayed playback event |
-| `participant_update` | `Participant` | Single participant state change |
-| `file_match` / `file_mismatch` | — | File verification result |
-| `chat_broadcast` | `ChatMessage` | New chat message |
-| `force_pause` / `resume_allowed` | — | Buffering coordination |
-| `control_policy_update` | `{ policy, controllerIds }` | Policy changed by host |
-| `reconnect_token` | `{ token }` | Issued after successful join |
-| `host_left` | — | Host disconnected (30s GC pending) |
-| `pong` | `{ sentAt }` | Latency reply |
-
-
-
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome.
-
-```bash
-# Fork the repo, then:
-git checkout -b feature/your-feature-name
-npm run dev          # Start dev servers
-# ... make your changes ...
-git commit -m "feat: describe your change"
-git push origin feature/your-feature-name
-# Open a Pull Request
-```
-
-Please follow the existing code style (TypeScript strict, no `any`, single-responsibility components).
-
----
-
-## 💛 Support
-
-SyncWatch is free and open source. If it made your movie night better, you can support the project:
-
-- ☕ [Ko-fi](https://ko-fi.com/sampratigaurav)
+- ⭐ **Star this repository** (It genuinely helps so much!)
+- ☕ [Buy me a Coffee on Ko-fi](https://ko-fi.com/sampratigaurav)
 - 🇮🇳 UPI (India): `sampratigaurav123@okaxis`
 
----
-
-## 📄 License
-
-MIT © [Samprati Gaurav](https://github.com/sampratigaurav)
-
----
+<br />
 
 <div align="center">
   <sub>Built with ❤️ by Samprati Gaurav &nbsp;·&nbsp; <a href="https://syncwatch-eosin.vercel.app">Live Demo</a> &nbsp;·&nbsp; <a href="https://github.com/sampratigaurav/syncwatch/issues">Report a Bug</a></sub>
