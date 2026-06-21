@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield, HelpCircle, Github, Linkedin, Twitter, Eye, EyeOff, ChevronDown } from 'lucide-react';
+import { Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, Github, Linkedin, Twitter, Eye, EyeOff } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../lib/config';
@@ -9,57 +9,34 @@ import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
 
-const Particles = () => {
-  const [particles, setParticles] = useState<Array<{ id: number, x: number, y: number, duration: number, delay: number, size: number, isTeal: boolean }>>([]);
-  
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    
-    const newParticles = Array.from({ length: 18 }).map((_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      duration: 5 + Math.random() * 8, 
-      delay: Math.random() * -10, 
-      size: Math.random() > 0.6 ? 2 : 1, 
-      isTeal: Math.random() > 0.8 
-    }));
-    setParticles(newParticles);
-  }, []);
-
-  if (particles.length === 0) return null;
-
-  return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 hidden tablet:block mix-blend-screen [.light_&]:mix-blend-multiply">
-      {particles.map(p => (
-        <div
-          key={p.id}
-          className={cn(
-            "absolute rounded-full",
-            p.isTeal ? "bg-teal-400/20 [.light_&]:bg-teal-600/20" : "bg-white/10 [.light_&]:bg-black/10"
-          )}
-          style={{
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            width: `${p.size}px`,
-            height: `${p.size}px`,
-            animationDuration: `${p.duration}s`,
-            animationDelay: `${p.delay}s`,
-            animationIterationCount: 'infinite',
-            animationName: 'particleFloat',
-            animationTimingFunction: 'linear'
-          }}
-        />
-      ))}
-    </div>
-  );
-};
+const AmbientBackground = () => (
+  <div className="fixed inset-0 pointer-events-none z-0 bg-[#050505] overflow-hidden">
+    <motion.div 
+      animate={{ 
+        scale: [1, 1.1, 1],
+        opacity: [0.3, 0.5, 0.3],
+        rotate: [0, 90, 0]
+      }}
+      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+      className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] max-w-[800px] max-h-[800px] bg-teal-900/30 rounded-full blur-[120px] mix-blend-screen" 
+    />
+    <motion.div 
+      animate={{ 
+        scale: [1, 1.2, 1],
+        opacity: [0.2, 0.4, 0.2],
+        rotate: [0, -90, 0]
+      }}
+      transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+      className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] bg-slate-800/40 rounded-full blur-[150px] mix-blend-screen" 
+    />
+  </div>
+);
 
 const STEPS = [
   {
@@ -84,35 +61,60 @@ const STEPS = [
   }
 ];
 
+const StickyScrollSteps = () => {
+  return (
+    <div className="w-full max-w-[800px] mx-auto mt-32 relative z-10 pb-24">
+      <div className="text-center mb-24 px-4">
+        <h2 className="text-3xl tablet:text-5xl font-bold tracking-tight text-white mb-4">How it works</h2>
+        <p className="text-base tablet:text-lg text-zinc-400">From your file to in sync — in under 30 seconds</p>
+      </div>
+
+      <div className="relative border-l border-white/10 ml-6 tablet:ml-12 pb-12">
+        {STEPS.map((step, index) => (
+          <motion.div 
+            key={index}
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: false, margin: "-20% 0px -20% 0px" }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="mb-24 pl-8 tablet:pl-16 relative pr-4"
+          >
+            <div className="absolute left-[-17px] top-0 w-8 h-8 rounded-full bg-zinc-950 border border-white/10 flex items-center justify-center">
+              <div className="w-2.5 h-2.5 rounded-full bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.5)]" />
+            </div>
+            <step.icon className="text-teal-400 w-8 h-8 mb-6" />
+            <h3 className="text-2xl tablet:text-3xl font-semibold text-white mb-3 tracking-tight">{step.title}</h3>
+            <p className="text-zinc-400 text-lg leading-relaxed max-w-lg">{step.desc}</p>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export default function Home() {
   const navigate = useNavigate();
   const { roomId: urlRoomId } = useParams();
-  const { setRoomId, setNickname } = useRoomStore(useShallow(state => ({
-    setRoomId: state.setRoomId,
-    setNickname: state.setNickname
+  const { setRoomId } = useRoomStore(useShallow(state => ({
+    setRoomId: state.setRoomId
   })));
 
   const savedNickname = localStorage.getItem('syncwatch_nickname') || '';
+  const [nickname, setNicknameInput] = useState(savedNickname);
   const [inputRoomId, setInputRoomId] = useState(urlRoomId || '');
-  const [createNickname, setCreateNickname] = useState(savedNickname);
-  const [joinNickname, setJoinNickname] = useState(savedNickname);
-  const [createError, setCreateError] = useState('');
-  const [joinError, setJoinError] = useState('');
+  
+  const [activeTab, setActiveTab] = useState<'create' | 'join'>(urlRoomId ? 'join' : 'create');
+
+  const [error, setError] = useState('');
   
   const [lockRoom, setLockRoom] = useState(false);
-  const [createPin, setCreatePin] = useState('');
+  const [pin, setPin] = useState('');
   const [requiresPin, setRequiresPin] = useState(false);
-  const [joinPin, setJoinPin] = useState('');
 
   const [showExpiredError, setShowExpiredError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPin, setShowPin] = useState(false);
 
-  
-  const [showCreatePin, setShowCreatePin] = useState(false);
-  const [showJoinPin, setShowJoinPin] = useState(false);
-
-  const joinNicknameInputRef = useRef<HTMLInputElement>(null);
-  const sectionRef = useRef<HTMLDivElement>(null);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleOtpChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,7 +126,7 @@ export default function Home() {
     newRoomId[index] = val.slice(-1) || ' ';
     
     setInputRoomId(newRoomId.join('').trimEnd());
-    if (joinError === 'Please enter a room code' || joinError === 'Please enter a 6-character room code') setJoinError('');
+    if (error) setError('');
     
     if (val && index < 5) {
       otpRefs.current[index + 1]?.focus();
@@ -157,71 +159,56 @@ export default function Home() {
     if (!pasted) return;
     
     setInputRoomId(pasted);
-    if (joinError === 'Please enter a room code' || joinError === 'Please enter a 6-character room code') setJoinError('');
+    if (error) setError('');
     
     const nextIndex = Math.min(pasted.length, 5);
     otpRefs.current[nextIndex === 6 ? 5 : nextIndex]?.focus();
   };
 
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) setIsVisible(true);
-    }, { threshold: 0.2 });
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-
-
   useEffect(() => {
     if (urlRoomId) {
       setInputRoomId(urlRoomId);
-      // Wait a tick for render then focus
-      setTimeout(() => {
-        joinNicknameInputRef.current?.focus();
-      }, 50);
+      setActiveTab('join');
     }
   }, [urlRoomId]);
 
   const handleCreateRoom = async () => {
-    const trimmed = createNickname.trim();
+    const trimmed = nickname.trim();
     if (!trimmed || trimmed.length < 2) {
-      setCreateError('Please enter a nickname to continue');
+      setError('Please enter a nickname to continue');
       return;
     }
     if (lockRoom) {
-      if (!createPin) {
-        setCreateError('Please enter a PIN');
+      if (!pin) {
+        setError('Please enter a PIN');
         return;
       }
-      if (!/^[a-zA-Z0-9]{4,8}$/.test(createPin)) {
-        setCreateError('PIN must be 4-8 alphanumeric characters');
+      if (!/^[a-zA-Z0-9]{4,8}$/.test(pin)) {
+        setError('PIN must be 4-8 alphanumeric characters');
         return;
       }
     }
-    setCreateError('');
+    setError('');
     setIsLoading(true);
     localStorage.setItem('syncwatch_nickname', trimmed);
     try {
       const res = await fetch(`${SERVER_URL}/api/rooms`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(lockRoom ? { password: createPin } : {})
+        body: JSON.stringify(lockRoom ? { password: pin } : {})
       });
       if (!res.ok) throw new Error('Failed to create room');
       const data = await res.json();
       
-      useRoomStore.getState().setRoomPassword(lockRoom ? createPin : null);
+      useRoomStore.getState().setRoomPassword(lockRoom ? pin : null);
       setRoomId(data.roomId);
-      setNickname(trimmed);
+      useRoomStore.getState().setNickname(trimmed);
       navigate(`/room/${data.roomId}/waiting`);
     } catch (err: unknown) {
       if (err instanceof TypeError) {
-         setCreateError('Could not reach the server. Please try again in a moment.');
+         setError('Could not reach the server. Please try again in a moment.');
       } else {
-         setCreateError(err instanceof Error ? err.message : 'Error creating room');
+         setError(err instanceof Error ? err.message : 'Error creating room');
       }
     } finally {
       setIsLoading(false);
@@ -229,25 +216,25 @@ export default function Home() {
   };
 
   const handleJoinRoom = async () => {
-    const trimmed = joinNickname.trim();
+    const trimmed = nickname.trim();
     if (!trimmed || trimmed.length < 2) {
-      setJoinError('Please enter a nickname to continue');
+      setError('Please enter a nickname to continue');
       setShowExpiredError(false);
       return;
     }
     const parsedCode = inputRoomId.replace(/\s/g, '').toUpperCase();
     if (parsedCode.length < 6) {
-      setJoinError('Please enter a 6-character room code');
+      setError('Please enter a 6-character room code');
       setShowExpiredError(false);
       return;
     }
     if (requiresPin) {
-      if (!joinPin || !/^[a-zA-Z0-9]{4,8}$/.test(joinPin)) {
-        setJoinError('PIN must be 4-8 alphanumeric characters');
+      if (!pin || !/^[a-zA-Z0-9]{4,8}$/.test(pin)) {
+        setError('PIN must be 4-8 alphanumeric characters');
         return;
       }
     }
-    setJoinError('');
+    setError('');
     setShowExpiredError(false);
     setIsLoading(true);
     localStorage.setItem('syncwatch_nickname', trimmed);
@@ -264,7 +251,7 @@ export default function Home() {
           if (urlRoomId) {
             setShowExpiredError(true);
           } else {
-            setJoinError('Room not found');
+            setError('Room not found');
           }
           setIsLoading(false);
           return;
@@ -279,16 +266,16 @@ export default function Home() {
 
       if (requiresPin) {
         const handleWrongPassword = () => {
-          setJoinError('Incorrect PIN. Please try again.');
-          setJoinPin('');
+          setError('Incorrect PIN. Please try again.');
+          setPin('');
           setIsLoading(false);
           cleanup();
         };
         
         const handleRoomState = () => {
-          useRoomStore.getState().setRoomPassword(joinPin);
+          useRoomStore.getState().setRoomPassword(pin);
           setRoomId(code);
-          setNickname(trimmed);
+          useRoomStore.getState().setNickname(trimmed);
           cleanup();
           navigate(`/room/${code}/waiting`);
         };
@@ -302,393 +289,273 @@ export default function Home() {
         socket.once(EVENTS.ROOM_STATE, handleRoomState);
         
         if (!socket.connected) socket.connect();
-        socket.emit(EVENTS.JOIN_ROOM, { roomId: code, nickname: trimmed, password: joinPin });
+        socket.emit(EVENTS.JOIN_ROOM, { roomId: code, nickname: trimmed, password: pin });
       } else {
         useRoomStore.getState().setRoomPassword(null);
         setRoomId(code);
-        setNickname(trimmed);
+        useRoomStore.getState().setNickname(trimmed);
         navigate(`/room/${code}/waiting`);
       }
     } catch (err: unknown) {
       if (err instanceof TypeError) {
-         setJoinError('Could not reach the server. Please try again in a moment.');
+         setError('Could not reach the server. Please try again in a moment.');
       } else {
-         setJoinError(err instanceof Error ? err.message : 'Error joining room');
+         setError(err instanceof Error ? err.message : 'Error joining room');
       }
       setIsLoading(false);
     }
   };
 
-  const isCreateNicknameError = createError === 'Please enter a nickname to continue';
-  const isCreatePinError = createError === 'Please enter a PIN' || createError === 'PIN must be 4-8 alphanumeric characters';
-  const isGlobalCreateError = createError && !isCreateNicknameError && !isCreatePinError;
-
-  const isJoinNicknameError = joinError === 'Please enter a nickname to continue';
-  const isJoinCodeError = joinError === 'Please enter a room code' || joinError === 'Room not found';
-  const isJoinPinError = joinError === 'PIN must be 4-8 alphanumeric characters' || joinError === 'Incorrect PIN. Please try again.';
-  const isGlobalJoinError = joinError && !isJoinNicknameError && !isJoinCodeError && !isJoinPinError;
-
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto pt-24 tablet:pt-28 pb-12 selection:bg-teal-500/30 bg-zinc-950"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="relative flex flex-col items-center min-h-screen overflow-x-hidden selection:bg-teal-500/30 bg-[#050505]"
     >
+      <AmbientBackground />
         
       {/* Sticky Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between backdrop-blur-md bg-zinc-950/50 border-b border-zinc-900/50 px-6 py-4 animate-in fade-in slide-in-from-top-4 duration-500">
-        <h1 className="text-xl tablet:text-2xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-400 [.light_&]:from-zinc-800 [.light_&]:to-zinc-500 drop-shadow-[0_0_15px_rgba(29,158,117,0.05)]" style={{ WebkitTextStroke: '0.5px rgba(128,128,128,0.2)' }}>
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between backdrop-blur-xl bg-[#050505]/60 border-b border-white/5 px-6 py-4">
+        <h1 className="text-xl tablet:text-2xl font-bold tracking-tighter text-white drop-shadow-md">
           SyncWatch
         </h1>
         <div className="flex items-center gap-6">
-          <a href="https://github.com/sampratigaurav/syncwatch" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-zinc-200 transition-colors">
+          <a href="https://github.com/sampratigaurav/syncwatch" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-white transition-colors">
             <Github size={20} />
           </a>
-          <Link to="/docs" className="text-zinc-400 hover:text-zinc-200 text-sm font-medium transition-colors">
+          <Link to="/docs" className="text-zinc-400 hover:text-white text-sm font-medium transition-colors hidden tablet:block">
             Docs
           </Link>
-          <button onClick={() => toast('Extension is coming soon!', { icon: '🚀' })} className="text-zinc-400 hover:text-zinc-200 text-sm font-medium transition-colors">
+          <button onClick={() => toast('Extension is coming soon!', { icon: '🚀' })} className="text-zinc-400 hover:text-white text-sm font-medium transition-colors">
             Extension
           </button>
         </div>
       </div>
 
-      {/* Cinematic Background Orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute -top-[10%] -left-[10%] w-[60vw] h-[60vw] max-w-[800px] max-h-[800px] bg-[#1D9E75]/[0.06] [.light_&]:bg-teal-500/[0.1] rounded-full blur-[140px] mix-blend-screen [.light_&]:mix-blend-multiply animate-orb-1" />
-        <div className="absolute -bottom-[20%] -right-[10%] w-[70vw] h-[70vw] max-w-[900px] max-h-[900px] bg-[#d97706]/[0.04] [.light_&]:bg-amber-600/[0.08] rounded-full blur-[160px] mix-blend-screen [.light_&]:mix-blend-multiply animate-orb-2" />
-        <div className="absolute top-[20%] left-[30%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] bg-[#7F77DD]/[0.03] [.light_&]:bg-[#7F77DD]/[0.08] rounded-full blur-[120px] mix-blend-screen [.light_&]:mix-blend-multiply animate-orb-3" />
-      </div>
-
-      <Particles />
-      
-      {/* Content Container */}
-      <div className="relative z-10 w-full max-w-[1000px] flex flex-col items-center px-4 tablet:px-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+      {/* Main Content Area */}
+      <div className="relative z-10 w-full max-w-[1000px] flex flex-col items-center px-4 tablet:px-8 pt-32 tablet:pt-40">
           
-        <div className="w-full min-h-[calc(100vh-140px)] relative flex flex-col items-center justify-center space-y-12 tablet:space-y-16 animate-in fade-in slide-in-from-bottom-8 fill-mode-both duration-700 delay-200 pb-12">
+        {/* Hero Section */}
+        <div className="w-full flex flex-col items-center justify-center mb-16 tablet:mb-24">
            
-           {/* Greeting */}
-           <h2 className="text-5xl tablet:text-7xl font-bold bg-gradient-to-br from-white via-zinc-200 to-zinc-600 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(255,255,255,0.05)] pb-2 tracking-tight leading-[1.1] text-center px-4">
+           <h2 className="text-5xl tablet:text-7xl font-bold bg-gradient-to-br from-white via-zinc-200 to-zinc-600 bg-clip-text text-transparent pb-4 tracking-tight leading-[1.1] text-center px-4 max-w-3xl drop-shadow-2xl">
              Watch together.<br className="hidden tablet:block" /> In perfect sync.
            </h2>
 
-           {/* Create / Join Container */}
-           <div className="w-full relative flex flex-col tablet:flex-row items-stretch justify-center gap-4 tablet:gap-8">
+           {/* Unified Action Box */}
+           <div className="w-full max-w-[440px] mx-auto mt-8 bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 tablet:p-8 relative z-10 overflow-hidden">
+             {/* Inner subtle glow */}
+             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none" />
              
-             {/* Radial Background Glow */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] pointer-events-none -z-10 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.05)_0%,transparent_60%)]" />
-
-             {/* Create Room Card */}
-              <div className="w-full tablet:w-1/2 max-w-[480px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 tablet:p-8 flex flex-col gap-5 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
-               <div className="flex items-center gap-2">
-                 <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg">Start a New Room</h3>
-                 {lockRoom && <Lock size={16} className="text-teal-400 mt-0.5" />}
-               </div>
+             <div className="relative z-10 flex flex-col gap-6">
+               
+               {/* Nickname Input */}
                <div className="flex flex-col gap-2">
-                 <div className="relative w-full">
-                    <input 
-                      type="text"
-                      value={createNickname}
-                      onChange={e => {
-                        setCreateNickname(e.target.value);
-                        if (createError) setCreateError('');
-                      }}
-                      className={cn(
-                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal",
-                        isCreateNicknameError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
-                      )}
-                      placeholder="Enter your nickname"
-                      maxLength={20}
-                    />
-                    {isCreateNicknameError && <div className="text-red-400 text-xs mt-1 ml-1">{createError}</div>}
-                 </div>
-                 
-                 <div className="flex items-center justify-between mt-2 mb-1 px-1 relative z-10">
-                   <div className="flex items-center gap-2">
-                     {lockRoom ? <Lock size={16} className="text-teal-400" /> : <Unlock size={16} className="text-zinc-500" />}
-                     <div className="flex items-center gap-1.5 cursor-help group/tooltip relative">
-                       <span className="text-sm font-medium text-zinc-400">Lock room with a PIN</span>
-                       <HelpCircle size={14} className="text-zinc-500 hover:text-zinc-300 transition-colors" />
-                       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-[180px] p-2 bg-zinc-800 text-zinc-300 text-xs rounded-md shadow-lg opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity z-20 text-center border border-zinc-700">
-                         Requires users to enter the correct PIN to join
-                       </div>
-                     </div>
-                   </div>
-                   <button 
-                     onClick={() => {
-                       setLockRoom(!lockRoom);
-                       if (createError) setCreateError('');
-                     }}
-                     role="switch"
-                     aria-checked={lockRoom}
-                     aria-label="Lock room with a PIN"
-                     title={lockRoom ? "Unlock room" : "Lock room"}
-                     className={cn("w-10 h-5 rounded-full relative transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900", lockRoom ? "bg-teal-500" : "bg-zinc-700 [.light_&]:bg-zinc-300")}
-                   >
-                     <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[2px] transition-transform", lockRoom ? "translate-x-[22px]" : "translate-x-0.5")} />
-                   </button>
-                 </div>
-                 
-                 {lockRoom && (
-                   <div className="animate-in fade-in slide-in-from-top-2 duration-300 mt-1">
-                     <p className="text-xs text-zinc-500 mb-1.5 ml-1">Anyone joining will need this PIN</p>
-                      <div className="relative w-full">
-                        <input
-                          type={showCreatePin ? "text" : "password"}
-                          value={createPin}
-                          onChange={e => {
-                            const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
-                            setCreatePin(val);
-                            if (createError) setCreateError('');
-                          }}
-                          className={cn(
-                            "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg pl-4 pr-12 tablet:pl-5 tablet:pr-12 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest",
-                            isCreatePinError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
-                          )}
-                          placeholder="4-8 character PIN"
-                          maxLength={8}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowCreatePin(!showCreatePin)}
-                          aria-label={showCreatePin ? "Hide PIN" : "Show PIN"}
-                          title={showCreatePin ? "Hide PIN" : "Show PIN"}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded"
-                        >
-                          {showCreatePin ? (
-                            <EyeOff size={18} aria-hidden="true" />
-                          ) : (
-                            <Eye size={18} aria-hidden="true" />
-                          )}
-                        </button>
-                      </div>
-                      {isCreatePinError && <div className="text-red-400 text-xs mt-1 ml-1">{createError}</div>}
-                   </div>
-                 )}
-                 
-
-                {isGlobalCreateError && (
-                    <div className="text-red-400 [.light_&]:text-red-600 text-sm font-medium px-1 leading-tight">{createError}</div>
-                 )}
-               </div>
-               <button 
-                 onClick={handleCreateRoom}
-                 disabled={isLoading}
-                 className="w-full h-12 tablet:h-[52px] min-h-[48px] rounded-lg font-medium px-5 py-2.5 transition-all duration-200 disabled:opacity-50 active:scale-[0.98] shadow-sm bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center text-base tablet:text-lg"
-               >
-                 Create Room
-               </button>
-             </div>
-
-             {/* Join Room Card */}
-             <div className="w-full tablet:w-1/2 max-w-[480px] mx-auto bg-zinc-900 rounded-xl border border-zinc-800 p-6 tablet:p-8 flex flex-col justify-between gap-5 z-10 hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
-               
-               <h3 className="text-white [.light_&]:text-zinc-900 font-semibold text-lg relative z-10">Join Existing</h3>
-               <div className="flex flex-col gap-4 relative z-10">
-                  <div>
-                    <input 
-                      ref={joinNicknameInputRef}
-                      type="text"
-                      value={joinNickname}
-                      onChange={e => {
-                        setJoinNickname(e.target.value);
-                        if (joinError === 'Please enter a nickname to continue') setJoinError('');
-                      }}
-                      className={cn(
-                        "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal",
-                        isJoinNicknameError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
-                      )}
-                      placeholder="Enter your nickname"
-                      maxLength={20}
-                    />
-                    {isJoinNicknameError && <div className="text-red-400 text-xs mt-1 ml-1">{joinError}</div>}
-                  </div>
-                  <div>
-                    <div className="flex justify-between gap-2">
-                      {[0, 1, 2, 3, 4, 5].map((index) => (
-                        <input
-                          key={index}
-                          ref={el => { otpRefs.current[index] = el; }}
-                          type="text"
-                          value={inputRoomId.padEnd(6, ' ')[index] === ' ' ? '' : inputRoomId.padEnd(6, ' ')[index]}
-                          onChange={e => handleOtpChange(index, e)}
-                          onKeyDown={e => handleOtpKeyDown(index, e)}
-                          onPaste={handleOtpPaste}
-                          disabled={requiresPin}
-                          maxLength={1}
-                          className={cn(
-                            "w-10 h-10 tablet:w-12 tablet:h-12 text-center text-lg font-mono uppercase bg-zinc-900/80 border rounded-lg text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200",
-                            isJoinCodeError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
-                          )}
-                        />
-                      ))}
-                    </div>
-                    {isJoinCodeError && <div className="text-red-400 text-xs mt-1 ml-1">{joinError}</div>}
-                  </div>
-                 
-                 {requiresPin && (
-                   <div className="animate-in fade-in slide-in-from-top-2 duration-300 mt-1">
-                     <div className="flex items-center gap-2 mb-2 ml-1">
-                       <Lock size={14} className="text-teal-400" />
-                       <span className="text-sm font-medium text-zinc-300 [.light_&]:text-zinc-700">This room is locked</span>
-                     </div>
-                      <div className="relative w-full">
-                        <input
-                          type={showJoinPin ? "text" : "password"}
-                          value={joinPin}
-                          onChange={e => {
-                            const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
-                            setJoinPin(val);
-                            if (joinError) setJoinError('');
-                          }}
-                          autoFocus
-                          className={cn(
-                            "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg pl-4 pr-12 tablet:pl-5 tablet:pr-12 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest",
-                            isJoinPinError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
-                          )}
-                          placeholder="Enter PIN"
-                          maxLength={8}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowJoinPin(!showJoinPin)}
-                          aria-label={showJoinPin ? "Hide PIN" : "Show PIN"}
-                          title={showJoinPin ? "Hide PIN" : "Show PIN"}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded"
-                        >
-                          {showJoinPin ? (
-                            <EyeOff size={18} aria-hidden="true" />
-                          ) : (
-                            <Eye size={18} aria-hidden="true" />
-                          )}
-                        </button>
-                      </div>
-                      {isJoinPinError && <div className="text-red-400 text-xs mt-1 ml-1">{joinError}</div>}
-                   </div>
-                 )}
-               </div>
-               
-                {isGlobalJoinError && (
-                  <div className="text-red-400 [.light_&]:text-red-600 text-sm font-medium px-1 leading-tight mt-[-4px] relative z-10">{joinError}</div>
-               )}
-               <button 
-                 onClick={handleJoinRoom}
-                 disabled={isLoading}
-                 className="w-full h-12 tablet:h-[52px] min-h-[48px] rounded-lg font-medium px-5 py-2.5 transition-all duration-200 disabled:opacity-50 active:scale-[0.98] bg-zinc-800 hover:bg-zinc-700 text-zinc-200 hover:text-white flex items-center justify-center text-base tablet:text-lg"
-               >
-                 Join Room
-               </button>
-             </div>
-
-           </div>
-
-           {/* Expired Room Error */}
-           {showExpiredError && (
-             <div className="w-full max-w-[440px] mx-auto mt-4">
-               <div className="flex flex-col items-center p-4 bg-zinc-900/80 [.light_&]:bg-zinc-100/80 backdrop-blur-md rounded-xl border border-white/10 [.light_&]:border-black/5 shadow-lg">
-                 <p className="text-zinc-300 [.light_&]:text-zinc-700 text-center mb-4 text-sm tablet:text-base font-medium">
-                   This room has expired or does not exist. Create a new room to start watching together.
-                 </p>
-                 <button 
-                   onClick={() => {
-                     setShowExpiredError(false);
-                     setInputRoomId('');
-                     navigate('/');
-                     joinNicknameInputRef.current?.focus();
+                 <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider ml-1">Your Identity</label>
+                 <input 
+                   type="text"
+                   value={nickname}
+                   onChange={e => {
+                     setNicknameInput(e.target.value);
+                     if (error === 'Please enter a nickname to continue') setError('');
                    }}
-                   className="px-5 py-2.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 [.light_&]:text-teal-600 rounded-lg transition-colors font-semibold text-sm"
+                   className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all placeholder:text-zinc-600 shadow-inner"
+                   placeholder="Enter a nickname"
+                   maxLength={20}
+                 />
+               </div>
+
+               {/* Tabs / Segmented Control */}
+               <div className="bg-black/40 p-1 rounded-xl flex items-center border border-white/5 relative">
+                 {/* Active Tab Background Pill */}
+                 <div 
+                   className={cn(
+                     "absolute inset-y-1 w-[calc(50%-4px)] bg-zinc-800 rounded-lg transition-transform duration-300 ease-out shadow-md",
+                     activeTab === 'create' ? "translate-x-0" : "translate-x-[calc(100%+2px)]"
+                   )}
+                 />
+                 <button 
+                   onClick={() => { setActiveTab('create'); setError(''); }}
+                   className={cn(
+                     "flex-1 py-2 text-sm font-medium rounded-lg transition-colors relative z-10",
+                     activeTab === 'create' ? "text-white" : "text-zinc-400 hover:text-zinc-300"
+                   )}
                  >
-                   Create a new room
+                   Create Room
+                 </button>
+                 <button 
+                   onClick={() => { setActiveTab('join'); setError(''); }}
+                   className={cn(
+                     "flex-1 py-2 text-sm font-medium rounded-lg transition-colors relative z-10",
+                     activeTab === 'join' ? "text-white" : "text-zinc-400 hover:text-zinc-300"
+                   )}
+                 >
+                   Join Room
                  </button>
                </div>
-             </div>
-           )}
 
-           {/* Scroll Indicator */}
-           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce text-zinc-500 [.light_&]:text-zinc-400 opacity-70 pointer-events-none">
-             <ChevronDown size={20} className="mt-1" />
+               {/* Tab Content Area */}
+               <div className="min-h-[140px] flex flex-col justify-end">
+                 <AnimatePresence mode="wait">
+                   {activeTab === 'create' ? (
+                     <motion.div 
+                       key="create"
+                       initial={{ opacity: 0, x: -10 }}
+                       animate={{ opacity: 1, x: 0 }}
+                       exit={{ opacity: 0, x: 10 }}
+                       transition={{ duration: 0.2 }}
+                       className="flex flex-col gap-5 w-full"
+                     >
+                        {/* Lock Room Toggle */}
+                        <div className="flex items-center justify-between px-1">
+                          <div className="flex items-center gap-2">
+                            {lockRoom ? <Lock size={16} className="text-teal-400" /> : <Unlock size={16} className="text-zinc-500" />}
+                            <span className="text-sm font-medium text-zinc-300">Lock with PIN</span>
+                          </div>
+                          <button 
+                            onClick={() => { setLockRoom(!lockRoom); setError(''); }}
+                            className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", lockRoom ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
+                          >
+                            <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", lockRoom ? "translate-x-[22px]" : "translate-x-0.5")} />
+                          </button>
+                        </div>
+                        
+                        <AnimatePresence>
+                        {lockRoom && (
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                            animate={{ opacity: 1, height: 'auto', marginBottom: 4 }}
+                            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                            className="overflow-hidden"
+                          >
+                             <div className="relative w-full">
+                               <input
+                                 type={showPin ? "text" : "password"}
+                                 value={pin}
+                                 onChange={e => {
+                                   setPin(e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8));
+                                   setError('');
+                                 }}
+                                 className="w-full h-12 bg-black/40 border border-white/10 rounded-xl pl-4 pr-12 text-white font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all placeholder:text-zinc-600 shadow-inner"
+                                 placeholder="4-8 char PIN"
+                               />
+                               <button
+                                 type="button"
+                                 onClick={() => setShowPin(!showPin)}
+                                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+                               >
+                                 {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                               </button>
+                             </div>
+                          </motion.div>
+                        )}
+                        </AnimatePresence>
+
+                        {error && activeTab === 'create' && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</div>}
+
+                        <button 
+                          onClick={handleCreateRoom}
+                          disabled={isLoading}
+                          className="w-full h-12 rounded-xl font-medium transition-all duration-200 active:scale-[0.98] bg-teal-600 hover:bg-teal-500 text-white flex items-center justify-center text-base disabled:opacity-50 shadow-[0_0_15px_rgba(13,148,136,0.3)] hover:shadow-[0_0_25px_rgba(13,148,136,0.5)]"
+                        >
+                          Start New Room
+                        </button>
+                     </motion.div>
+                   ) : (
+                     <motion.div 
+                       key="join"
+                       initial={{ opacity: 0, x: 10 }}
+                       animate={{ opacity: 1, x: 0 }}
+                       exit={{ opacity: 0, x: -10 }}
+                       transition={{ duration: 0.2 }}
+                       className="flex flex-col gap-5 w-full"
+                     >
+                        <div className="flex flex-col gap-2">
+                           <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider ml-1">Room Code</label>
+                           <div className="flex justify-between gap-2">
+                             {[0, 1, 2, 3, 4, 5].map((index) => (
+                               <input
+                                 key={index}
+                                 ref={el => { otpRefs.current[index] = el; }}
+                                 type="text"
+                                 value={inputRoomId.padEnd(6, ' ')[index] === ' ' ? '' : inputRoomId.padEnd(6, ' ')[index]}
+                                 onChange={e => handleOtpChange(index, e)}
+                                 onKeyDown={e => handleOtpKeyDown(index, e)}
+                                 onPaste={handleOtpPaste}
+                                 disabled={requiresPin}
+                                 maxLength={1}
+                                 className="w-full aspect-square text-center text-xl font-mono uppercase bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-zinc-400/50 transition-all shadow-inner"
+                               />
+                             ))}
+                           </div>
+                        </div>
+
+                        <AnimatePresence>
+                        {requiresPin && (
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0, marginTop: -10 }}
+                            animate={{ opacity: 1, height: 'auto', marginTop: 0 }}
+                            exit={{ opacity: 0, height: 0, marginTop: -10 }}
+                            className="overflow-hidden"
+                          >
+                             <div className="flex items-center gap-2 mb-2 ml-1 mt-1">
+                               <Lock size={14} className="text-teal-400" />
+                               <span className="text-sm font-medium text-zinc-300">Room is locked</span>
+                             </div>
+                             <div className="relative w-full">
+                               <input
+                                 type={showPin ? "text" : "password"}
+                                 value={pin}
+                                 onChange={e => {
+                                   setPin(e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8));
+                                   setError('');
+                                 }}
+                                 autoFocus
+                                 className="w-full h-12 bg-black/40 border border-white/10 rounded-xl pl-4 pr-12 text-white font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all placeholder:text-zinc-600 shadow-inner"
+                                 placeholder="Enter PIN"
+                               />
+                               <button
+                                 type="button"
+                                 onClick={() => setShowPin(!showPin)}
+                                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+                               >
+                                 {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                               </button>
+                             </div>
+                          </motion.div>
+                        )}
+                        </AnimatePresence>
+
+                        {error && activeTab === 'join' && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</div>}
+                        {showExpiredError && activeTab === 'join' && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">This room has expired or does not exist.</div>}
+
+                        <button 
+                          onClick={handleJoinRoom}
+                          disabled={isLoading}
+                          className="w-full h-12 rounded-xl font-medium transition-all duration-200 active:scale-[0.98] bg-white text-zinc-900 hover:bg-zinc-200 flex items-center justify-center text-base disabled:opacity-50 shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:shadow-[0_0_25px_rgba(255,255,255,0.4)]"
+                        >
+                          Join Room
+                        </button>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
+               </div>
+             </div>
            </div>
         </div>
 
-        {/* How it works section */}
-        <div ref={sectionRef} className="w-full mt-12 tablet:mt-16 pt-8 tablet:pt-12 border-t border-white/5 [.light_&]:border-black/5 flex flex-col items-center animate-in fade-in slide-in-from-bottom-8 fill-mode-both duration-700 delay-[400ms]">
-          
-          <div className={cn(
-            "text-center transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0",
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
-          )}>
-            <h2 className="text-3xl tablet:text-4xl font-bold tracking-tight text-white [.light_&]:text-zinc-900 mb-2">How it works</h2>
-            <p className="text-sm tablet:text-base text-zinc-400 [.light_&]:text-zinc-600 font-medium tracking-wide">From your file to in sync — in under 30 seconds</p>
-          </div>
-
-          <div className="relative w-full mt-10 tablet:mt-12 max-w-[900px]">
-            {/* Mobile Vertical Timeline Line */}
-            <div className={cn(
-              "absolute left-[20px] top-6 bottom-6 w-[2px] border-l-2 border-dashed border-teal-500/20 tablet:hidden transition-opacity duration-700 ease-out delay-300",
-              isVisible ? "opacity-100" : "opacity-0"
-            )} />
-
-            <div className="grid grid-cols-1 tablet:grid-cols-2 desktop:grid-cols-4 gap-8 desktop:gap-12 relative w-full">
-              {STEPS.map((step, i) => (
-                <div 
-                  key={i} 
-                  className={cn(
-                    "relative flex pl-12 tablet:pl-0 transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0",
-                    isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
-                  )}
-                  style={{ transitionDelay: `${(i + 1) * 150}ms` }}
-                >
-                  {/* Mobile Timeline Dot */}
-                  <div className="absolute left-[15px] top-[26px] w-[12px] h-[12px] rounded-full bg-teal-500 tablet:hidden shadow-[0_0_8px_rgba(29,158,117,0.5)]" />
-
-                  {/* Desktop/Tablet Horizontal Connector */}
-                  {(i === 0 || i === 1 || i === 2) && (
-                    <div className={cn(
-                      "hidden absolute top-[38px] -right-[12px] text-teal-500/30 z-10",
-                      i === 0 || i === 2 ? "tablet:block desktop:block" : "desktop:block"
-                    )}>
-                      <ArrowRight size={20} className="animate-pulse" />
-                    </div>
-                  )}
-
-                  {/* Step Container */}
-                  <div className="w-full relative group">
-                    <step.icon className="text-emerald-400 w-[28px] h-[28px] mb-4 transition-transform duration-300 group-hover:scale-110" />
-                    <h4 className="text-zinc-200 [.light_&]:text-zinc-900 font-medium text-[15px] mb-1.5">{step.title}</h4>
-                    <p className="text-zinc-400 [.light_&]:text-zinc-600 text-sm leading-[1.6]">
-                      {step.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Key Differentiator Pill */}
-          <div 
-            className={cn(
-              "mt-10 tablet:mt-12 bg-zinc-900/80 [.light_&]:bg-teal-50/80 border border-white/5 [.light_&]:border-teal-200 backdrop-blur-md rounded-2xl py-3 px-5 tablet:px-6 flex items-center gap-3 shadow-xl transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0",
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
-            )}
-            style={{ transitionDelay: '750ms' }}
-          >
-            <Shield className="text-teal-500 flex-shrink-0" size={18} fill="rgba(29, 158, 117, 0.2)" />
-            <p className="text-[13px] tablet:text-sm text-zinc-300 [.light_&]:text-teal-900 font-medium tracking-wide">
-              Your video file never leaves your device. Only play, pause, and seek signals are sent over the internet.
-            </p>
-          </div>
-        </div>
+        <StickyScrollSteps />
 
         {/* Support Section */}
-        <div className="w-full max-w-[600px] mt-12 tablet:mt-16 pt-8 border-t border-white/5 [.light_&]:border-black/10 pb-4">
+        <div className="w-full max-w-[600px] mt-12 tablet:mt-16 pt-8 border-t border-white/5 pb-12 relative z-10">
           <div className="flex flex-col items-center text-center mb-6 px-4">
-            <p className="text-zinc-200 [.light_&]:text-zinc-700 font-medium mb-1 text-[15px] tablet:text-[16px]">
+            <p className="text-zinc-200 font-medium mb-1 text-[15px] tablet:text-[16px]">
               SyncWatch is free and open source.
             </p>
-            <p className="text-[13px] tablet:text-[14px] text-zinc-500 [.light_&]:text-zinc-500">
-              If it made your movie night better, consider starring the project or connecting with me.
+            <p className="text-[13px] tablet:text-[14px] text-zinc-500">
+              If it made your movie night better, consider starring the project.
             </p>
           </div>
           
@@ -698,7 +565,7 @@ export default function Home() {
               href="https://github.com/sampratigaurav/syncwatch" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="w-full tablet:w-auto min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-zinc-800/50 hover:bg-zinc-800 border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-5 py-2 font-medium transition-colors active:scale-[0.98]"
+              className="w-full tablet:w-auto min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 hover:border-white/20 text-zinc-300 rounded-xl px-5 py-2 font-medium transition-colors active:scale-[0.98]"
             >
               <Github size={18} />
               <span className="text-sm tablet:text-base">Star on GitHub</span>
@@ -709,7 +576,7 @@ export default function Home() {
               href="https://linkedin.com/in/sampratigaurav" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="w-full tablet:w-auto min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-5 py-2 font-medium transition-colors active:scale-[0.98]"
+              className="w-full tablet:w-auto min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-transparent border border-white/10 hover:border-white/20 text-zinc-300 rounded-xl px-5 py-2 font-medium transition-colors active:scale-[0.98]"
             >
               <Linkedin size={18} />
               <span className="text-sm tablet:text-base">Connect</span>
@@ -720,7 +587,7 @@ export default function Home() {
               href="https://x.com/Sampratigaurav0" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="w-full tablet:w-auto min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-transparent border border-zinc-700 [.light_&]:border-zinc-300 hover:border-zinc-500 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-800 rounded-xl px-5 py-2 font-medium transition-colors active:scale-[0.98]"
+              className="w-full tablet:w-auto min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-transparent border border-white/10 hover:border-white/20 text-zinc-300 rounded-xl px-5 py-2 font-medium transition-colors active:scale-[0.98]"
             >
               <Twitter size={18} />
               <span className="text-sm tablet:text-base">Follow</span>
