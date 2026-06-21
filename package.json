@@ -11,7 +11,7 @@
   "scripts": {
     "dev:server": "npm run dev -w server",
     "dev:client": "npm run dev -w client",
-    "dev": "npm run dev:server & npm run dev:client",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "build:server": "npm run build -w server",
     "build:client": "npm run build -w client",
     "build": "npm run build:server && npm run build:client",
@@ -27,5 +27,8 @@
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.1",
     "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.3"
   }
 }
