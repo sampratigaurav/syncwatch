@@ -16,3 +16,8 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+
+## 2024-06-21 - IP Spoofing via X-Forwarded-For in WebSocket
+**Vulnerability:** The application manually parsed the \`X-Forwarded-For\` header in socket.io connections by taking the rightmost IP (\`ips[ips.length - 1]\`). This allowed attackers to bypass IP-based rate limiting (like PIN guessing logic) and spoof IPs by sending fake \`X-Forwarded-For\` headers if they connected directly to the server.
+**Learning:** Directly parsing raw HTTP headers like \`X-Forwarded-For\` is insecure because they can be easily manipulated by the client. It also overrides the secure default behavior of the web framework.
+**Prevention:** For rate limiting or security checks, always rely on the framework's securely parsed IP (e.g., Express's \`req.ip\`) combined with correctly configured \`trust proxy\` settings. To access this in \`socket.io\`, attach the Express \`app.request\` prototype to \`socket.request\` using an \`io.engine.use\` middleware.

@@ -43,15 +43,9 @@ const VALID_HASH_RE = /^[0-9a-f]{64}$/i; // SHA-256 hex string
 const VALID_CONTROL_POLICIES: ControlPolicy[] = ['host_only', 'everyone', 'selected'];
 
 function getClientIp(socket: Socket): string {
-  // With `trust proxy: 1` configured on Express, the server trusts one upstream
-  // proxy (e.g., Render.com's load balancer). The rightmost X-Forwarded-For IP
-  // is the actual client IP as seen by that proxy — cannot be spoofed by the client.
-  const forwarded = socket.handshake.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string') {
-    const ips = forwarded.split(',').map(s => s.trim()).filter(Boolean);
-    return ips[ips.length - 1] ?? socket.handshake.address;
-  }
-  return socket.handshake.address;
+  // Securely get the client IP parsed by Express based on 'trust proxy' settings.
+  // This prevents IP spoofing via X-Forwarded-For.
+  return (socket.request as any).ip || socket.handshake.address;
 }
 
 // Node-local reverse index: socketId → roomId.
