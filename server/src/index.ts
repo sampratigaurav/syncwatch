@@ -54,21 +54,22 @@ const corsOptions = {
 // @ts-ignore - socket.io types don't fully match the function signature but it works
 const io = new Server(server, { cors: corsOptions });
 
+io.engine.use((req: any, res: any, next: any) => {
+  Object.setPrototypeOf(req, app.request);
+  req.app = app;
+  req.res = res;
+  req.connection = req.connection || req.socket;
+  next();
+});
+
 // IP-based WebSocket connection rate limiting (max 20 connections per IP per minute)
 const MAX_WS_CONNECTIONS_PER_IP = 20;
 const WS_WINDOW_MS = 60_000;
 const wsConnectionCounts = new Map<string, { count: number; resetAt: number }>();
 
 io.use((socket, next) => {
-  // Use the rightmost X-Forwarded-For IP (added by the trusted proxy, not the client)
-  const forwarded = socket.handshake.headers['x-forwarded-for'];
-  let rawIp: string;
-  if (typeof forwarded === 'string') {
-    const ips = forwarded.split(',').map(s => s.trim()).filter(Boolean);
-    rawIp = ips[ips.length - 1] ?? socket.handshake.address;
-  } else {
-    rawIp = socket.handshake.address;
-  }
+  const req = socket.request as any;
+  const rawIp = req.ip || socket.handshake.address;
   const now = Date.now();
   const entry = wsConnectionCounts.get(rawIp);
 

@@ -6,12 +6,8 @@ import { reconnectTokens, socketToToken } from './state';
 import { getRoom } from '../rooms/RoomManager';
 
 export function getClientIp(socket: Socket): string {
-  const forwarded = socket.handshake.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string') {
-    const ips = forwarded.split(',').map(s => s.trim()).filter(Boolean);
-    return ips[ips.length - 1] ?? socket.handshake.address;
-  }
-  return socket.handshake.address;
+  const req = socket.request as any;
+  return req.ip || socket.handshake.address;
 }
 
 export function canControl(room: RoomState, socketId: string): boolean {
