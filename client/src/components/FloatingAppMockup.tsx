@@ -1,10 +1,35 @@
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { useEffect, useRef } from 'react';
-import { Play, Volume2, Maximize, MousePointer2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Play, Pause, Volume2, Maximize, MousePointer2 } from 'lucide-react';
 
 export default function FloatingAppMockup() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [progress, setProgress] = useState(0);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      const current = videoRef.current.currentTime;
+      const total = videoRef.current.duration;
+      if (total > 0) {
+        setProgress((current / total) * 100);
+      }
+    }
+  };
+
   // Motion values for mouse tracking
   const mouseX = useMotionValue(0.5); // 0 to 1
   const mouseY = useMotionValue(0.5); // 0 to 1
@@ -90,49 +115,61 @@ export default function FloatingAppMockup() {
           {/* Cinematic Looping Video */}
           <div className="flex-1 relative bg-black overflow-hidden flex items-center justify-center">
              <video 
+               ref={videoRef}
                autoPlay 
                loop 
                muted 
                playsInline
+               onTimeUpdate={handleTimeUpdate}
                className="absolute inset-0 w-full h-full object-cover opacity-80"
                src="/loop video.mp4" 
              />
              {/* Subtly animated video placeholder gradient overlay for extra premium color bleed */}
-             <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/30 via-transparent to-green-900/30 mix-blend-overlay" />
-             <div className="relative z-10 w-14 h-14 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-2xl transition-all hover:scale-110 hover:bg-white/20 cursor-pointer">
-               <Play size={24} className="text-white ml-1 fill-white/80" />
+             <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/30 via-transparent to-green-900/30 mix-blend-overlay pointer-events-none" />
+             <div 
+               onClick={togglePlay}
+               className="relative z-10 w-14 h-14 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-2xl transition-all hover:scale-110 hover:bg-white/20 cursor-pointer"
+             >
+               {isPlaying ? (
+                 <Pause size={24} className="text-white fill-white/80" />
+               ) : (
+                 <Play size={24} className="text-white ml-1 fill-white/80" />
+               )}
              </div>
           </div>
 
-          {/* Fake Controls */}
+          {/* Working Controls */}
           <div className="h-10 border-t border-white/5 bg-white/[0.02] flex items-center px-4 gap-4">
              <div className="flex-1 h-1 bg-white/10 rounded-full overflow-hidden relative">
-                <div className="absolute inset-y-0 left-0 w-[45%] bg-teal-500" />
+                <div 
+                  className="absolute inset-y-0 left-0 bg-teal-500 transition-all duration-100 ease-linear" 
+                  style={{ width: `${progress}%` }} 
+                />
              </div>
              <Volume2 size={14} className="text-zinc-500" />
              <Maximize size={14} className="text-zinc-500" />
           </div>
         </div>
 
-        {/* Floating Cursor 1 (Sarah) - Popped forward in Z space */}
+        {/* Floating Cursor 1 (Pam) - Popped forward in Z space */}
         <motion.div 
           className="absolute top-[20%] left-[15%] pointer-events-none drop-shadow-2xl"
           style={{ transform: 'translateZ(60px)' }}
         >
           <MousePointer2 size={24} className="text-white fill-white/80 -rotate-12 drop-shadow-md" />
           <div className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full rounded-tl-none absolute top-full left-4 mt-0 ml-0 shadow-xl">
-            Sarah
+            Pam
           </div>
         </motion.div>
 
-        {/* Floating Cursor 2 (Alex) - Popped even further forward in Z space */}
+        {/* Floating Cursor 2 (Sam) - Popped even further forward in Z space */}
         <motion.div 
           className="absolute bottom-[25%] right-[10%] pointer-events-none drop-shadow-2xl"
           style={{ transform: 'translateZ(100px)' }}
         >
           <MousePointer2 size={24} className="text-white fill-white/80 -rotate-12 drop-shadow-md" />
           <div className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full rounded-tl-none absolute top-full left-4 mt-0 ml-0 shadow-xl">
-            Alex
+            Sam
           </div>
         </motion.div>
 
