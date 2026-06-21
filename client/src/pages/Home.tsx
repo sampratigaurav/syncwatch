@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield, HelpCircle, Github, Linkedin, Twitter, Eye, EyeOff } from 'lucide-react';
+import { Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield, HelpCircle, Github, Linkedin, Twitter, Eye, EyeOff, ChevronDown } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../lib/config';
@@ -360,11 +360,11 @@ export default function Home() {
       {/* Content Container */}
       <div className="relative z-10 w-full max-w-[1000px] flex flex-col items-center px-4 tablet:px-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
           
-        <div className="w-full min-h-[calc(100vh-140px)] flex flex-col items-center justify-center space-y-10 animate-in fade-in slide-in-from-bottom-8 fill-mode-both duration-700 delay-200 pb-12">
+        <div className="w-full min-h-[calc(100vh-140px)] relative flex flex-col items-center justify-center space-y-12 tablet:space-y-16 animate-in fade-in slide-in-from-bottom-8 fill-mode-both duration-700 delay-200 pb-12">
            
            {/* Greeting */}
-           <h2 className="text-2xl tablet:text-3xl font-semibold bg-gradient-to-r from-zinc-200 to-zinc-400 bg-clip-text text-transparent drop-shadow-sm pb-1">
-             Watch together. In perfect sync.
+           <h2 className="text-5xl tablet:text-7xl font-bold bg-gradient-to-br from-white via-zinc-200 to-zinc-600 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(255,255,255,0.05)] pb-2 tracking-tight leading-[1.1] text-center px-4">
+             Watch together.<br className="hidden tablet:block" /> In perfect sync.
            </h2>
 
            {/* Create / Join Container */}
@@ -599,6 +599,10 @@ export default function Home() {
              </div>
            )}
 
+           {/* Scroll Indicator */}
+           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce text-zinc-500 [.light_&]:text-zinc-400 opacity-70 pointer-events-none">
+             <ChevronDown size={20} className="mt-1" />
+           </div>
         </div>
 
         {/* How it works section */}
