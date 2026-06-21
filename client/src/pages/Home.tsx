@@ -393,7 +393,7 @@ export default function Home() {
         <m.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
           className="opacity-0 -translate-y-5 flex flex-col items-center w-full mb-12 tablet:mb-16"
         >
           <h2 className="text-5xl tablet:text-[4.5rem] font-bold bg-gradient-to-br from-white via-zinc-200 to-zinc-600 bg-clip-text text-transparent pb-4 tracking-tight leading-[1.1] text-center max-w-4xl drop-shadow-2xl">
@@ -411,7 +411,7 @@ export default function Home() {
           <m.div 
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
             className="opacity-0 -translate-x-8 flex flex-col items-center tablet:items-center order-1 tablet:order-1 w-full"
           >
             {/* Unified Action Box */}
@@ -622,7 +622,7 @@ export default function Home() {
           <m.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
             className="w-full h-full min-h-[300px] tablet:min-h-[500px] order-2 tablet:order-2 flex items-center justify-center relative opacity-0 scale-95"
           >
             {isMobile ? (
