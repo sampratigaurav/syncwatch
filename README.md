@@ -20,7 +20,6 @@
 
 <br />
 
-![SyncWatch Hero](https://syncwatch-eosin.vercel.app/preview.png)
 
 </div>
 
