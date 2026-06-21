@@ -18,6 +18,7 @@ import { EVENTS } from '../../../shared/socketEvents';
 import { Settings, Users, MessageSquare, Info, Loader2, WifiOff, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { motion } from 'framer-motion';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -183,7 +184,11 @@ export default function Room() {
   }
 
   return (
-    <div 
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
       className="h-[100dvh] w-full bg-black flex flex-col tablet:flex-row overflow-hidden relative font-sans"
       style={{ paddingBottom: keyboardHeight > 0 && !activeMobileTab ? undefined : 0 }} 
     >
@@ -423,6 +428,6 @@ export default function Room() {
         </div>
       </div>
       
-    </div>
+    </motion.div>
   );
 }

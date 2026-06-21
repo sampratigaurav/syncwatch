@@ -7,6 +7,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import ParticipantList from '../components/ParticipantList';
 import ControlPolicySelector from '../components/ControlPolicySelector';
 import { Copy, Check, AlertTriangle, Loader2, WifiOff, Lock, Link2, UploadCloud, Ticket } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function WaitingRoom() {
   const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast } = useRoomStore(useShallow(state => ({
@@ -120,7 +121,13 @@ export default function WaitingRoom() {
   if (!roomId) return null;
 
   return (
-    <div className="min-h-screen p-4 tablet:p-8 flex flex-col items-center pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-x-hidden relative selection:bg-teal-500/30">
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="min-h-screen p-4 tablet:p-8 flex flex-col items-center pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-x-hidden relative selection:bg-teal-500/30"
+    >
       
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[800px] h-[600px] bg-teal-500/5 blur-[120px] pointer-events-none -z-10" />
       {connectionStatus === 'reconnecting' && (
@@ -326,6 +333,6 @@ export default function WaitingRoom() {
           <ParticipantList variant="waiting-room" />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

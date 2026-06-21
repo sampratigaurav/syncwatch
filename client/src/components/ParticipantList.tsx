@@ -4,6 +4,7 @@ import { socket } from '../hooks/useSocket';
 import { Wifi, WifiOff, Gamepad2, Crown, MicOff, Check, Loader2 } from 'lucide-react';
 import { useWebRTC } from '../hooks/useWebRTC';
 import clsx from 'clsx';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const getGradient = (name: string) => {
   const colors = [
@@ -35,6 +36,7 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
   const horizontalChips = isWaitingRoom && (
     <div className="flex tablet:hidden overflow-x-auto gap-3 py-4 px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
       {emptyState}
+      <AnimatePresence mode="popLayout">
       {participants.map(p => {
          const isHost = p.role === 'host';
          let hasControl = false;
@@ -44,7 +46,14 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
          const vp = voiceParticipants.find(v => v.id === p.id);
 
          return (
-           <div key={`chip-${p.id}`} className="flex-shrink-0 flex items-center bg-zinc-800/80 rounded-full pr-4 pl-1.5 py-1.5 border border-zinc-700 shadow-sm relative">
+           <motion.div 
+             layout
+             initial={{ opacity: 0, scale: 0.8 }}
+             animate={{ opacity: 1, scale: 1 }}
+             exit={{ opacity: 0, scale: 0.8 }}
+             key={`chip-${p.id}`} 
+             className="flex-shrink-0 flex items-center bg-zinc-800/80 rounded-full pr-4 pl-1.5 py-1.5 border border-zinc-700 shadow-sm relative"
+           >
              <div className="relative">
                <div className={clsx(
                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white uppercase transition-all bg-gradient-to-br shadow-inner",
@@ -67,10 +76,11 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
                <span className="absolute -top-1 -right-1 text-teal-400 bg-zinc-900 rounded-full p-0.5 shadow-md">
                  {isHost ? <Crown className="w-3 h-3" /> : <Gamepad2 className="w-3 h-3" />}
                </span>
-             )}
-           </div>
-         );
-      })}
+              )}
+            </motion.div>
+          );
+       })}
+       </AnimatePresence>
     </div>
   );
 
@@ -82,6 +92,7 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
       {horizontalChips}
       <div className={clsx("p-2 space-y-1", isWaitingRoom && "hidden tablet:block")}>
         {emptyState}
+        <AnimatePresence mode="popLayout">
         {participants.map((p) => {
           const isMe = p.id === socket.id;
           const isHost = p.role === 'host';
@@ -94,7 +105,14 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
           const vp = voiceParticipants.find(v => v.id === p.id);
 
           return (
-            <div key={p.id} className="flex items-center justify-between p-2 rounded-lg bg-transparent hover:bg-zinc-800/30 transition-colors">
+            <motion.div 
+              layout
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              key={p.id} 
+              className="flex items-center justify-between p-2 rounded-lg bg-transparent hover:bg-zinc-800/30 transition-colors"
+            >
               <div className="flex items-center space-x-3">
                 <div className="relative">
                   <div className={clsx(
@@ -157,9 +175,10 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
                   )}
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
+        </AnimatePresence>
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import { StatsForNerds } from './StatsForNerds';
 import SubtitleLoader from './SubtitleLoader';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface VideoPlayerProps {
   src: string;
@@ -335,7 +336,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           <div className="flex items-center justify-between mt-1 tablet:mt-0 px-1 tablet:px-0">
             <div className="flex items-center gap-1 tablet:gap-4">
               {/* Skip Back */}
-              <button 
+              <motion.button 
+                 whileTap={hasControl ? { scale: 0.85 } : {}}
                  onClick={(e) => { e.stopPropagation(); skipBackward(); }}
                  disabled={!hasControl}
                  aria-label="Skip back 10 seconds"
@@ -346,10 +348,11 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 )}
               >
                  <RotateCcw className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />
-              </button>
+              </motion.button>
 
               {/* Playback Toggle */}
-              <button 
+              <motion.button 
+                whileTap={hasControl ? { scale: 0.85 } : {}}
                 onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                 disabled={!hasControl}
                 aria-label={isPlaying ? 'Pause' : 'Play'}
@@ -360,10 +363,11 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 )}
               >
                 {isPlaying ? <Pause className="w-8 h-8 tablet:w-6 tablet:h-6 fill-current" aria-hidden="true" /> : <Play className="w-8 h-8 tablet:w-6 tablet:h-6 fill-current pl-1 tablet:pl-0" aria-hidden="true" />}
-              </button>
+              </motion.button>
 
               {/* Skip Forward */}
-              <button 
+              <motion.button 
+                 whileTap={hasControl ? { scale: 0.85 } : {}}
                  onClick={(e) => { e.stopPropagation(); skipForward(); }}
                  disabled={!hasControl}
                  aria-label="Skip forward 10 seconds"
@@ -374,18 +378,19 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 )}
               >
                  <RotateCw className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />
-              </button>
+              </motion.button>
 
               {/* Volume Slider - Unlocked for Viewer */}
               <div className="flex items-center gap-2 group/volume relative ml-1 tablet:ml-0">
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
                   onClick={(e) => { e.stopPropagation(); toggleMute(); }}
                   aria-label={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
                   title={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
                   className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded"
                 >
                   {isMuted || volume === 0 ? <VolumeX className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" /> : <Volume2 className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />}
-                </button>
+                </motion.button>
                 <input 
                   type="range"
                   min={0}
@@ -408,9 +413,14 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               {/* Subtitles Menu Wrapper */}
               <div className="relative">
                 {/* The Popover */}
+                <AnimatePresence>
                 {showSubtitleMenu && (
-                  <div 
-                    className="absolute bottom-full right-0 mb-4 w-[280px] tablet:w-72 bg-zinc-950/95 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden p-4 origin-bottom-right animate-in zoom-in-95 duration-200"
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                    className="absolute bottom-full right-0 mb-4 w-[280px] tablet:w-72 bg-zinc-950/95 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden p-4 origin-bottom-right"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex items-center justify-between mb-4">
@@ -440,8 +450,9 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                         setShowSubtitleMenu(false);
                       }}
                     />
-                  </div>
+                  </motion.div>
                 )}
+                </AnimatePresence>
                 <button 
                   onClick={(e) => { 
                      e.stopPropagation(); 

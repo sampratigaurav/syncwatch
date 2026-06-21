@@ -5,6 +5,7 @@ import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import { Send } from 'lucide-react';
 import { TypingIndicator } from './TypingIndicator';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Chat() {
   const { chatMessages, nickname, participants } = useRoomStore(useShallow(state => ({
@@ -83,29 +84,49 @@ export default function Chat() {
             Say hello to the room!
           </div>
         )}
+        <AnimatePresence initial={false}>
         {chatMessages.map(msg => {
           const isSystem = msg.senderId === 'system';
           const isMe = msg.senderNickname === nickname && !isSystem;
           
           if (isSystem) {
             return (
-              <div key={msg.id} className="text-center text-xs text-zinc-500 italic py-1">
+              <motion.div 
+                layout
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                key={msg.id} 
+                className="text-center text-xs text-zinc-500 italic py-1"
+              >
                 {msg.text}
-              </div>
+              </motion.div>
             );
           }
           
           return (
-            <div key={msg.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+            <motion.div 
+              layout
+              initial={{ opacity: 0, y: 10, scale: 0.95, originX: isMe ? 1 : 0 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              key={msg.id} 
+              className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
+            >
               <span className="text-[10px] text-zinc-500 mb-0.5 px-1">{msg.senderNickname}</span>
               <div className={`px-3 py-2 rounded-2xl max-w-[85%] text-sm ${isMe ? 'bg-teal-600 text-white rounded-tr-sm' : 'bg-zinc-800 text-zinc-200 rounded-tl-sm'}`}>
                 {msg.text}
               </div>
-            </div>
+            </motion.div>
           );
         })}
         {typingUsers.size > 0 && (
-          <div className="flex flex-col items-start pt-2">
+          <motion.div 
+            key="typing-indicator"
+            layout
+            initial={{ opacity: 0, y: 10, scale: 0.95, originX: 0 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
+            className="flex flex-col items-start pt-2"
+          >
             <div className="bg-zinc-800 text-zinc-200 rounded-2xl rounded-tl-sm px-3 py-2 flex items-center gap-2">
                <TypingIndicator />
             </div>
@@ -116,8 +137,9 @@ export default function Chat() {
                   .join(', ')}{' '}
                {typingUsers.size > 1 ? 'are' : 'is'} typing...
             </span>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
 
       <div className="p-3 bg-zinc-950/50 border-t border-zinc-800 flex-shrink-0">

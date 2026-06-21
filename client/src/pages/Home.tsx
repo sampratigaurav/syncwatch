@@ -9,6 +9,7 @@ import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { motion } from 'framer-motion';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -328,7 +329,13 @@ export default function Home() {
   const isGlobalJoinError = joinError && !isJoinNicknameError && !isJoinCodeError && !isJoinPinError;
 
   return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto pt-24 tablet:pt-28 pb-12 selection:bg-teal-500/30 bg-zinc-950 transition-colors duration-500 animate-in fade-in duration-500">
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden overflow-y-auto pt-24 tablet:pt-28 pb-12 selection:bg-teal-500/30 bg-zinc-950"
+    >
         
       {/* Sticky Header */}
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between backdrop-blur-md bg-zinc-950/50 border-b border-zinc-900/50 px-6 py-4 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -722,6 +729,6 @@ export default function Home() {
         </div>
 
       </div>
-    </div>
+    </motion.div>
   );
 }
