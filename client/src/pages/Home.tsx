@@ -105,7 +105,7 @@ export default function Home() {
 
   const [showExpiredError, setShowExpiredError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [greeting, setGreeting] = useState('');
+
   
   const [showCreatePin, setShowCreatePin] = useState(false);
   const [showJoinPin, setShowJoinPin] = useState(false);
@@ -172,12 +172,7 @@ export default function Home() {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good morning.');
-    else if (hour < 18) setGreeting('Good afternoon.');
-    else setGreeting('Good evening.');
-  }, []);
+
 
   useEffect(() => {
     if (urlRoomId) {
@@ -369,7 +364,7 @@ export default function Home() {
            
            {/* Greeting */}
            <h2 className="text-2xl tablet:text-3xl font-semibold bg-gradient-to-r from-zinc-200 to-zinc-400 bg-clip-text text-transparent drop-shadow-sm pb-1">
-             {greeting}
+             Watch together. In perfect sync.
            </h2>
 
            {/* Create / Join Container */}
