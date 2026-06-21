@@ -360,7 +360,7 @@ export default function Home() {
       {/* Content Container */}
       <div className="relative z-10 w-full max-w-[1000px] flex flex-col items-center px-4 tablet:px-8 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
           
-        <div className="w-full flex flex-col items-center space-y-10 animate-in fade-in slide-in-from-bottom-8 fill-mode-both duration-700 delay-200">
+        <div className="w-full min-h-[calc(100vh-140px)] flex flex-col items-center justify-center space-y-10 animate-in fade-in slide-in-from-bottom-8 fill-mode-both duration-700 delay-200 pb-12">
            
            {/* Greeting */}
            <h2 className="text-2xl tablet:text-3xl font-semibold bg-gradient-to-r from-zinc-200 to-zinc-400 bg-clip-text text-transparent drop-shadow-sm pb-1">
