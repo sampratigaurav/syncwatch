@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield, HelpCircle, Github, Linkedin, Twitter } from 'lucide-react';
+import { Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, ArrowRight, Shield, HelpCircle, Github, Linkedin, Twitter, Eye, EyeOff } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../lib/config';
@@ -105,6 +105,9 @@ export default function Home() {
   const [showExpiredError, setShowExpiredError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [greeting, setGreeting] = useState('');
+  
+  const [showCreatePin, setShowCreatePin] = useState(false);
+  const [showJoinPin, setShowJoinPin] = useState(false);
 
   const joinNicknameInputRef = useRef<HTMLInputElement>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -428,21 +431,36 @@ export default function Home() {
                  {lockRoom && (
                    <div className="animate-in fade-in slide-in-from-top-2 duration-300 mt-1">
                      <p className="text-xs text-zinc-500 mb-1.5 ml-1">Anyone joining will need this PIN</p>
-                      <input
-                        type="password"
-                        value={createPin}
-                        onChange={e => {
-                          const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
-                          setCreatePin(val);
-                          if (createError) setCreateError('');
-                        }}
-                        className={cn(
-                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest",
-                          isCreatePinError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
-                        )}
-                        placeholder="4-8 character PIN"
-                        maxLength={8}
-                      />
+                      <div className="relative w-full">
+                        <input
+                          type={showCreatePin ? "text" : "password"}
+                          value={createPin}
+                          onChange={e => {
+                            const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
+                            setCreatePin(val);
+                            if (createError) setCreateError('');
+                          }}
+                          className={cn(
+                            "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg pl-4 pr-12 tablet:pl-5 tablet:pr-12 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest",
+                            isCreatePinError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
+                          )}
+                          placeholder="4-8 character PIN"
+                          maxLength={8}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCreatePin(!showCreatePin)}
+                          aria-label={showCreatePin ? "Hide PIN" : "Show PIN"}
+                          title={showCreatePin ? "Hide PIN" : "Show PIN"}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded"
+                        >
+                          {showCreatePin ? (
+                            <EyeOff size={18} aria-hidden="true" />
+                          ) : (
+                            <Eye size={18} aria-hidden="true" />
+                          )}
+                        </button>
+                      </div>
                       {isCreatePinError && <div className="text-red-400 text-xs mt-1 ml-1">{createError}</div>}
                    </div>
                  )}
@@ -513,22 +531,37 @@ export default function Home() {
                        <Lock size={14} className="text-teal-400" />
                        <span className="text-sm font-medium text-zinc-300 [.light_&]:text-zinc-700">This room is locked</span>
                      </div>
-                      <input
-                        type="password"
-                        value={joinPin}
-                        onChange={e => {
-                          const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
-                          setJoinPin(val);
-                          if (joinError) setJoinError('');
-                        }}
-                        autoFocus
-                        className={cn(
-                          "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg px-4 tablet:px-5 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest",
-                          isJoinPinError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
-                        )}
-                        placeholder="Enter PIN"
-                        maxLength={8}
-                      />
+                      <div className="relative w-full">
+                        <input
+                          type={showJoinPin ? "text" : "password"}
+                          value={joinPin}
+                          onChange={e => {
+                            const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8);
+                            setJoinPin(val);
+                            if (joinError) setJoinError('');
+                          }}
+                          autoFocus
+                          className={cn(
+                            "w-full h-12 tablet:h-[52px] min-h-[48px] bg-zinc-900/80 border rounded-lg pl-4 pr-12 tablet:pl-5 tablet:pr-12 text-zinc-100 [.light_&]:text-zinc-900 focus:outline-none focus:ring-4 transition-all duration-200 placeholder:text-zinc-600 text-sm font-normal font-mono tracking-widest",
+                            isJoinPinError ? "border-red-500/50 focus:ring-red-500/20 focus:border-red-500/50 animate-shake" : "border-zinc-700 focus:ring-emerald-500/10 focus:border-emerald-500/50"
+                          )}
+                          placeholder="Enter PIN"
+                          maxLength={8}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowJoinPin(!showJoinPin)}
+                          aria-label={showJoinPin ? "Hide PIN" : "Show PIN"}
+                          title={showJoinPin ? "Hide PIN" : "Show PIN"}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-400 hover:text-zinc-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded"
+                        >
+                          {showJoinPin ? (
+                            <EyeOff size={18} aria-hidden="true" />
+                          ) : (
+                            <Eye size={18} aria-hidden="true" />
+                          )}
+                        </button>
+                      </div>
                       {isJoinPinError && <div className="text-red-400 text-xs mt-1 ml-1">{joinError}</div>}
                    </div>
                  )}
