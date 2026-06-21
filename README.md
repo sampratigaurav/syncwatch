@@ -38,6 +38,16 @@ It acts like an incredibly fast, sub-second shared remote control. When you paus
 
 ---
 
+## 📸 Gallery
+
+<div align="center">
+  <img src="client/public/screenshots/home.png" alt="SyncWatch Home Screen" width="800" style="border-radius: 12px; margin-bottom: 20px;" />
+  <br />
+  <img src="client/public/screenshots/room.png" alt="SyncWatch Room" width="800" style="border-radius: 12px;" />
+</div>
+
+---
+
 ## 🍿 The Premium Experience
 
 We obsessed over every detail to make SyncWatch feel like magic. 
