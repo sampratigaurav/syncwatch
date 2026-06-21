@@ -10,7 +10,7 @@ import { EVENTS } from '../../../shared/socketEvents';
 import React, { Suspense, lazy } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, LazyMotion, domAnimation, AnimatePresence } from 'framer-motion';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import CssOrb from '../components/CssOrb';
 const FloatingAppMockup = lazy(() => import('../components/FloatingAppMockup'));
@@ -21,22 +21,24 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 const AmbientBackground = () => (
   <div className="fixed inset-0 pointer-events-none z-0 bg-[#050505] overflow-hidden">
-    <motion.div 
+    <m.div 
       animate={{ 
         scale: [1, 1.1, 1],
         opacity: [0.3, 0.5, 0.3],
         rotate: [0, 90, 0]
       }}
       transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+      style={{ willChange: 'transform, opacity' }}
       className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] max-w-[800px] max-h-[800px] bg-teal-900/30 rounded-full blur-[120px] mix-blend-screen" 
     />
-    <motion.div 
+    <m.div 
       animate={{ 
         scale: [1, 1.2, 1],
         opacity: [0.2, 0.4, 0.2],
         rotate: [0, -90, 0]
       }}
       transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+      style={{ willChange: 'transform, opacity' }}
       className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] bg-slate-800/40 rounded-full blur-[150px] mix-blend-screen" 
     />
   </div>
@@ -69,10 +71,11 @@ const TechTicker = () => {
   return (
     <div className="w-full mt-12 overflow-hidden relative z-10 opacity-60">
       <div className="absolute inset-0 z-20 pointer-events-none" style={{ background: 'linear-gradient(90deg, #050505 0%, transparent 5%, transparent 95%, #050505 100%)' }} />
-      <motion.div 
+      <m.div 
         className="flex items-center gap-8 whitespace-nowrap w-max"
         animate={{ x: ["0%", "-50%"] }}
         transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
+        style={{ willChange: 'transform' }}
       >
         {[...Array(8)].map((_, i) => (
           <div key={i} className="flex items-center gap-8 text-xs tablet:text-sm font-medium text-zinc-400 uppercase tracking-widest pr-8">
@@ -86,37 +89,54 @@ const TechTicker = () => {
             <span className="text-zinc-700">•</span>
           </div>
         ))}
-      </motion.div>
+      </m.div>
     </div>
   );
 };
 
-const StickyScrollSteps = () => {
+const FeatureBentoGrid = () => {
   return (
-    <div className="w-full max-w-[800px] mx-auto mt-32 relative z-10 pb-24">
-      <div className="text-center mb-24 px-4">
+    <div className="w-full max-w-[1200px] mx-auto mt-32 relative z-10 pb-24 px-4 tablet:px-8">
+      <div className="text-center mb-16 tablet:mb-24">
         <h2 className="text-3xl tablet:text-5xl font-bold tracking-tight text-white mb-4">How it works</h2>
         <p className="text-base tablet:text-lg text-zinc-400">From your file to in sync — in under 30 seconds</p>
       </div>
 
-      <div className="relative border-l border-white/10 ml-6 tablet:ml-12 pb-12">
-        {STEPS.map((step, index) => (
-          <motion.div 
-            key={index}
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: false, margin: "-20% 0px -20% 0px" }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="mb-24 pl-8 tablet:pl-16 relative pr-4"
-          >
-            <div className="absolute left-[-17px] top-0 w-8 h-8 rounded-full bg-zinc-950 border border-white/10 flex items-center justify-center">
-              <div className="w-2.5 h-2.5 rounded-full bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.5)]" />
-            </div>
-            <step.icon className="text-teal-400 w-8 h-8 mb-6" />
-            <h3 className="text-2xl tablet:text-3xl font-semibold text-white mb-3 tracking-tight">{step.title}</h3>
-            <p className="text-zinc-400 text-lg leading-relaxed max-w-lg">{step.desc}</p>
-          </motion.div>
-        ))}
+      <div className="grid grid-cols-1 tablet:grid-cols-3 gap-6 tablet:gap-8">
+        {STEPS.map((step, index) => {
+          // Asymmetrical layout:
+          // 0: span 2
+          // 1: span 1
+          // 2: span 1
+          // 3: span 2
+          const isWide = index === 0 || index === 3;
+          const colSpanClass = isWide ? "tablet:col-span-2" : "tablet:col-span-1";
+          
+          return (
+            <m.div 
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false, margin: "-10% 0px -10% 0px" }}
+              transition={{ duration: 0.5, delay: index * 0.1, ease: "easeOut" }}
+              className={`opacity-0 translate-y-5 group relative p-8 tablet:p-10 rounded-3xl bg-zinc-900/40 backdrop-blur-md border border-white/5 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-teal-500/10 flex flex-col justify-end min-h-[300px] ${colSpanClass}`}
+            >
+              {/* Subtle hover gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-teal-500/0 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              {/* Glowing Icon Container */}
+              <div className="relative w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-auto group-hover:border-teal-500/30 transition-colors duration-300">
+                <div className="absolute inset-0 bg-teal-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <step.icon className="text-teal-400 w-7 h-7 relative z-10" />
+              </div>
+
+              <div className="mt-8 relative z-10">
+                <h3 className="text-2xl font-semibold text-white mb-3 tracking-tight">{step.title}</h3>
+                <p className="text-zinc-400 text-lg leading-relaxed">{step.desc}</p>
+              </div>
+            </m.div>
+          );
+        })}
       </div>
     </div>
   );
@@ -338,17 +358,18 @@ export default function Home() {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-      className="relative flex flex-col items-center min-h-screen overflow-x-hidden selection:bg-teal-500/30 bg-[#050505]"
-    >
+    <LazyMotion features={domAnimation}>
+      <m.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="opacity-0 relative flex flex-col items-center min-h-screen overflow-x-hidden selection:bg-teal-500/30 bg-[#050505]"
+      >
       <AmbientBackground />
         
-      {/* Sticky Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between backdrop-blur-xl bg-[#050505]/60 border-b border-white/5 px-6 py-4">
+      {/* Floating Pill Header */}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[1200px] z-50 flex items-center justify-between backdrop-blur-xl bg-zinc-950/60 border border-white/10 shadow-2xl shadow-teal-500/5 px-6 py-4 rounded-2xl">
         <h1 className="text-xl tablet:text-2xl font-bold tracking-tighter text-white drop-shadow-md">
           SyncWatch
         </h1>
@@ -369,11 +390,11 @@ export default function Home() {
       <div className="relative z-10 w-full max-w-[1200px] flex flex-col items-center px-4 tablet:px-8 pt-24 tablet:pt-32">
           
         {/* Row 1: Full-Width Centered Typography */}
-        <motion.div 
+        <m.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="flex flex-col items-center w-full mb-12 tablet:mb-16"
+          className="opacity-0 -translate-y-5 flex flex-col items-center w-full mb-12 tablet:mb-16"
         >
           <h2 className="text-5xl tablet:text-[4.5rem] font-bold bg-gradient-to-br from-white via-zinc-200 to-zinc-600 bg-clip-text text-transparent pb-4 tracking-tight leading-[1.1] text-center max-w-4xl drop-shadow-2xl">
             Watch together.<br className="hidden tablet:block" /> In perfect sync.
@@ -381,17 +402,17 @@ export default function Home() {
           <p className="text-zinc-400 text-lg tablet:text-xl text-center max-w-2xl">
             Experience movies and shows with your friends in real-time, no matter where they are.
           </p>
-        </motion.div>
+        </m.div>
 
         {/* Row 2: 50/50 Split Grid */}
         <div className="w-full grid grid-cols-1 tablet:grid-cols-2 gap-8 tablet:gap-12 items-center">
           
           {/* Left Column: Action Box */}
-          <motion.div 
+          <m.div 
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
-            className="flex flex-col items-center tablet:items-center order-1 tablet:order-1 w-full"
+            className="opacity-0 -translate-x-8 flex flex-col items-center tablet:items-center order-1 tablet:order-1 w-full"
           >
             {/* Unified Action Box */}
             <div className="w-full max-w-[440px] bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 tablet:p-8 relative z-10 overflow-hidden self-center tablet:self-start">
@@ -449,7 +470,7 @@ export default function Home() {
                <div className="min-h-[140px] flex flex-col justify-end">
                  <AnimatePresence mode="wait">
                    {activeTab === 'create' ? (
-                     <motion.div 
+                     <m.div 
                        key="create"
                        initial={{ opacity: 0, x: -10 }}
                        animate={{ opacity: 1, x: 0 }}
@@ -473,7 +494,7 @@ export default function Home() {
                         
                         <AnimatePresence>
                         {lockRoom && (
-                          <motion.div 
+                          <m.div 
                             initial={{ opacity: 0, height: 0, marginBottom: 0 }}
                             animate={{ opacity: 1, height: 'auto', marginBottom: 4 }}
                             exit={{ opacity: 0, height: 0, marginBottom: 0 }}
@@ -498,7 +519,7 @@ export default function Home() {
                                  {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
                                </button>
                              </div>
-                          </motion.div>
+                          </m.div>
                         )}
                         </AnimatePresence>
 
@@ -511,9 +532,9 @@ export default function Home() {
                         >
                           Start New Room
                         </button>
-                     </motion.div>
+                     </m.div>
                    ) : (
-                     <motion.div 
+                     <m.div 
                        key="join"
                        initial={{ opacity: 0, x: 10 }}
                        animate={{ opacity: 1, x: 0 }}
@@ -543,7 +564,7 @@ export default function Home() {
 
                         <AnimatePresence>
                         {requiresPin && (
-                          <motion.div 
+                          <m.div 
                             initial={{ opacity: 0, height: 0, marginTop: -10 }}
                             animate={{ opacity: 1, height: 'auto', marginTop: 0 }}
                             exit={{ opacity: 0, height: 0, marginTop: -10 }}
@@ -573,7 +594,7 @@ export default function Home() {
                                  {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
                                </button>
                              </div>
-                          </motion.div>
+                          </m.div>
                         )}
                         </AnimatePresence>
 
@@ -587,7 +608,7 @@ export default function Home() {
                         >
                           Join Room
                          </button>
-                      </motion.div>
+                      </m.div>
                    )}
                  </AnimatePresence>
                 </div>
@@ -595,14 +616,14 @@ export default function Home() {
             </div>
           
             {/* Removed TechTicker from here */}
-          </motion.div>
+          </m.div>
 
           {/* Right Column: 3D Orb / Mobile Fallback */}
-          <motion.div 
+          <m.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
-            className="w-full h-full min-h-[300px] tablet:min-h-[500px] order-2 tablet:order-2 flex items-center justify-center relative"
+            className="w-full h-full min-h-[300px] tablet:min-h-[500px] order-2 tablet:order-2 flex items-center justify-center relative opacity-0 scale-95"
           >
             {isMobile ? (
               <CssOrb />
@@ -611,7 +632,7 @@ export default function Home() {
                 <FloatingAppMockup />
               </Suspense>
             )}
-          </motion.div>
+          </m.div>
         </div>
 
         {/* Row 3: Full-Width Tech Ticker (Bounded to Container) */}
@@ -623,56 +644,66 @@ export default function Home() {
           <TechTicker />
         </div>
 
-        <StickyScrollSteps />
+        <FeatureBentoGrid />
 
         {/* Support Section */}
-        <div className="w-full max-w-[600px] mt-12 tablet:mt-16 pt-8 border-t border-white/5 pb-12 relative z-10">
-          <div className="flex flex-col items-center text-center mb-6 px-4">
-            <p className="text-zinc-200 font-medium mb-1 text-[15px] tablet:text-[16px]">
-              SyncWatch is free and open source.
-            </p>
-            <p className="text-[13px] tablet:text-[14px] text-zinc-500">
-              If it made your movie night better, consider starring the project.
-            </p>
-          </div>
-          
-          <div className="flex flex-col tablet:flex-row items-center justify-center gap-3 tablet:gap-4 max-w-lg mx-auto">
-            {/* GitHub Button */}
-            <a 
-              href="https://github.com/sampratigaurav/syncwatch" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-full tablet:w-auto min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 hover:border-white/20 text-zinc-300 rounded-xl px-5 py-2 font-medium transition-colors active:scale-[0.98]"
-            >
-              <Github size={18} />
-              <span className="text-sm tablet:text-base">Star on GitHub</span>
-            </a>
+        <div className="w-full relative flex flex-col items-center mt-12 tablet:mt-16 pt-16 pb-24 overflow-hidden rounded-t-[40px]">
+          {/* Absolute Glow Background */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-teal-900/20 via-zinc-900/10 to-transparent pointer-events-none" />
+          <div className="absolute bottom-0 w-full h-[1px] bg-gradient-to-r from-transparent via-teal-500/30 to-transparent" />
 
-            {/* LinkedIn Button */}
-            <a 
-              href="https://linkedin.com/in/sampratigaurav" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-full tablet:w-auto min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-transparent border border-white/10 hover:border-white/20 text-zinc-300 rounded-xl px-5 py-2 font-medium transition-colors active:scale-[0.98]"
-            >
-              <Linkedin size={18} />
-              <span className="text-sm tablet:text-base">Connect</span>
-            </a>
+          <div className="w-full max-w-[600px] relative z-10">
+            <div className="flex flex-col items-center text-center mb-8 px-4">
+              <p className="text-zinc-200 font-medium mb-2 text-lg tablet:text-xl tracking-tight">
+                SyncWatch is free and open source.
+              </p>
+              <p className="text-sm tablet:text-base text-zinc-500">
+                If it made your movie night better, consider starring the project.
+              </p>
+            </div>
+            
+            <div className="flex flex-col items-center gap-4 max-w-sm mx-auto w-full px-4">
+              {/* GitHub Button (Row 1) */}
+              <a 
+                href="https://github.com/sampratigaurav/syncwatch" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-zinc-900/50 hover:bg-zinc-800/80 backdrop-blur-md border border-white/10 hover:border-white/20 text-zinc-200 rounded-2xl px-8 py-3.5 font-medium transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-teal-500/10 active:scale-[0.98]"
+              >
+                <Github size={18} />
+                <span>Star on GitHub</span>
+              </a>
 
-            {/* X Button */}
-            <a 
-              href="https://x.com/Sampratigaurav0" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="w-full tablet:w-auto min-h-[48px] tablet:min-h-[44px] flex items-center justify-center gap-2 bg-transparent border border-white/10 hover:border-white/20 text-zinc-300 rounded-xl px-5 py-2 font-medium transition-colors active:scale-[0.98]"
-            >
-              <Twitter size={18} />
-              <span className="text-sm tablet:text-base">Follow</span>
-            </a>
+              {/* Row 2 Container */}
+              <div className="flex flex-row items-center justify-center gap-4 w-full">
+                {/* LinkedIn Button */}
+                <a 
+                  href="https://linkedin.com/in/sampratigaurav" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-full flex-1 flex items-center justify-center gap-2 bg-zinc-900/30 hover:bg-zinc-800/60 backdrop-blur-md border border-white/5 hover:border-white/20 text-zinc-300 rounded-2xl px-4 py-3 font-medium transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-teal-500/10 active:scale-[0.98]"
+                >
+                  <Linkedin size={18} />
+                  <span>Connect</span>
+                </a>
+
+                {/* X Button */}
+                <a 
+                  href="https://x.com/Sampratigaurav0" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-full flex-1 flex items-center justify-center gap-2 bg-zinc-900/30 hover:bg-zinc-800/60 backdrop-blur-md border border-white/5 hover:border-white/20 text-zinc-300 rounded-2xl px-4 py-3 font-medium transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-teal-500/10 active:scale-[0.98]"
+                >
+                  <Twitter size={18} />
+                  <span>Follow</span>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
       </div>
-    </motion.div>
+    </m.div>
+    </LazyMotion>
   );
 }

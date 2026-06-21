@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { m, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import { useEffect, useRef, useState } from 'react';
 import { Play, Pause, Volume2, Maximize, MousePointer2 } from 'lucide-react';
 
@@ -81,7 +81,7 @@ export default function FloatingAppMockup() {
       style={{ perspective: 1200 }}
     >
       {/* 3D Wrapper */}
-      <motion.div
+      <m.div
         style={{
           rotateX,
           rotateY,
@@ -152,7 +152,7 @@ export default function FloatingAppMockup() {
         </div>
 
         {/* Floating Cursor 1 (Pam) - Popped forward in Z space */}
-        <motion.div 
+        <m.div 
           className="absolute top-[20%] left-[15%] pointer-events-none drop-shadow-2xl"
           style={{ transform: 'translateZ(60px)' }}
         >
@@ -160,10 +160,10 @@ export default function FloatingAppMockup() {
           <div className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full rounded-tl-none absolute top-full left-4 mt-0 ml-0 shadow-xl">
             Pam
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Floating Cursor 2 (Sam) - Popped even further forward in Z space */}
-        <motion.div 
+        <m.div 
           className="absolute bottom-[25%] right-[10%] pointer-events-none drop-shadow-2xl"
           style={{ transform: 'translateZ(100px)' }}
         >
@@ -171,17 +171,17 @@ export default function FloatingAppMockup() {
           <div className="bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold px-2.5 py-1 rounded-full rounded-tl-none absolute top-full left-4 mt-0 ml-0 shadow-xl">
             Sam
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Floating "Sync Label" - Popped backward in Z space */}
-        <motion.div 
+        <m.div 
           className="absolute -top-6 -right-4 bg-zinc-900/80 backdrop-blur-md border border-white/10 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-xl"
           style={{ transform: 'translateZ(30px)' }}
         >
           Latency: <span className="text-teal-400">12ms</span>
-        </motion.div>
+        </m.div>
 
-      </motion.div>
+      </m.div>
     </div>
   );
 }
