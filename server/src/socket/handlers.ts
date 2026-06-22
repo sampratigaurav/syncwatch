@@ -440,6 +440,26 @@ export const setupSocketHandlers = (io: Server) => {
       });
     });
 
+    socket.on(EVENTS.SET_MAGNET_LINK, async (payload: { magnetURI: string }) => {
+      if (!payload || typeof payload.magnetURI !== 'string') return;
+      const roomId = socketToRoom.get(socket.id);
+      if (!roomId) return;
+      const room = await getRoom(roomId);
+      if (!room) return;
+      const participant = room.participants.get(socket.id);
+      if (!participant || participant.role !== 'host') return;
+
+      room.magnetURI = payload.magnetURI;
+      participant.status = 'ready';
+      
+      await setRoom(room);
+      
+      io.to(roomId).emit(EVENTS.ROOM_STATE, {
+        ...room,
+        participants: Array.from(room.participants.values())
+      });
+    });
+
     socket.on(EVENTS.BUFFERING_STATE, async (payload: { isBuffering: boolean }) => {
       // Validate boolean type
       if (!payload || typeof payload.isBuffering !== 'boolean') {

@@ -31,7 +31,8 @@ export default function Room() {
     subtitleBlobUrl, setSubtitleBlobUrl,
     subtitleEnabled, setSubtitleEnabled,
     errorToast, setErrorToast,
-    fileVerifyStatus
+    fileVerifyStatus,
+    isTorrent, magnetURI, isDetached
   } = useRoomStore(useShallow(state => ({
     roomId: state.roomId,
     nickname: state.nickname,
@@ -48,6 +49,9 @@ export default function Room() {
     errorToast: state.errorToast,
     setErrorToast: state.setErrorToast,
     fileVerifyStatus: state.fileVerifyStatus,
+    isTorrent: state.isTorrent,
+    magnetURI: state.magnetURI,
+    isDetached: state.isDetached,
   })));
   const navigate = useNavigate();
   useSocket(navigate); 
@@ -213,11 +217,13 @@ export default function Room() {
         )}
 
         <div className="w-full flex-none tablet:flex-grow tablet:flex tablet:items-center tablet:justify-center relative bg-black pt-[env(safe-area-inset-top)] tablet:pt-0 landscape:h-[100dvh] tablet:landscape:h-auto z-10">
-          {localFileUrl ? (
+          {(localFileUrl || (isTorrent && magnetURI)) ? (
             <div className="w-full h-auto tablet:h-full relative flex flex-col">
               <VideoPlayer
                 ref={videoRef}
-                src={localFileUrl}
+                src={localFileUrl || ''}
+                isTorrent={isTorrent}
+                magnetURI={magnetURI}
                 onPlay={handlePlay}
                 onPause={handlePause}
                 onSeeked={handleSeeked}
@@ -288,6 +294,26 @@ export default function Room() {
                 <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
                   <Loader2 className="w-12 h-12 text-teal-500 animate-spin mb-4" />
                   <span className="text-white text-lg font-medium tracking-wide">Loading next episode...</span>
+                </div>
+              )}
+
+              {/* Jump to Live Overlay */}
+              {isDetached && (
+                <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50">
+                   <button 
+                     onClick={() => {
+                       const state = useRoomStore.getState();
+                       const hostTime = state.playback?.currentTime || 0;
+                       if (videoRef.current) {
+                         state.setIsJumpingToLive(true);
+                         videoRef.current.currentTime = hostTime;
+                       }
+                     }}
+                     className="px-4 py-2 bg-zinc-900/90 hover:bg-zinc-800 text-white text-sm font-semibold rounded-full shadow-[0_0_15px_rgba(0,0,0,0.5)] border border-teal-500/30 backdrop-blur-md transition-all active:scale-95 flex items-center gap-2 animate-in fade-in slide-in-from-top-4"
+                   >
+                     <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+                     <span>Jump to Live</span>
+                   </button>
                 </div>
               )}
 

@@ -49,6 +49,7 @@ export interface RoomState {
   fileHash: string | null
   fileName: string | null
   fileSize: number | null
+  magnetURI: string | null
   controlPolicy: ControlPolicy
   controllerIds: string[]
   voiceParticipants: VoiceParticipant[]

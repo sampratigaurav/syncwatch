@@ -57,6 +57,7 @@ export const createRoom = async (id: string, passwordHash: string | null = null,
     fileHash: null,
     fileName: null,
     fileSize: null,
+    magnetURI: null,
     controlPolicy: 'host_only',
     controllerIds: [],
     voiceParticipants: []

@@ -9,6 +9,8 @@ export const EVENTS = {
   TYPING_STOP: 'typing_stop',
   PING: 'ping',
   SET_CONTROL_POLICY: 'set_control_policy',
+  SET_MAGNET_LINK: 'set_magnet_link',
+  TORRENT_HEALTH_UPDATE: 'torrent_health_update',
 
   // server → client
   RECONNECT_TOKEN: 'reconnect_token',

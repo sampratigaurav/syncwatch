@@ -6,11 +6,13 @@ import { useFileVerify } from '../hooks/useFileVerify';
 import { useNavigate, useParams } from 'react-router-dom';
 import ParticipantList from '../components/ParticipantList';
 import ControlPolicySelector from '../components/ControlPolicySelector';
-import { Copy, Check, AlertTriangle, Loader2, WifiOff, Lock, Link2, UploadCloud, Ticket } from 'lucide-react';
+import { Copy, Check, AlertTriangle, Loader2, WifiOff, Lock, Link2, UploadCloud, Ticket, Link as LinkIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { socket } from '../hooks/useSocket';
+import { EVENTS } from '../../../shared/socketEvents';
 
 export default function WaitingRoom() {
-  const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast } = useRoomStore(useShallow(state => ({
+  const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast, magnetURI, setMagnetURI, setIsTorrent } = useRoomStore(useShallow(state => ({
     roomId: state.roomId,
     participants: state.participants,
     role: state.role,
@@ -19,7 +21,10 @@ export default function WaitingRoom() {
     reconnectAttempt: state.reconnectAttempt,
     clearRoomState: state.clearRoomState,
     errorToast: state.errorToast,
-    setErrorToast: state.setErrorToast
+    setErrorToast: state.setErrorToast,
+    magnetURI: state.magnetURI,
+    setMagnetURI: state.setMagnetURI,
+    setIsTorrent: state.setIsTorrent
   })));
   const { roomId: urlId } = useParams();
   const navigate = useNavigate();
@@ -29,6 +34,9 @@ export default function WaitingRoom() {
 
   const [copiedType, setCopiedType] = useState<'link' | 'code' | null>(null);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'local' | 'magnet'>('local');
+  const [magnetInput, setMagnetInput] = useState('');
+  const [isSeeding, setIsSeeding] = useState(false);
 
   // Show server-driven error messages as an in-app banner
   useEffect(() => {
@@ -76,8 +84,36 @@ export default function WaitingRoom() {
   const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      verifyFile(file);
+      if (role === 'host') {
+        setIsSeeding(true);
+        import('../lib/torrentManager').then(({ torrentManager }) => {
+          torrentManager.seed(file, (uri) => {
+            setIsSeeding(false);
+            setMagnetURI(uri);
+            setIsTorrent(true);
+            socket.emit(EVENTS.SET_MAGNET_LINK, { magnetURI: uri });
+            torrentManager.onProgress((progress, speed, peers) => {
+               useRoomStore.getState().setTorrentHealth({ progress, speed, peers });
+            });
+            verifyFile(file);
+          }).catch(err => {
+            console.error('Failed to seed', err);
+            setIsSeeding(false);
+            verifyFile(file);
+          });
+        });
+      } else {
+        verifyFile(file);
+      }
     }
+  };
+
+  const handleMagnetSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!magnetInput.trim()) return;
+    setMagnetURI(magnetInput);
+    setIsTorrent(true);
+    socket.emit(EVENTS.SET_MAGNET_LINK, { magnetURI: magnetInput });
   };
 
   const allVerified = participants.length > 0 && participants.every(p => p.status === 'ready');
@@ -206,7 +242,9 @@ export default function WaitingRoom() {
                   <Check className="w-8 h-8 text-teal-500" />
                 </div>
                 <span className="text-xl font-medium text-white mb-2">Verified ✓</span>
-                <span className="text-sm text-zinc-400 mb-6">Your file matches the room.</span>
+                 <span className="text-sm text-zinc-400 mb-6">
+                   {magnetURI ? 'Connected to peer swarm via WebTorrent.' : 'Your file matches the room.'}
+                 </span>
                 
                 {role === 'host' && (
                   <div className="w-full text-left mb-6 tablet:mb-8 pb-6 tablet:pb-8 border-b border-zinc-800/50 border-t pt-6 tablet:pt-8">
@@ -233,17 +271,40 @@ export default function WaitingRoom() {
               </div>
             ) : (
               <div className="flex flex-col gap-4">
-                <div className="relative border-2 border-dashed border-teal-500/30 hover:border-teal-500/70 rounded-2xl h-48 tablet:h-auto tablet:p-20 flex flex-col items-center justify-center text-center bg-zinc-900/40 backdrop-blur-sm hover:bg-teal-500/5 transition-all duration-300 cursor-pointer group shadow-xl overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-b from-teal-500/0 via-teal-500/0 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  <input type="file" accept="video/*" onChange={onFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="Select Video" />
-                  
-                  <div className="relative w-16 h-16 tablet:w-20 tablet:h-20 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center mb-5 transition-transform duration-300 group-hover:-translate-y-2 group-hover:shadow-[0_0_20px_rgba(20,184,166,0.2)] group-hover:border-teal-500/30">
-                    <UploadCloud className="w-8 h-8 tablet:w-10 tablet:h-10 text-teal-500" />
+                {role === 'host' && (
+                  <div className="flex bg-zinc-900/50 p-1 rounded-xl mb-2 border border-zinc-800">
+                    <button
+                      onClick={() => setActiveTab('local')}
+                      className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'local' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
+                    >
+                      Local File
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('magnet')}
+                      className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'magnet' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
+                    >
+                      Magnet Link
+                    </button>
                   </div>
-                  
-                  <span className="block text-xl tablet:text-2xl font-bold text-white px-4 mb-2 tracking-tight group-hover:text-teal-50">Select your video file</span>
-                  <span className="hidden tablet:block text-sm text-zinc-400 font-medium">Drag and drop or click to browse. Supports .mp4, .webm</span>
-                </div>
+                )}
+
+                {activeTab === 'local' ? (
+                  <>
+                    <div className="relative border-2 border-dashed border-teal-500/30 hover:border-teal-500/70 rounded-2xl h-48 tablet:h-auto tablet:p-20 flex flex-col items-center justify-center text-center bg-zinc-900/40 backdrop-blur-sm hover:bg-teal-500/5 transition-all duration-300 cursor-pointer group shadow-xl overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-b from-teal-500/0 via-teal-500/0 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      <input type="file" accept="video/*" onChange={onFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="Select Video" />
+                      
+                      <div className="relative w-16 h-16 tablet:w-20 tablet:h-20 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center mb-5 transition-transform duration-300 group-hover:-translate-y-2 group-hover:shadow-[0_0_20px_rgba(20,184,166,0.2)] group-hover:border-teal-500/30">
+                        {isSeeding ? <Loader2 className="w-8 h-8 tablet:w-10 tablet:h-10 text-teal-500 animate-spin" /> : <UploadCloud className="w-8 h-8 tablet:w-10 tablet:h-10 text-teal-500" />}
+                      </div>
+                      
+                      <span className="block text-xl tablet:text-2xl font-bold text-white px-4 mb-2 tracking-tight group-hover:text-teal-50">
+                        {isSeeding ? 'Generating Torrent...' : 'Select your video file'}
+                      </span>
+                      <span className="hidden tablet:block text-sm text-zinc-400 font-medium">
+                        {isSeeding ? 'Creating WebRTC seeders for your room' : 'Drag and drop or click to browse. Supports .mp4, .webm'}
+                      </span>
+                    </div>
                 
                 {'showDirectoryPicker' in window && (
                   <button 
@@ -288,6 +349,31 @@ export default function WaitingRoom() {
                     <span className="text-white">Binge-Watcher Mode</span>
                     <span className="text-xs text-zinc-500">Select an entire TV show folder for auto-play</span>
                   </button>
+                )}
+                </>
+                ) : (
+                  <form onSubmit={handleMagnetSubmit} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col items-center text-center shadow-xl">
+                    <LinkIcon className="w-10 h-10 text-teal-500 mb-4" />
+                    <h3 className="text-xl font-bold text-white mb-2">Paste Magnet Link</h3>
+                    <p className="text-sm text-zinc-400 mb-6 leading-relaxed">
+                      SyncWatch runs entirely in your browser. <strong className="text-zinc-200">Public torrents will not load</strong> unless they have WebRTC-capable seeders. 
+                      Ensure your torrent is actively seeded by a WebTorrent client (like WebTorrent Desktop).
+                    </p>
+                    <input
+                      type="text"
+                      placeholder="magnet:?xt=urn:btih:..."
+                      value={magnetInput}
+                      onChange={(e) => setMagnetInput(e.target.value)}
+                      className="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-all mb-4"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!magnetInput.trim()}
+                      className="w-full bg-teal-600 hover:bg-teal-500 disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-medium rounded-xl py-3.5 transition-all shadow-lg active:scale-[0.98]"
+                    >
+                      Connect Swarm
+                    </button>
+                  </form>
                 )}
               </div>
             )}

@@ -36,6 +36,8 @@ export const useRoomStore = create<RoomStore>((set, get, api) => ({
       chatMessages: [],
       latencyMs: 0,
       localFileUrl: null,
+      magnetURI: null,
+      isTorrent: false,
       controlPolicy: 'host_only',
       controllerIds: [],
       lastActionAt: 0,

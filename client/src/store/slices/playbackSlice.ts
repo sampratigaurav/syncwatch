@@ -11,6 +11,11 @@ export interface PlaybackSlice {
   mismatchError: string | null;
   latencyMs: number;
   localFileUrl: string | null;
+  magnetURI: string | null;
+  isTorrent: boolean;
+  torrentHealth: { peers: number; speed: number; progress: number } | null;
+  isDetached: boolean;
+  isJumpingToLive: boolean;
   controlPolicy: 'host_only' | 'everyone' | 'selected';
   controllerIds: string[];
   lastActionAt: number;
@@ -26,6 +31,11 @@ export interface PlaybackSlice {
   setLocalFileUrl: (url: string | null) => void;
   setSubtitleBlobUrl: (url: string | null) => void;
   setSubtitleEnabled: (enabled: boolean) => void;
+  setMagnetURI: (uri: string | null) => void;
+  setIsTorrent: (is: boolean) => void;
+  setTorrentHealth: (health: { peers: number; speed: number; progress: number } | null) => void;
+  setIsDetached: (detached: boolean) => void;
+  setIsJumpingToLive: (jumping: boolean) => void;
   setControlPolicy: (policy: 'host_only' | 'everyone' | 'selected', ids: string[]) => void;
   setDirectoryHandles: (handles: any[]) => void;
   setLastActionAt: () => void;
@@ -40,6 +50,11 @@ export const createPlaybackSlice: StateCreator<RoomStore, [], [], PlaybackSlice>
   mismatchError: null,
   latencyMs: 0,
   localFileUrl: null,
+  magnetURI: null,
+  isTorrent: false,
+  torrentHealth: null,
+  isDetached: false,
+  isJumpingToLive: false,
   controlPolicy: 'host_only',
   controllerIds: [],
   lastActionAt: 0,
@@ -53,6 +68,11 @@ export const createPlaybackSlice: StateCreator<RoomStore, [], [], PlaybackSlice>
   setMismatchError: (err) => set({ mismatchError: err }),
   setLatency: (ms) => set({ latencyMs: ms }),
   setLocalFileUrl: (url) => set({ localFileUrl: url }),
+  setMagnetURI: (uri) => set({ magnetURI: uri }),
+  setIsTorrent: (is) => set({ isTorrent: is }),
+  setTorrentHealth: (health) => set({ torrentHealth: health }),
+  setIsDetached: (detached) => set({ isDetached: detached }),
+  setIsJumpingToLive: (jumping) => set({ isJumpingToLive: jumping }),
   setSubtitleBlobUrl: (url) => set({ subtitleBlobUrl: url }),
   setSubtitleEnabled: (enabled) => set({ subtitleEnabled: enabled }),
   setControlPolicy: (policy, ids) => set({ controlPolicy: policy, controllerIds: ids }),

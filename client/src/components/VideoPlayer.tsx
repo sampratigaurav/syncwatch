@@ -13,6 +13,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface VideoPlayerProps {
   src: string;
+  isTorrent?: boolean;
+  magnetURI?: string | null;
   onPlay: () => void;
   onPause: () => void;
   onSeeked: () => void;
@@ -33,7 +35,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 }
 
 export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
-  ({ src, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate, onEnded, subtitleBlobUrl, subtitleEnabled, onSubtitleToggle, onSubtitleLoaded, onSubtitleCleared }, externalRef) => {
+  ({ src, isTorrent, magnetURI, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate, onEnded, subtitleBlobUrl, subtitleEnabled, onSubtitleToggle, onSubtitleLoaded, onSubtitleCleared }, externalRef) => {
     const { participants, controlPolicy } = useRoomStore(useShallow(state => ({
       participants: state.participants,
       controlPolicy: state.controlPolicy,
@@ -59,6 +61,27 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       [externalRef]
     );
 
+    // Torrent rendering
+    useEffect(() => {
+      if (isTorrent && magnetURI && internalVideoRef.current) {
+        // Clear src and load torrent
+        internalVideoRef.current.src = '';
+        internalVideoRef.current.load();
+        
+        import('../lib/torrentManager').then(({ torrentManager }) => {
+          torrentManager.download(magnetURI, () => {
+            console.log('Torrent stream ready');
+            torrentManager.renderTo(internalVideoRef.current!);
+            onCanPlay();
+          }).catch(console.error);
+
+          torrentManager.onProgress((progress, speed, peers) => {
+             useRoomStore.getState().setTorrentHealth({ progress, speed, peers });
+          });
+        });
+      }
+    }, [isTorrent, magnetURI, onCanPlay]);
+
     // States
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -71,7 +94,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     
     // Controls visibility
     const [showControls, setShowControls] = useState(true);
-    const controlsTimeoutRef = useRef<number | undefined>(undefined);
+    const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const resetControlsTimeout = useCallback(() => {
       setShowControls(true);
@@ -252,7 +275,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       >
         <video
           ref={setRefs}
-          src={src}
+          src={(!isTorrent && src) ? src : undefined}
           className="w-full h-full object-contain cursor-pointer"
           onPlay={handleNativePlay}
           onPause={handleNativePause}

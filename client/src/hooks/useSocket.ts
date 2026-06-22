@@ -172,6 +172,15 @@ export const useSocket = (navigate?: (to: string) => void) => {
        if (roomState.chatHistory) {
          useRoomStore.getState().setChatMessages(roomState.chatHistory);
        }
+       if (roomState.magnetURI) {
+         const state = useRoomStore.getState();
+         if (state.fileVerifyStatus !== 'verified') {
+           state.setMagnetURI(roomState.magnetURI);
+           state.setIsTorrent(true);
+           state.setVerifyStatus('verified');
+           socket.emit(EVENTS.FILE_VERIFIED, { hash: 'webtorrent', size: 0, name: 'WebTorrent Stream' });
+         }
+       }
        // NOTE: Do NOT clear roomPassword here. It must survive reconnect cycles so it
        // can be re-sent with JOIN_ROOM if the socket drops and reconnects for a password room.
        // It is cleared in clearRoomState() when the user intentionally leaves.

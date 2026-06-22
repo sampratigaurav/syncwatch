@@ -1,7 +1,7 @@
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { socket } from '../hooks/useSocket';
-import { Wifi, WifiOff, Gamepad2, Crown, MicOff, Check, Loader2 } from 'lucide-react';
+import { Wifi, WifiOff, Gamepad2, Crown, MicOff, Check, Loader2, Share2 } from 'lucide-react';
 import { useWebRTC } from '../hooks/useWebRTC';
 import clsx from 'clsx';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,10 +19,12 @@ const getGradient = (name: string) => {
 };
 
 export default function ParticipantList({ variant = 'default' }: { variant?: 'default' | 'waiting-room' }) {
-  const { participants, controlPolicy, controllerIds } = useRoomStore(useShallow(state => ({
+  const { participants, controlPolicy, controllerIds, isTorrent, torrentHealth } = useRoomStore(useShallow(state => ({
     participants: state.participants,
     controlPolicy: state.controlPolicy,
-    controllerIds: state.controllerIds
+    controllerIds: state.controllerIds,
+    isTorrent: state.isTorrent,
+    torrentHealth: state.torrentHealth
   })));
   // ⚡ Bolt: Use specific selector to prevent re-rendering when other WebRTC state (e.g. localStream) changes
   const voiceParticipants = useWebRTC(state => state.voiceParticipants);
@@ -86,8 +88,21 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
 
   return (
     <div className={clsx("bg-zinc-900 border border-zinc-800 rounded-xl w-full shadow-lg", isWaitingRoom ? "max-w-full p-4" : "max-w-sm overflow-hidden")}>
-      <div className={clsx("bg-zinc-950/50 px-4 py-3 border-b border-zinc-800", isWaitingRoom && "hidden")}>
+      <div className={clsx("bg-zinc-950/50 px-4 py-3 border-b border-zinc-800 flex justify-between items-center", isWaitingRoom && "hidden")}>
         <h3 className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">In this room</h3>
+        {isTorrent && (
+          <div 
+            className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-wider bg-zinc-900 px-2 py-1 rounded-md border border-zinc-800"
+            title={torrentHealth ? `${(torrentHealth.speed / 1024 / 1024).toFixed(2)} MB/s` : 'Connecting to swarm...'}
+          >
+            <Share2 className="w-3.5 h-3.5 text-teal-500" />
+            <span className="text-zinc-300">{torrentHealth?.peers || 0} peers</span>
+            <div className={clsx(
+              "w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)]", 
+              (torrentHealth?.peers || 0) > 2 ? "bg-green-500" : (torrentHealth?.peers || 0) > 0 ? "bg-amber-500" : "bg-red-500"
+            )} />
+          </div>
+        )}
       </div>
       {horizontalChips}
       <div className={clsx("p-2 space-y-1", isWaitingRoom && "hidden tablet:block")}>

@@ -36,6 +36,14 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
 
       if (event.action === 'play') {
         if (event.lastActionNickname) toast(`${event.lastActionNickname} played the video`, { icon: '▶️', id: 'play' });
+        
+        // Hybrid Buffering: Detach slow viewers if host overrides and forces play
+        if (video.readyState < 3 && !hasControl) {
+           useRoomStore.getState().setIsDetached(true);
+           socket.emit(EVENTS.BUFFERING_STATE, { isBuffering: false });
+           toast("You're buffering slowly. Detached from strict sync to let others watch.", { icon: '🐌' });
+        }
+
         if (Math.abs(video.currentTime - event.currentTime) > 2.0) {
           video.currentTime = event.currentTime;
         }
@@ -49,11 +57,13 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
         }
       } else if (event.action === 'pause') {
         if (event.lastActionNickname) toast(`${event.lastActionNickname} paused the video`, { icon: '⏸️', id: 'pause' });
+        useRoomStore.getState().setIsDetached(false);
         video.currentTime = event.currentTime;
         if (!video.paused) {
           video.pause();
         }
       } else if (event.action === 'seek') {
+        useRoomStore.getState().setIsDetached(false);
         video.currentTime = event.currentTime;
       }
 
@@ -219,11 +229,19 @@ export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>)
   };
 
   const handleWaiting = () => {
-    // Disabled at user request to ensure instantaneous seeking
-    // socket.emit(EVENTS.BUFFERING_STATE, { isBuffering: true });
+    if (useRoomStore.getState().isDetached) return;
+    socket.emit(EVENTS.BUFFERING_STATE, { isBuffering: true });
   };
 
   const handleCanPlay = () => {
+    if (useRoomStore.getState().isDetached && videoRef.current) {
+      const state = useRoomStore.getState();
+      const hostTime = state.playback?.currentTime || 0;
+      if (Math.abs(videoRef.current.currentTime - hostTime) < 3.0) {
+        state.setIsDetached(false);
+        toast("Caught up to the host. Re-attached to strict sync.", { icon: '🚀' });
+      }
+    }
     socket.emit(EVENTS.BUFFERING_STATE, { isBuffering: false });
   };
 
