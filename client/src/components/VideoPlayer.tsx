@@ -64,6 +64,11 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     // Torrent rendering
     useEffect(() => {
       if (isTorrent && magnetURI && internalVideoRef.current) {
+        if (src) {
+           console.log('Using local file src instead of WebTorrent renderTo');
+           return;
+        }
+
         // Clear src and load torrent
         internalVideoRef.current.src = '';
         internalVideoRef.current.load();
@@ -281,7 +286,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       >
         <video
           ref={setRefs}
-          src={(!isTorrent && src) ? src : undefined}
+          src={src || undefined}
           className="w-full h-full object-contain cursor-pointer"
           onPlay={handleNativePlay}
           onPause={handleNativePause}

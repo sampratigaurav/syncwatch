@@ -87,21 +87,25 @@ export default function WaitingRoom() {
       if (role === 'host') {
         setIsSeeding(true);
         import('../lib/torrentManager').then(({ torrentManager }) => {
+          // Verify host instantly so they can enter the room if they want
+          const url = URL.createObjectURL(file);
+          useRoomStore.getState().setLocalFileUrl(url);
+          useRoomStore.getState().setFileDetails('0'.repeat(64), file.name);
+          useRoomStore.getState().setVerifyStatus('verified');
+          socket.emit(EVENTS.FILE_VERIFIED, { hash: '0'.repeat(64), size: 0, name: file.name });
+          
+          setIsSeeding(false);
+
+          // Let the torrent generation happen completely in the background
           torrentManager.seed(file, (uri) => {
-            setIsSeeding(false);
-            setMagnetURI(uri);
-            setIsTorrent(true);
+            useRoomStore.getState().setMagnetURI(uri);
+            useRoomStore.getState().setIsTorrent(true);
             socket.emit(EVENTS.SET_MAGNET_LINK, { magnetURI: uri });
             torrentManager.onProgress((progress, speed, peers) => {
                useRoomStore.getState().setTorrentHealth({ progress, speed, peers });
             });
-            useRoomStore.getState().setFileDetails('0'.repeat(64), file.name);
-            useRoomStore.getState().setVerifyStatus('verified');
-            socket.emit(EVENTS.FILE_VERIFIED, { hash: '0'.repeat(64), size: 0, name: file.name });
           }).catch(err => {
             console.error('Failed to seed', err);
-            setIsSeeding(false);
-            verifyFile(file);
           });
         });
       } else {
