@@ -69,11 +69,17 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
         internalVideoRef.current.load();
         
         import('../lib/torrentManager').then(({ torrentManager }) => {
-          torrentManager.download(magnetURI, () => {
-            console.log('Torrent stream ready');
+          if (torrentManager.activeTorrent) {
+            console.log('Torrent already active (seeding). Rendering directly.');
             torrentManager.renderTo(internalVideoRef.current!);
             onCanPlay();
-          }).catch(console.error);
+          } else {
+            torrentManager.download(magnetURI, () => {
+              console.log('Torrent stream ready');
+              torrentManager.renderTo(internalVideoRef.current!);
+              onCanPlay();
+            }).catch(console.error);
+          }
 
           torrentManager.onProgress((progress, speed, peers) => {
              useRoomStore.getState().setTorrentHealth({ progress, speed, peers });

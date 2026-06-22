@@ -95,7 +95,9 @@ export default function WaitingRoom() {
             torrentManager.onProgress((progress, speed, peers) => {
                useRoomStore.getState().setTorrentHealth({ progress, speed, peers });
             });
-            verifyFile(file);
+            useRoomStore.getState().setFileDetails('0'.repeat(64), file.name);
+            useRoomStore.getState().setVerifyStatus('verified');
+            socket.emit(EVENTS.FILE_VERIFIED, { hash: '0'.repeat(64), size: 0, name: file.name });
           }).catch(err => {
             console.error('Failed to seed', err);
             setIsSeeding(false);
