@@ -178,7 +178,7 @@ export const useSocket = (navigate?: (to: string) => void) => {
            state.setMagnetURI(roomState.magnetURI);
            state.setIsTorrent(true);
            state.setVerifyStatus('verified');
-           socket.emit(EVENTS.FILE_VERIFIED, { hash: 'webtorrent', size: 0, name: 'WebTorrent Stream' });
+           socket.emit(EVENTS.FILE_VERIFIED, { hash: '0'.repeat(64), size: 0, name: 'WebTorrent Stream' });
          }
        }
        // NOTE: Do NOT clear roomPassword here. It must survive reconnect cycles so it
