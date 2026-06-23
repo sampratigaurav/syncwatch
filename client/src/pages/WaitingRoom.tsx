@@ -186,7 +186,14 @@ export default function WaitingRoom() {
       {errorBanner && (
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[95] bg-red-900/90 backdrop-blur-md border border-red-500/50 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-in slide-in-from-top-4 fade-in duration-300">
           <span className="font-medium text-sm">{errorBanner}</span>
-          <button onClick={() => setErrorBanner(null)} className="text-red-300 hover:text-white transition-colors text-xs ml-2">✕</button>
+          <button
+            onClick={() => setErrorBanner(null)}
+            aria-label="Close error banner"
+            title="Close"
+            className="text-red-300 hover:text-white transition-colors text-xs ml-2 p-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+          >
+            <span aria-hidden="true">✕</span>
+          </button>
         </div>
       )}
 

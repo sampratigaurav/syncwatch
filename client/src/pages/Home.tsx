@@ -503,9 +503,11 @@ export default function Home() {
                                <button
                                  type="button"
                                  onClick={() => setShowPin(!showPin)}
-                                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                 aria-label={showPin ? "Hide PIN" : "Show PIN"}
+                                 title={showPin ? "Hide PIN" : "Show PIN"}
+                                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/50"
                                >
-                                 {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                                 {showPin ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                                </button>
                              </div>
                           </m.div>
@@ -581,9 +583,11 @@ export default function Home() {
                                <button
                                  type="button"
                                  onClick={() => setShowPin(!showPin)}
-                                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                 aria-label={showPin ? "Hide PIN" : "Show PIN"}
+                                 title={showPin ? "Hide PIN" : "Show PIN"}
+                                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/50"
                                >
-                                 {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                                 {showPin ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                                </button>
                              </div>
                           </m.div>
