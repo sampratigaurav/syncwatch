@@ -454,10 +454,16 @@ export const setupSocketHandlers = (io: Server) => {
       
       await setRoom(room);
       
-      io.to(roomId).emit(EVENTS.ROOM_STATE, {
+      const roomStatePayload = {
         ...room,
         participants: Array.from(room.participants.values())
-      });
+      };
+
+      // Never transmit the password hash or salt to clients
+      delete (roomStatePayload as any).password;
+      delete (roomStatePayload as any).passwordSalt;
+
+      io.to(roomId).emit(EVENTS.ROOM_STATE, roomStatePayload);
     });
 
     socket.on(EVENTS.BUFFERING_STATE, async (payload: { isBuffering: boolean }) => {
