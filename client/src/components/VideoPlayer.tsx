@@ -351,6 +351,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               value={currentTime}
               onChange={handleSeek}
               disabled={!hasControl}
+              aria-label="Seek video timeline"
               className="absolute inset-0 w-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
             />
             {/* Base track */}
@@ -433,6 +434,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                   value={isMuted ? 0 : volume}
                   onChange={handleVolume}
                   onClick={(e) => e.stopPropagation()}
+                  aria-label="Volume"
                   className="w-0 opacity-0 group-hover/volume:w-20 group-hover/volume:opacity-100 transition-all duration-300 origin-left accent-teal-500 cursor-pointer hidden tablet:block"
                 />
               </div>
@@ -462,8 +464,12 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                       {subtitleBlobUrl && (
                         <button 
                           onClick={() => onSubtitleToggle()}
+                          role="switch"
+                          aria-checked={subtitleEnabled}
+                          aria-label="Toggle subtitles visibility"
+                          title={subtitleEnabled ? "Hide subtitles" : "Show subtitles"}
                           className={cn(
-                            "w-10 h-5 rounded-full relative transition-colors",
+                            "w-10 h-5 rounded-full relative transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70",
                             subtitleEnabled ? "bg-teal-500" : "bg-zinc-700"
                           )}
                         >
