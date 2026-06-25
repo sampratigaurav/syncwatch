@@ -472,8 +472,12 @@ export default function Home() {
                             <span className="text-sm font-medium text-zinc-300">Lock with PIN</span>
                           </div>
                           <button 
+                            role="switch"
+                            aria-checked={lockRoom}
+                            aria-label="Lock room with PIN"
+                            title="Toggle room lock"
                             onClick={() => { setLockRoom(!lockRoom); setError(''); }}
-                            className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", lockRoom ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
+                            className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900", lockRoom ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
                           >
                             <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", lockRoom ? "translate-x-[22px]" : "translate-x-0.5")} />
                           </button>
@@ -502,10 +506,12 @@ export default function Home() {
                                />
                                <button
                                  type="button"
+                                 aria-label={showPin ? "Hide PIN" : "Show PIN"}
+                                 title={showPin ? "Hide PIN" : "Show PIN"}
                                  onClick={() => setShowPin(!showPin)}
-                                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded-md"
                                >
-                                 {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                                 {showPin ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                                </button>
                              </div>
                           </m.div>
@@ -580,10 +586,12 @@ export default function Home() {
                                />
                                <button
                                  type="button"
+                                 aria-label={showPin ? "Hide PIN" : "Show PIN"}
+                                 title={showPin ? "Hide PIN" : "Show PIN"}
                                  onClick={() => setShowPin(!showPin)}
-                                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded-md"
                                >
-                                 {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                                 {showPin ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                                </button>
                              </div>
                           </m.div>
