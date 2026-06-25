@@ -16,3 +16,8 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+
+## 2024-06-25 - Server DoS and Reflection via Data Leakage in Broadcasts
+**Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.SET_MAGNET_LINK` socket handler was broadcasting the entire `room` object via `EVENTS.ROOM_STATE` to all participants in a room. This inadvertently included the `password` and `passwordSalt` properties, leaking sensitive authentication credentials to all connected clients in the room.
+**Learning:** Broadly serializing server state objects to the client without an explicit sanitization layer can inadvertently leak secrets, tokens, or other sensitive information over the websocket connection.
+**Prevention:** Always explicitly create a sanitized DTO (Data Transfer Object) or delete sensitive properties (like `password`, `passwordSalt`) from cloned objects before emitting them to clients via Socket.IO broadcasts.
