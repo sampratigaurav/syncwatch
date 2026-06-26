@@ -92,23 +92,25 @@ export const useFileVerify = () => {
     }
   }, [role, localFingerprint, cachedFingerprintPayload, setVerifyStatus, setMismatchError, fileName]);
 
-  const verifyFile = async (file: File) => {
-    setVerifyStatus('computing');
-    setMismatchError(null);
-    setLocalFingerprint(null);
-    
-    // Failsafe timeout
-    if (failsafeRef.current) clearTimeout(failsafeRef.current);
-    failsafeRef.current = setTimeout(() => {
-      setVerifyStatus('mismatch');
-      setMismatchError("Verification timed out waiting for host data. You can force join.");
-      if (generateWorkerRef.current) generateWorkerRef.current.terminate();
-      if (compareWorkerRef.current) compareWorkerRef.current.terminate();
-    }, 10000);
+  const verifyFile = async (file: File, isSilentBackground: boolean = false) => {
+    if (!isSilentBackground) {
+      setVerifyStatus('computing');
+      setMismatchError(null);
+      setLocalFingerprint(null);
+      
+      // Failsafe timeout
+      if (failsafeRef.current) clearTimeout(failsafeRef.current);
+      failsafeRef.current = setTimeout(() => {
+        setVerifyStatus('mismatch');
+        setMismatchError("Verification timed out waiting for host data. You can force join.");
+        if (generateWorkerRef.current) generateWorkerRef.current.terminate();
+        if (compareWorkerRef.current) compareWorkerRef.current.terminate();
+      }, 10000);
 
-    const url = URL.createObjectURL(file);
-    setLocalFileUrl(url);
-    setFileDetails(DUMMY_HASH, file.name);
+      const url = URL.createObjectURL(file);
+      setLocalFileUrl(url);
+      setFileDetails(DUMMY_HASH, file.name);
+    }
 
     let payload: number[] | number = file.size;
 
@@ -132,9 +134,11 @@ export const useFileVerify = () => {
       const result = await new Promise<number[]>((resolve, reject) => {
         worker.onerror = (err) => {
           console.error("Generate Worker Error:", err);
-          if (role === 'host' && failsafeRef.current) clearTimeout(failsafeRef.current);
-          setVerifyStatus('mismatch');
-          setMismatchError("Verification process crashed");
+          if (!isSilentBackground) {
+            if (role === 'host' && failsafeRef.current) clearTimeout(failsafeRef.current);
+            setVerifyStatus('mismatch');
+            setMismatchError("Verification process crashed");
+          }
           reject(new Error("Worker error"));
         };
 
@@ -143,12 +147,14 @@ export const useFileVerify = () => {
             if (e.data.type === 'GENERATE_RESULT') {
               resolve(e.data.fingerprint);
             } else if (e.data.type === 'ERROR') {
-              reject(new Error(e.data.error));
+              throw new Error(e.data.error);
             }
           } catch (err) {
-            if (role === 'host' && failsafeRef.current) clearTimeout(failsafeRef.current);
-            setVerifyStatus('mismatch');
-            setMismatchError("Verification process crashed");
+            console.error("Synchronous error during generate resolution:", err);
+            if (!isSilentBackground) {
+              setVerifyStatus('mismatch');
+              setMismatchError("Verification process crashed");
+            }
             reject(err);
           } finally {
             worker.terminate();
@@ -166,13 +172,18 @@ export const useFileVerify = () => {
       payload = file.size;
     }
 
-    setLocalFingerprint(payload);
+    if (!isSilentBackground) {
+      setLocalFingerprint(payload);
+    }
 
     if (role === 'host') {
-      if (failsafeRef.current) clearTimeout(failsafeRef.current);
+      if (!isSilentBackground && failsafeRef.current) clearTimeout(failsafeRef.current);
       setCachedFingerprintPayload(payload);
       sendFingerprintPayload(payload);
-      socket.emit(EVENTS.FILE_VERIFIED, { hash: DUMMY_HASH, size: 0, name: file.name });
+      
+      if (!isSilentBackground) {
+        socket.emit(EVENTS.FILE_VERIFIED, { hash: DUMMY_HASH, size: 0, name: file.name });
+      }
     }
   };
 

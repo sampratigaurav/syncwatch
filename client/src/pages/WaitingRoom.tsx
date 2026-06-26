@@ -96,6 +96,9 @@ export default function WaitingRoom() {
           
           setIsSeeding(false);
 
+          // Run fingerprint generation in the background so viewers can verify local files
+          verifyFile(file, true);
+
           // Let the torrent generation happen completely in the background
           torrentManager.seed(file, (uri) => {
             useRoomStore.getState().setMagnetURI(uri);
