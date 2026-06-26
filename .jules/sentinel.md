@@ -16,3 +16,8 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+
+## 2024-06-26 - Sensitive Data Exposure via Room State Broadcast in Event Handlers
+**Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.SET_MAGNET_LINK` handler retrieved the current `room` state and broadcasted it directly back to clients using `io.to(roomId).emit(EVENTS.ROOM_STATE, { ...room, participants: ... })`. This leaked the `password` and `passwordSalt` fields of the room to all connected participants.
+**Learning:** Any time a complex state object (like a Room or User object) is retrieved from the backend store and sent to the client, there is a risk of inadvertently exposing sensitive fields that exist on that backend model.
+**Prevention:** When broadcasting state objects, always explicitly construct a sanitized outbound payload. Explicitly delete sensitive fields (like passwords, salts, tokens) before broadcasting, or use a DTO/mapping function that only includes explicitly allowed fields.
