@@ -5,11 +5,18 @@ import path from 'path';
 dotenv.config();
 
 const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH?.replace(/^["']|["']$/g, '');
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 const databaseURL = process.env.FIREBASE_DATABASE_URL?.replace(/^["']|["']$/g, '');
 
-if (serviceAccountPath && databaseURL) {
+if ((serviceAccountPath || serviceAccountJson) && databaseURL) {
   try {
-    const serviceAccount = require(path.resolve(serviceAccountPath));
+    let serviceAccount;
+    if (serviceAccountJson) {
+      serviceAccount = JSON.parse(serviceAccountJson);
+    } else {
+      serviceAccount = require(path.resolve(serviceAccountPath!));
+    }
+    
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       databaseURL: databaseURL
