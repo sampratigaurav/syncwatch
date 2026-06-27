@@ -5,6 +5,7 @@ import { getRoom, setRoom, deleteRoom, redisClient } from '../rooms/RoomManager'
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { EVENTS } from '../../../shared/socketEvents';
 import { Participant, RoomState, PlaybackEvent, ControlPolicy } from '../../../shared/types';
+import { auth } from '../firebase';
 
 const pbkdf2Async = promisify(crypto.pbkdf2);
 
@@ -86,7 +87,36 @@ function revokeReconnectToken(socketId: string) {
 }
 
 export const setupSocketHandlers = (io: Server) => {
+  io.use(async (socket, next) => {
+    const token = socket.handshake.auth?.token;
+    if (token) {
+      if (!auth) {
+        console.error('Firebase Auth not initialized, cannot verify token');
+        return next(); // Let them connect as anonymous if server misconfigured
+      }
+      try {
+        const decodedToken = await auth.verifyIdToken(token);
+        socket.data.userId = decodedToken.uid;
+      } catch (err) {
+        console.error('Socket authentication failed:', err);
+        return next(new Error('Authentication error'));
+      }
+    }
+    next();
+  });
+
   io.on('connection', (socket: Socket) => {
+    // Allows the client to rotate the token without reconnecting
+    socket.on('rotate_auth_token', async ({ token }) => {
+      if (!token) return;
+      if (!auth) return;
+      try {
+        const decodedToken = await auth.verifyIdToken(token);
+        socket.data.userId = decodedToken.uid;
+      } catch (err) {
+        console.error('Token rotation failed:', err);
+      }
+    });
 
     socket.on(EVENTS.JOIN_ROOM, async (payload: { roomId: string, nickname: string, password?: string, reconnectToken?: string }) => {
       if (!payload) return;
@@ -763,6 +793,32 @@ export const setupSocketHandlers = (io: Server) => {
         senderNickname: participant.nickname,
         id: crypto.randomUUID()
       });
+    });
+
+    socket.on('profile_updated', async (payload: { displayName?: string, avatarUrl?: string }) => {
+      if (!payload) return;
+      const roomId = socketToRoom.get(socket.id);
+      if (!roomId) return;
+      const room = await getRoom(roomId);
+      if (!room) return;
+      const participant = room.participants.get(socket.id);
+      if (!participant) return;
+
+      if (payload.displayName) participant.nickname = payload.displayName;
+      if (payload.avatarUrl) participant.avatarUrl = payload.avatarUrl;
+
+      // Also update voice participant if they exist
+      if (room.voiceParticipants) {
+        const vp = room.voiceParticipants.find(v => v.id === socket.id);
+        if (vp) {
+          if (payload.displayName) vp.nickname = payload.displayName;
+          if (payload.avatarUrl) vp.avatarUrl = payload.avatarUrl;
+          io.to(roomId).emit(EVENTS.VOICE_STATE_UPDATE, room.voiceParticipants);
+        }
+      }
+
+      await setRoom(room);
+      io.to(roomId).emit(EVENTS.PARTICIPANT_UPDATE, { ...participant, status: participant.status });
     });
   });
 };

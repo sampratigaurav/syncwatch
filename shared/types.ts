@@ -11,6 +11,7 @@ export interface Participant {
   fileHash: string | null
   latencyMs: number
   joinedAt: number
+  avatarUrl?: string
 }
 
 export interface PlaybackState {
@@ -34,6 +35,7 @@ export interface VoiceParticipant {
   nickname: string
   isMuted: boolean
   isSpeaking: boolean
+  avatarUrl?: string
 }
 
 export interface RoomState {
@@ -66,6 +68,7 @@ export interface ChatMessage {
   senderNickname: string
   text: string
   timestamp: number
+  avatarUrl?: string
 }
 
 export type PlaybackAction = 'play' | 'pause' | 'seek' | 'sync_check' | 'subtitle_toggle' | 'subtitle_track_change'

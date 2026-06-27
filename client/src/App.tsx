@@ -5,12 +5,16 @@ import WaitingRoom from './pages/WaitingRoom'
 import Room from './pages/Room'
 import Docs from './pages/Docs'
 import { AnimatePresence } from 'framer-motion'
+import { AuthSync } from './components/AuthSync'
+import { FriendsSidebar } from './components/FriendsSidebar'
 
 function App() {
   const location = useLocation()
 
   return (
     <div className="min-h-screen font-sans selection:bg-teal-500/30 transition-colors duration-300">
+      <AuthSync />
+      <FriendsSidebar />
       <Toaster position="bottom-right" toastOptions={{
         style: {
           background: '#18181b',

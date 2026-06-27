@@ -12,6 +12,11 @@ export interface AuthSlice {
   errorToast: string | null;
   reconnectToken: string | null;
   theme: 'dark' | 'light';
+  authToken: string | null;
+  firebaseUid: string | null;
+  avatarUrl: string | null;
+  friendCode: string | null;
+  isAuthLoading: boolean;
 
   setRoomId: (id: string | null) => void;
   setNickname: (name: string) => void;
@@ -22,7 +27,13 @@ export interface AuthSlice {
   setRoomHasPassword: (has: boolean) => void;
   setErrorToast: (msg: string | null) => void;
   setReconnectToken: (token: string | null) => void;
+
   toggleTheme: () => void;
+  setAuthToken: (token: string | null) => void;
+  setFirebaseUid: (uid: string | null) => void;
+  setAvatarUrl: (url: string | null) => void;
+  setFriendCode: (code: string | null) => void;
+  setIsAuthLoading: (loading: boolean) => void;
 }
 
 export const createAuthSlice: StateCreator<RoomStore, [], [], AuthSlice> = (set) => ({
@@ -35,7 +46,13 @@ export const createAuthSlice: StateCreator<RoomStore, [], [], AuthSlice> = (set)
   roomHasPassword: false,
   errorToast: null,
   reconnectToken: sessionStorage.getItem('reconnectToken') || null,
+
   theme: (localStorage.getItem('theme') as 'dark'|'light') || 'dark',
+  authToken: null,
+  firebaseUid: null,
+  avatarUrl: null,
+  friendCode: null,
+  isAuthLoading: true, // true by default until Firebase initializes
 
   setRoomId: (id) => set({ roomId: id }),
   setNickname: (name) => {
@@ -58,4 +75,9 @@ export const createAuthSlice: StateCreator<RoomStore, [], [], AuthSlice> = (set)
     localStorage.setItem('theme', next);
     return { theme: next };
   }),
+  setAuthToken: (token) => set({ authToken: token }),
+  setFirebaseUid: (uid) => set({ firebaseUid: uid }),
+  setAvatarUrl: (url) => set({ avatarUrl: url }),
+  setFriendCode: (code) => set({ friendCode: code }),
+  setIsAuthLoading: (loading) => set({ isAuthLoading: loading }),
 });

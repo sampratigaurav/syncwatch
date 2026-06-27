@@ -1,4 +1,5 @@
 import express from 'express';
+import './firebase'; // Initialize Firebase Admin SDK
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
@@ -6,6 +7,8 @@ import helmet from 'helmet';
 import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { roomRouter } from './routes/rooms';
+import { userRouter } from './routes/users';
+import { friendRouter } from './routes/friends';
 import { setupSocketHandlers } from './socket/handlers';
 import { startRoomCleanup } from './rooms/RoomManager';
 
@@ -51,8 +54,8 @@ const corsOptions = {
   methods: ["GET", "POST", "OPTIONS"]
 };
 
-// @ts-ignore - socket.io types don't fully match the function signature but it works
 const io = new Server(server, { cors: corsOptions });
+app.set('io', io);
 
 io.engine.use((req: any, res: any, next: any) => {
   Object.setPrototypeOf(req, app.request);
@@ -122,7 +125,16 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// DEBUG LOGGING
+app.use((req, res, next) => {
+  console.log(`[REQ] ${req.method} ${req.url}`);
+  next();
+});
+
 app.use('/api/rooms', roomRouter);
+app.use('/api/users', userRouter);
+app.use('/api/friends', friendRouter);
 
 import { logger } from './utils/logger';
 

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, Github, Linkedin, Twitter, Eye, EyeOff } from 'lucide-react';
+import { Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, Github, Linkedin, Twitter, Eye, EyeOff, User } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../lib/config';
@@ -13,6 +13,7 @@ import { twMerge } from 'tailwind-merge';
 import { m, LazyMotion, domAnimation, AnimatePresence } from 'framer-motion';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import CssOrb from '../components/CssOrb';
+import ProfileModal from '../components/ProfileModal';
 const FloatingAppMockup = lazy(() => import('../components/FloatingAppMockup'));
 
 function cn(...inputs: (string | undefined | null | false)[]) {
@@ -132,8 +133,10 @@ export default function Home() {
   const isMobile = useMediaQuery('(max-width: 768px)');
   const navigate = useNavigate();
   const { roomId: urlRoomId } = useParams();
-  const { setRoomId } = useRoomStore(useShallow(state => ({
-    setRoomId: state.setRoomId
+  const { setRoomId, avatarUrl, nickname: authNickname } = useRoomStore(useShallow(state => ({
+    setRoomId: state.setRoomId,
+    avatarUrl: state.avatarUrl,
+    nickname: state.nickname
   })));
 
   const savedNickname = localStorage.getItem('syncwatch_nickname') || '';
@@ -142,64 +145,27 @@ export default function Home() {
   
   const [activeTab, setActiveTab] = useState<'create' | 'join'>(urlRoomId ? 'join' : 'create');
 
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+
   const [error, setError] = useState('');
   
   const [lockRoom, setLockRoom] = useState(false);
   const [pin, setPin] = useState('');
   const [requiresPin, setRequiresPin] = useState(false);
+  const firebaseUid = useRoomStore(state => state.firebaseUid);
+  const isAuthLoading = useRoomStore(state => state.isAuthLoading);
+  
+  const [isPersistent, setIsPersistent] = useState(false);
+  const [customRoomId, setCustomRoomId] = useState('');
 
   const [showExpiredError, setShowExpiredError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPin, setShowPin] = useState(false);
 
-  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  const handleOtpChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-    if (!val && e.target.value !== '') return;
-    
-    let currentStr = inputRoomId.padEnd(6, ' ');
-    const newRoomId = currentStr.split('');
-    newRoomId[index] = val.slice(-1) || ' ';
-    
-    setInputRoomId(newRoomId.join('').trimEnd());
+  const handleRoomIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputRoomId(e.target.value);
     if (error) setError('');
-    
-    if (val && index < 5) {
-      otpRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    let currentStr = inputRoomId.padEnd(6, ' ');
-    if (e.key === 'Backspace') {
-      if (currentStr[index] === ' ' && index > 0) {
-        otpRefs.current[index - 1]?.focus();
-        const newRoomId = currentStr.split('');
-        newRoomId[index - 1] = ' ';
-        setInputRoomId(newRoomId.join('').trimEnd());
-      } else {
-        const newRoomId = currentStr.split('');
-        newRoomId[index] = ' ';
-        setInputRoomId(newRoomId.join('').trimEnd());
-      }
-    } else if (e.key === 'ArrowLeft' && index > 0) {
-      otpRefs.current[index - 1]?.focus();
-    } else if (e.key === 'ArrowRight' && index < 5) {
-      otpRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData('text').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().substring(0, 6);
-    if (!pasted) return;
-    
-    setInputRoomId(pasted);
-    if (error) setError('');
-    
-    const nextIndex = Math.min(pasted.length, 5);
-    otpRefs.current[nextIndex === 6 ? 5 : nextIndex]?.focus();
   };
 
   useEffect(() => {
@@ -208,6 +174,31 @@ export default function Home() {
       setActiveTab('join');
     }
   }, [urlRoomId]);
+
+  const handleLogin = async () => {
+    try {
+      const { app } = await import('../firebase');
+      const { getAuth, signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      toast.success('Logged in successfully!');
+    } catch (err: unknown) {
+      toast.error('Failed to login: ' + (err instanceof Error ? err.message : String(err)));
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const { app } = await import('../firebase');
+      const { getAuth, signOut } = await import('firebase/auth');
+      const auth = getAuth(app);
+      await signOut(auth);
+      toast.success('Logged out');
+    } catch (err: unknown) {
+      toast.error('Failed to logout');
+    }
+  };
 
   const handleCreateRoom = async () => {
     const trimmed = nickname.trim();
@@ -225,10 +216,51 @@ export default function Home() {
         return;
       }
     }
+    
+    if (isPersistent) {
+      if (!customRoomId || customRoomId.length < 3) {
+        setError('Custom link must be at least 3 characters');
+        return;
+      }
+      if (!/^[a-z0-9-]+$/.test(customRoomId)) {
+        setError('Custom link can only contain lowercase letters, numbers, and hyphens');
+        return;
+      }
+    }
+    
     setError('');
     setIsLoading(true);
     localStorage.setItem('syncwatch_nickname', trimmed);
     try {
+      if (isPersistent) {
+        const { app } = await import('../firebase');
+        const { getFirestore, doc, setDoc, getDoc } = await import('firebase/firestore');
+        const db = getFirestore(app);
+        
+        const docRef = doc(db, 'roomTemplates', customRoomId);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists() && docSnap.data().hostId !== firebaseUid) {
+          setError('This custom link is already taken.');
+          setIsLoading(false);
+          return;
+        }
+
+        // Add to Firestore
+        await setDoc(docRef, {
+          hostId: firebaseUid,
+          controlPolicy: 'host_only',
+          password: lockRoom ? pin : null,
+          createdAt: Date.now()
+        }, { merge: true });
+        
+        useRoomStore.getState().setRoomPassword(lockRoom ? pin : null);
+        setRoomId(customRoomId);
+        useRoomStore.getState().setNickname(trimmed);
+        navigate(`/room/${customRoomId}/waiting`);
+        return;
+      }
+
       const res = await fetch(`${SERVER_URL}/api/rooms`, { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -259,9 +291,18 @@ export default function Home() {
       setShowExpiredError(false);
       return;
     }
-    const parsedCode = inputRoomId.replace(/\s/g, '').toUpperCase();
+    let parsedCode = inputRoomId.trim();
+    
+    // If they pasted a full URL, extract just the room code/name
+    if (parsedCode.includes('/room/')) {
+       parsedCode = parsedCode.split('/room/')[1].replace('/waiting', '').split('?')[0].split('/')[0];
+    } else if (parsedCode.includes('/')) {
+       const parts = parsedCode.split('/');
+       parsedCode = parts[parts.length - 1];
+    }
+    
     if (parsedCode.length < 6) {
-      setError('Please enter a 6-character room code');
+      setError('Room code or custom link must be at least 6 characters');
       setShowExpiredError(false);
       return;
     }
@@ -277,12 +318,24 @@ export default function Home() {
     localStorage.setItem('syncwatch_nickname', trimmed);
     
     try {
-      const code = parsedCode;
+      let code = parsedCode;
       
       if (!requiresPin) {
-        const res = await fetch(`${SERVER_URL}/api/rooms/${code}/exists`);
+        let res = await fetch(`${SERVER_URL}/api/rooms/${code}/exists`);
         if (!res.ok) throw new Error('Failed to check room');
-        const data = await res.json();
+        let data = await res.json();
+        
+        if (!data.exists && code.length === 6 && code !== code.toUpperCase()) {
+          const upperCode = code.toUpperCase();
+          const upperRes = await fetch(`${SERVER_URL}/api/rooms/${upperCode}/exists`);
+          if (upperRes.ok) {
+            const upperData = await upperRes.json();
+            if (upperData.exists) {
+              data = upperData;
+              code = upperCode;
+            }
+          }
+        }
         
         if (!data.exists) {
           if (urlRoomId) {
@@ -369,6 +422,67 @@ export default function Home() {
           <button onClick={() => toast('Extension is coming soon!', { icon: '🚀' })} className="text-zinc-400 hover:text-white text-sm font-medium transition-colors">
             Extension
           </button>
+          
+          <div className="w-px h-4 bg-white/10 mx-2 hidden tablet:block" />
+          
+          {isAuthLoading ? (
+            <div className="w-16 h-8 bg-white/5 animate-pulse rounded-lg" />
+          ) : firebaseUid ? (
+            <div className="relative">
+              <button 
+                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full transition-colors border border-white/5"
+              >
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="w-6 h-6 rounded-full" />
+                ) : (
+                  <div className="w-6 h-6 rounded-full bg-teal-500/20 flex items-center justify-center">
+                    <User className="w-4 h-4 text-teal-400" />
+                  </div>
+                )}
+                <span className="text-sm font-medium text-white max-w-[100px] truncate">
+                  {authNickname || 'User'}
+                </span>
+              </button>
+              
+              <AnimatePresence>
+                {isProfileDropdownOpen && (
+                  <m.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute right-0 mt-2 w-48 bg-[#111111] border border-white/10 rounded-xl shadow-xl overflow-hidden py-1 z-50"
+                  >
+                    <button
+                      onClick={() => {
+                        setIsProfileDropdownOpen(false);
+                        setIsProfileOpen(true);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 transition-colors"
+                    >
+                      My Profile
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsProfileDropdownOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors"
+                    >
+                      Sign Out
+                    </button>
+                  </m.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <button 
+              onClick={handleLogin}
+              className="text-xs font-semibold px-4 py-2 bg-teal-500/20 hover:bg-teal-500/30 text-teal-400 rounded-lg transition-colors border border-teal-500/30"
+            >
+              Sign In
+            </button>
+          )}
         </div>
       </div>
 
@@ -479,6 +593,49 @@ export default function Home() {
                           </button>
                         </div>
                         
+                        {firebaseUid && (
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center justify-between px-1">
+                              <div className="flex items-center gap-2">
+                                <Link2 size={16} className={isPersistent ? "text-teal-400" : "text-zinc-500"} />
+                                <span className="text-sm font-medium text-zinc-300">Custom Permanent Link</span>
+                              </div>
+                              <button 
+                                onClick={() => { setIsPersistent(!isPersistent); setError(''); }}
+                                className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", isPersistent ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
+                              >
+                                <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", isPersistent ? "translate-x-[22px]" : "translate-x-0.5")} />
+                              </button>
+                            </div>
+                            
+                            <AnimatePresence>
+                            {isPersistent && (
+                              <m.div 
+                                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                animate={{ opacity: 1, height: 'auto', marginBottom: 4 }}
+                                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                className="overflow-hidden"
+                              >
+                                 <div className="flex items-center bg-black/40 border border-white/10 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-teal-500/50 transition-all shadow-inner pl-4">
+                                   <span className="text-zinc-500 font-medium whitespace-nowrap text-sm">syncwatch.com/</span>
+                                   <input
+                                     aria-label="Custom Room ID"
+                                     type="text"
+                                     value={customRoomId}
+                                     onChange={e => {
+                                       setCustomRoomId(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
+                                       setError('');
+                                     }}
+                                     className="w-full h-12 bg-transparent text-white font-mono placeholder:text-zinc-600 outline-none px-2 text-sm"
+                                     placeholder="my-room"
+                                   />
+                                 </div>
+                              </m.div>
+                            )}
+                            </AnimatePresence>
+                          </div>
+                        )}
+                        
                         <AnimatePresence>
                         {lockRoom && (
                           <m.div 
@@ -532,23 +689,20 @@ export default function Home() {
                        className="flex flex-col gap-5 w-full"
                      >
                         <div className="flex flex-col gap-2">
-                           <label htmlFor="roomCode" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider ml-1">Room Code</label>
-                           <div id="roomCode" className="flex justify-between gap-2" aria-label="Room Code Input">
-                             {[0, 1, 2, 3, 4, 5].map((index) => (
-                               <input
-                                 key={index}
-                                 ref={el => { otpRefs.current[index] = el; }}
-                                 type="text"
-                                 aria-label={`Digit ${index + 1}`}
-                                 value={inputRoomId.padEnd(6, ' ')[index] === ' ' ? '' : inputRoomId.padEnd(6, ' ')[index]}
-                                 onChange={e => handleOtpChange(index, e)}
-                                 onKeyDown={e => handleOtpKeyDown(index, e)}
-                                 onPaste={handleOtpPaste}
-                                 disabled={requiresPin}
-                                 maxLength={1}
-                                 className="w-full aspect-square text-center text-xl font-mono uppercase bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-zinc-400/50 transition-all shadow-inner"
-                               />
-                             ))}
+                           <label htmlFor="roomCode" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider ml-1">Room Code or Custom Link</label>
+                           <div className="relative">
+                             <input
+                               id="roomCode"
+                               type="text"
+                               placeholder="e.g. AB1234 or my-room-name"
+                               value={inputRoomId}
+                               onChange={handleRoomIdChange}
+                               disabled={requiresPin}
+                               className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all font-mono"
+                             />
+                             <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                <Link2 className="w-4 h-4 text-zinc-500" />
+                             </div>
                            </div>
                         </div>
 
@@ -696,6 +850,7 @@ export default function Home() {
 
       </div>
     </m.div>
+      <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </LazyMotion>
   );
 }
