@@ -3,6 +3,7 @@ import { useRoomStore } from '../store/roomStore';
 import { getAuth, onIdTokenChanged } from 'firebase/auth';
 import { getDatabase, ref, onDisconnect, onValue, set, serverTimestamp } from 'firebase/database';
 import { socket } from '../hooks/useSocket';
+import toast from 'react-hot-toast';
 
 export const AuthSync = () => {
   const setAuthToken = useRoomStore((state) => state.setAuthToken);
