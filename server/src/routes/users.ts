@@ -38,9 +38,12 @@ userRouter.post('/initialize', requireAuth, async (req, res) => {
     const docSnap = await userRef.get();
 
     if (docSnap.exists) {
-      // User already exists, return their existing friendCode
+      // User already exists
       const data = docSnap.data()!;
-      return res.json({ success: true, friendCode: data.friendCode });
+      if (data.friendCode) {
+        return res.json({ success: true, friendCode: data.friendCode });
+      }
+      // If legacy user without a friendCode, fall through to generate one
     }
 
     // New user: Generate a unique friend code
