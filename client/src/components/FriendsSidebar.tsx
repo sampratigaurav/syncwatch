@@ -26,7 +26,7 @@ export const FriendsSidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'friends' | 'requests'>('friends');
   
-  const [friends, setFriends] = useState<(FriendshipEdge & { status: 'online' | 'offline' | 'away' })[]>([]);
+  const [friends, setFriends] = useState<(FriendshipEdge & { onlineStatus: 'online' | 'offline' | 'away' })[]>([]);
   const [incomingReqs, setIncomingReqs] = useState<FriendshipEdge[]>([]);
   const [outgoingReqs, setOutgoingReqs] = useState<FriendshipEdge[]>([]);
   
@@ -83,7 +83,7 @@ export const FriendsSidebar = () => {
         rtdbUnsubs = [];
 
         // Set up presence listeners for accepted friends
-        const friendsWithPresence = accepted.map(edge => ({ ...edge, status: 'offline' as const }));
+        const friendsWithPresence = accepted.map(edge => ({ ...edge, onlineStatus: 'offline' as const }));
         setFriends(friendsWithPresence);
 
         friendsWithPresence.forEach(edge => {
@@ -94,7 +94,7 @@ export const FriendsSidebar = () => {
           const unsub = onValue(statusRef, (presenceSnap) => {
             const val = presenceSnap.val();
             const state = val?.state || 'offline';
-            setFriends(prev => prev.map(f => f.id === edge.id ? { ...f, status: state } : f));
+            setFriends(prev => prev.map(f => f.id === edge.id ? { ...f, onlineStatus: state } : f));
           });
           rtdbUnsubs.push(unsub);
         });
@@ -297,11 +297,11 @@ export const FriendsSidebar = () => {
                                     <Users size={16} className="text-zinc-500" />
                                   </div>
                                 )}
-                                <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#0a0a0a] ${edge.status === 'online' ? 'bg-teal-500' : 'bg-zinc-500'}`} />
+                                <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#0a0a0a] ${edge.onlineStatus === 'online' ? 'bg-teal-500' : 'bg-zinc-500'}`} />
                               </div>
                               <div>
                                 <div className="text-sm font-medium text-white leading-tight">{profile?.displayName || 'Unknown'}</div>
-                                <div className="text-xs text-zinc-400 capitalize">{edge.status}</div>
+                                <div className="text-xs text-zinc-400 capitalize">{edge.onlineStatus}</div>
                               </div>
                             </div>
                             <button 

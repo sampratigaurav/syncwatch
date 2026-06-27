@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Lock, Unlock, Link2, FileVideo, ShieldCheck, Play, Github, Linkedin, Twitter, Eye, EyeOff, User } from 'lucide-react';

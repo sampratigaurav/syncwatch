@@ -20,7 +20,7 @@ export const AuthSync = () => {
       const auth = getAuth(app);
       const rtdb = getDatabase(app);
 
-      const { getFirestore, doc, getDoc, setDoc } = await import('firebase/firestore');
+      const { getFirestore, doc, getDoc } = await import('firebase/firestore');
       const db = getFirestore(app);
 
           // Listen to token changes (including silent refreshes every hour)
