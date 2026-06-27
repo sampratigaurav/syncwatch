@@ -12,7 +12,12 @@ if ((serviceAccountPath || serviceAccountJson) && databaseURL) {
   try {
     let serviceAccount;
     if (serviceAccountJson) {
-      serviceAccount = JSON.parse(serviceAccountJson);
+      try {
+        serviceAccount = JSON.parse(serviceAccountJson);
+      } catch (parseError) {
+        console.error('❌ FATAL: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON. Make sure you pasted valid JSON without mangled quotes or missing braces!', parseError);
+        throw parseError;
+      }
     } else {
       serviceAccount = require(path.resolve(serviceAccountPath!));
     }

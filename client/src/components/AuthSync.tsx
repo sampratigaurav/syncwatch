@@ -73,8 +73,9 @@ export const AuthSync = () => {
                 useRoomStore.getState().setNickname(docData.displayName || googleName);
                 useRoomStore.getState().setAvatarUrl(docData.avatarUrl || googlePhoto);
               }
-            } catch (err) {
+            } catch (err: any) {
               console.error("Failed to sync user profile", err);
+              toast.error("Failed to connect to SyncWatch backend. Please check your backend deployment.", { id: 'backend-init-error' });
             }
 
             // RTDB Presence tracking
