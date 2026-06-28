@@ -166,7 +166,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "What if we just want to watch YouTube?",
-    answer: "We've got you covered. You can grab the official SyncWatch Chrome Extension to sync YouTube videos directly on the YouTube website, no local files required."
+    answer: "We are actively developing the official SyncWatch Chrome Extension, which will allow you to sync YouTube videos directly on the YouTube website! For now, the extension is coming soon."
   },
   {
     question: "Does it work on mobile?",
