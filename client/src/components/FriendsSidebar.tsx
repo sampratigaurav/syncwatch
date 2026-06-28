@@ -210,10 +210,13 @@ export const FriendsSidebar = () => {
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               onClick={e => e.stopPropagation()}
-              className="w-full max-w-sm h-full bg-[#0a0a0a] border-l border-white/10 flex flex-col shadow-2xl"
+              className="w-full max-w-sm h-full bg-[#050505]/95 backdrop-blur-3xl border-l border-white/10 flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.8)] relative overflow-hidden"
             >
+              {/* Subtle ambient glow */}
+              <div className="absolute top-[-10%] left-[-10%] w-[120%] h-64 bg-teal-900/20 blur-[100px] pointer-events-none rounded-full" />
+              
               {/* Header */}
-              <div className="p-6 pb-0">
+              <div className="p-6 pb-0 relative z-10">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-bold text-white flex items-center gap-2">
                     <Users className="text-teal-500" />
@@ -224,41 +227,41 @@ export const FriendsSidebar = () => {
                   </button>
                 </div>
 
-                <div className="flex gap-2 mb-6">
+                <div className="flex gap-2 mb-8 relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-500/0 via-teal-500/10 to-teal-500/0 rounded-xl opacity-0 group-focus-within:opacity-100 blur transition-opacity duration-500" />
                   <input
                     type="text"
                     placeholder="Enter Friend Code (e.g. A8X2-94P1)"
                     value={addFriendCode}
                     onChange={e => setAddFriendCode(e.target.value.toUpperCase())}
-                    className="flex-1 bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-teal-500 transition-colors uppercase placeholder:normal-case"
+                    className="relative flex-1 bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-teal-500/50 focus:bg-white/[0.02] transition-all uppercase placeholder:normal-case shadow-inner"
                   />
                   <button 
                     onClick={handleSendRequest}
                     disabled={isSubmitting || !addFriendCode}
-                    className="p-2 bg-teal-500/20 hover:bg-teal-500/30 text-teal-400 rounded-lg transition-colors disabled:opacity-50"
+                    className="relative px-4 bg-teal-600 hover:bg-teal-500 text-white rounded-xl transition-all disabled:opacity-50 disabled:hover:bg-teal-600 shadow-lg active:scale-95 flex items-center justify-center"
                   >
-                    <UserPlus size={18} />
+                    <UserPlus size={20} />
                   </button>
                 </div>
 
-                {/* Tabs */}
-                <div className="flex gap-4 border-b border-white/5 mb-4">
+                <div className="flex gap-6 border-b border-white/5 mb-6">
                   <button 
                     onClick={() => setActiveTab('friends')}
-                    className={`pb-2 text-sm font-medium transition-colors relative ${activeTab === 'friends' ? 'text-teal-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    className={`pb-3 text-sm font-semibold transition-colors relative ${activeTab === 'friends' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                   >
-                    Friends ({friends.length})
-                    {activeTab === 'friends' && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-400 rounded-t-full" />}
+                    Friends <span className="ml-1.5 text-xs font-mono text-zinc-500">({friends.length})</span>
+                    {activeTab === 'friends' && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-t-full shadow-[0_-2px_10px_rgba(20,184,166,0.5)]" />}
                   </button>
                   <button 
                     onClick={() => setActiveTab('requests')}
-                    className={`pb-2 text-sm font-medium transition-colors relative flex items-center gap-2 ${activeTab === 'requests' ? 'text-teal-400' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    className={`pb-3 text-sm font-semibold transition-colors relative flex items-center gap-2 ${activeTab === 'requests' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                   >
                     Requests
                     {incomingReqs.length > 0 && (
-                      <span className="bg-teal-500/20 text-teal-400 text-[10px] px-1.5 py-0.5 rounded-full">{incomingReqs.length}</span>
+                      <span className="bg-teal-500/20 text-teal-400 border border-teal-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">{incomingReqs.length}</span>
                     )}
-                    {activeTab === 'requests' && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-400 rounded-t-full" />}
+                    {activeTab === 'requests' && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-t-full shadow-[0_-2px_10px_rgba(20,184,166,0.5)]" />}
                   </button>
                 </div>
               </div>
@@ -267,12 +270,18 @@ export const FriendsSidebar = () => {
               <div className="flex-1 overflow-y-auto px-6 pb-6 custom-scrollbar">
                 
                 {/* My Code Banner */}
-                <div className="bg-teal-500/10 border border-teal-500/20 rounded-xl p-3 flex items-center justify-between mb-4 group cursor-pointer hover:bg-teal-500/20 transition-colors" onClick={copyMyCode}>
-                  <div>
-                    <div className="text-xs text-teal-500/70 font-semibold uppercase tracking-wider mb-0.5">My Friend Code</div>
-                    <div className="text-sm text-teal-400 font-mono tracking-widest">{friendCode || 'Loading...'}</div>
+                <div className="relative overflow-hidden bg-gradient-to-br from-teal-900/40 to-teal-950/40 border border-teal-500/30 rounded-2xl p-4 flex items-center justify-between mb-8 group cursor-pointer hover:border-teal-400/50 hover:shadow-[0_0_20px_rgba(20,184,166,0.15)] transition-all duration-300" onClick={copyMyCode}>
+                  <div className="absolute inset-0 bg-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative z-10">
+                    <div className="text-[10px] text-teal-300/70 font-semibold uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+                      My Friend Code
+                    </div>
+                    <div className="text-lg text-teal-400 font-mono tracking-[0.2em] drop-shadow-md">{friendCode || 'Loading...'}</div>
                   </div>
-                  <Copy size={16} className="text-teal-500 opacity-50 group-hover:opacity-100 transition-opacity" />
+                  <div className="relative z-10 w-10 h-10 rounded-full bg-teal-500/10 border border-teal-500/20 flex items-center justify-center group-hover:bg-teal-500/20 group-hover:scale-110 group-hover:border-teal-500/40 transition-all duration-300">
+                    <Copy size={18} className="text-teal-400" />
+                  </div>
                 </div>
 
                 {/* Friends Tab */}
@@ -287,21 +296,22 @@ export const FriendsSidebar = () => {
                         const friendUid = edge.participants.find(p => p !== firebaseUid)!;
                         const profile = edge.profiles[friendUid];
                         return (
-                          <div key={edge.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group">
-                            <div className="flex items-center gap-3">
+                          <div key={edge.id} className="flex items-center justify-between p-3 rounded-2xl bg-gradient-to-br from-white/[0.02] to-transparent border border-white/5 hover:border-white/10 hover:bg-white/[0.04] hover:shadow-lg transition-all duration-300 group relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-teal-500/0 via-teal-500/5 to-teal-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 pointer-events-none" />
+                            <div className="flex items-center gap-3 relative z-10">
                               <div className="relative">
                                 {profile?.avatarUrl ? (
-                                  <img src={profile.avatarUrl} alt={profile.displayName} className="w-10 h-10 rounded-full object-cover border border-white/10" />
+                                  <img src={profile.avatarUrl} alt={profile.displayName} className="w-11 h-11 rounded-full object-cover border border-white/10 shadow-md" />
                                 ) : (
-                                  <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10">
-                                    <Users size={16} className="text-zinc-500" />
+                                  <div className="w-11 h-11 rounded-full bg-zinc-800/80 flex items-center justify-center border border-white/10 shadow-md">
+                                    <Users size={18} className="text-zinc-500" />
                                   </div>
                                 )}
-                                <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#0a0a0a] ${edge.onlineStatus === 'online' ? 'bg-teal-500' : 'bg-zinc-500'}`} />
+                                <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-[2.5px] border-[#0a0a0a] ${edge.onlineStatus === 'online' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-zinc-600'}`} />
                               </div>
-                              <div>
-                                <div className="text-sm font-medium text-white leading-tight">{profile?.displayName || 'Unknown'}</div>
-                                <div className="text-xs text-zinc-400 capitalize">{edge.onlineStatus}</div>
+                              <div className="flex flex-col justify-center">
+                                <div className="text-[15px] font-semibold text-white leading-tight drop-shadow-sm">{profile?.displayName || 'Unknown'}</div>
+                                <div className={`text-[11px] font-medium tracking-wide uppercase mt-0.5 ${edge.onlineStatus === 'online' ? 'text-emerald-400/80' : 'text-zinc-500'}`}>{edge.onlineStatus}</div>
                               </div>
                             </div>
                             <button 
