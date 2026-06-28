@@ -508,10 +508,10 @@ export default function Home() {
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="opacity-0 -translate-y-5 flex flex-col items-center w-full mb-12 tablet:mb-16"
         >
-          <h2 className="text-5xl tablet:text-[4.5rem] font-bold bg-gradient-to-br from-white via-zinc-200 to-zinc-600 bg-clip-text text-transparent pb-4 tracking-tight leading-[1.1] text-center max-w-4xl drop-shadow-2xl">
-            Watch together.<br className="hidden tablet:block" /> In perfect sync.
+          <h2 className="text-5xl tablet:text-[4.5rem] font-bold text-white pb-4 tracking-tight leading-[1.1] text-center max-w-5xl drop-shadow-2xl">
+            Watch together. In perfect sync.
           </h2>
-          <p className="text-zinc-400 text-lg tablet:text-xl text-center max-w-2xl">
+          <p className="text-zinc-400 text-lg tablet:text-xl text-center max-w-none">
             Experience movies and shows with your friends in real-time, no matter where they are.
           </p>
         </m.div>
