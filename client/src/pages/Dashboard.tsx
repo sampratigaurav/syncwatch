@@ -28,12 +28,13 @@ const AmbientBackground = () => (
 export default function Dashboard() {
   const navigate = useNavigate();
   const { roomId: urlRoomId } = useParams();
-  const { setRoomId, nickname: authNickname } = useRoomStore(useShallow(state => ({
+  const { setRoomId, nickname: authNickname, profileName } = useRoomStore(useShallow(state => ({
     setRoomId: state.setRoomId,
-    nickname: state.nickname
+    nickname: state.nickname,
+    profileName: state.profileName
   })));
 
-  const savedNickname = localStorage.getItem('syncwatch_nickname') || authNickname || '';
+  const savedNickname = profileName || localStorage.getItem('syncwatch_nickname') || authNickname || '';
   const [nickname, setNicknameInput] = useState(savedNickname);
   const [inputRoomId, setInputRoomId] = useState(urlRoomId || '');
   
@@ -63,6 +64,12 @@ export default function Dashboard() {
       setActiveTab('join');
     }
   }, [urlRoomId]);
+
+  useEffect(() => {
+    if (profileName && (!nickname || nickname === authNickname)) {
+      setNicknameInput(profileName);
+    }
+  }, [profileName]);
 
   const handleCreateRoom = async () => {
     const trimmed = nickname.trim();

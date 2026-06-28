@@ -71,7 +71,7 @@ export const AuthSync = () => {
               const docSnap = await getDoc(userRef);
               if (docSnap.exists()) {
                 const docData = docSnap.data();
-                useRoomStore.getState().setNickname(docData.displayName || googleName);
+                useRoomStore.getState().setProfileName(docData.displayName || googleName);
                 useRoomStore.getState().setAvatarUrl(docData.avatarUrl || googlePhoto);
               }
             } catch (err: any) {

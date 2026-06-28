@@ -30,20 +30,20 @@ const AVATAR_SEEDS = [
 const getAvatarUrl = (seed: string) => `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}&backgroundColor=transparent`;
 
 export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
-  const { firebaseUid, authToken, nickname, avatarUrl, setNickname, setAvatarUrl } = useRoomStore();
+  const { firebaseUid, authToken, nickname, profileName, avatarUrl, setProfileName, setAvatarUrl } = useRoomStore();
   const [rooms, setRooms] = useState<RoomTemplate[]>([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
-  const [editName, setEditName] = useState(nickname || '');
+  const [editName, setEditName] = useState(profileName || nickname || '');
   const [isSavingIdentity, setIsSavingIdentity] = useState(false);
   const [showPinEdit, setShowPinEdit] = useState<string | null>(null);
   const [newPin, setNewPin] = useState('');
 
   useEffect(() => {
     if (isOpen && firebaseUid) {
-      setEditName(nickname || '');
+      setEditName(profileName || nickname || '');
       fetchRooms();
     }
-  }, [isOpen, firebaseUid, nickname]);
+  }, [isOpen, firebaseUid, profileName, nickname]);
 
   const fetchRooms = async () => {
     if (!firebaseUid) return;
@@ -71,7 +71,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     if (!firebaseUid) return;
     setIsSavingIdentity(true);
     try {
-      const targetName = editName.trim() || nickname;
+      const targetName = editName.trim() || profileName || nickname;
       const targetAvatar = newAvatarUrl !== undefined ? newAvatarUrl : avatarUrl;
       
       const db = getFirestore(app);
@@ -80,7 +80,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
         avatarUrl: targetAvatar
       }, { merge: true });
 
-      setNickname(targetName);
+      setProfileName(targetName);
       setAvatarUrl(targetAvatar);
       
       // Sync to live rooms

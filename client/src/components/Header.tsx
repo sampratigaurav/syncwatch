@@ -20,11 +20,12 @@ export const Header = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
 
-  const { firebaseUid, isAuthLoading, avatarUrl, authNickname } = useRoomStore(useShallow(state => ({
+  const { firebaseUid, isAuthLoading, avatarUrl, nickname, profileName } = useRoomStore(useShallow(state => ({
     firebaseUid: state.firebaseUid,
     isAuthLoading: state.isAuthLoading,
     avatarUrl: state.avatarUrl,
-    authNickname: state.nickname
+    nickname: state.nickname,
+    profileName: state.profileName
   })));
 
   const handleLogin = async () => {
@@ -58,50 +59,58 @@ export const Header = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-2 tablet:grid-cols-3 items-center px-6 py-4">
           
           {/* Left: Logo */}
-          <div className="flex items-center justify-start">
-            <Link to="/" className="text-xl tablet:text-2xl font-bold tracking-tighter text-white drop-shadow-md">
+          <Link to="/" className="flex items-center gap-2 group justify-self-start">
+            <div className="bg-gradient-to-tr from-teal-400 to-emerald-400 p-2 rounded-xl group-hover:scale-105 transition-transform duration-300 shadow-[0_0_20px_rgba(45,212,191,0.2)]">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-950">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
               SyncWatch
-            </Link>
-          </div>
+            </span>
+          </Link>
 
-          {/* Center: Links */}
-          <div className="hidden tablet:flex items-center justify-center gap-8">
-            <Link to="/dashboard" className="text-zinc-400 hover:text-white text-sm font-medium transition-colors">
+          {/* Center: Desktop Navigation (Hidden on mobile) */}
+          <nav className="hidden tablet:flex items-center justify-center gap-8">
+            <Link to="/getting-started" className="text-sm font-medium text-zinc-400 hover:text-teal-400 transition-colors">
               Getting Started
             </Link>
-            <Link to="/docs" className="text-zinc-400 hover:text-white text-sm font-medium transition-colors">
+            <Link to="/docs" className="text-sm font-medium text-zinc-400 hover:text-teal-400 transition-colors">
               Docs
             </Link>
-            <button onClick={() => toast('Extension is coming soon!', { icon: '🚀' })} className="text-zinc-400 hover:text-white text-sm font-medium transition-colors">
+            <a href="https://github.com/sampratigaurav/syncwatch" target="_blank" rel="noreferrer" className="text-sm font-medium text-zinc-400 hover:text-teal-400 transition-colors">
               Extension
-            </button>
-          </div>
-          
+            </a>
+          </nav>
+
           {/* Right: Auth & Social */}
           <div className="flex items-center justify-end gap-4 tablet:gap-6">
-            <a href="https://github.com/sampratigaurav/syncwatch" aria-label="GitHub Repository" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-white transition-colors">
-              <Github size={20} />
+            <a 
+              href="https://github.com/sampratigaurav/syncwatch" 
+              target="_blank" 
+              rel="noreferrer"
+              className="text-zinc-400 hover:text-white transition-colors"
+            >
+              <Github className="w-5 h-5" />
             </a>
-            
-            <div className="w-px h-4 bg-white/10 hidden tablet:block" />
-            
+
             {isAuthLoading ? (
               <div className="w-16 h-8 bg-white/5 animate-pulse rounded-lg" />
             ) : firebaseUid ? (
               <div className="relative">
                 <button 
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full transition-colors border border-white/5"
+                  className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full transition-all duration-300"
                 >
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" className="w-6 h-6 rounded-full" />
+                    <img src={avatarUrl} alt="Avatar" className="w-6 h-6 rounded-full bg-zinc-800" />
                   ) : (
                     <div className="w-6 h-6 rounded-full bg-teal-500/20 flex items-center justify-center">
-                      <User className="w-4 h-4 text-teal-400" />
+                      <User className="w-3.5 h-3.5 text-teal-400" />
                     </div>
                   )}
                   <span className="text-sm font-medium text-white max-w-[100px] truncate">
-                    {authNickname || 'User'}
+                    {profileName || nickname || 'User'}
                   </span>
                 </button>
                 

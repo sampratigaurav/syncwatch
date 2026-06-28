@@ -4,6 +4,7 @@ import type { RoomStore } from '../roomStore';
 export interface AuthSlice {
   roomId: string | null;
   nickname: string;
+  profileName: string | null;
   isConnected: boolean;
   connectionStatus: 'connected' | 'connecting' | 'reconnecting' | 'disconnected' | 'failed' | 'room_not_found';
   reconnectAttempt: number;
@@ -20,6 +21,7 @@ export interface AuthSlice {
 
   setRoomId: (id: string | null) => void;
   setNickname: (name: string) => void;
+  setProfileName: (name: string | null) => void;
   setIsConnected: (connected: boolean) => void;
   setConnectionStatus: (status: 'connected' | 'connecting' | 'reconnecting' | 'disconnected' | 'failed' | 'room_not_found') => void;
   setReconnectAttempt: (attempt: number) => void;
@@ -39,6 +41,7 @@ export interface AuthSlice {
 export const createAuthSlice: StateCreator<RoomStore, [], [], AuthSlice> = (set) => ({
   roomId: null,
   nickname: localStorage.getItem('nickname') || '',
+  profileName: null,
   isConnected: false,
   connectionStatus: 'connecting',
   reconnectAttempt: 0,
@@ -59,6 +62,7 @@ export const createAuthSlice: StateCreator<RoomStore, [], [], AuthSlice> = (set)
     localStorage.setItem('nickname', name);
     set({ nickname: name });
   },
+  setProfileName: (name) => set({ profileName: name }),
   setIsConnected: (C) => set({ isConnected: C }),
   setConnectionStatus: (status) => set({ connectionStatus: status }),
   setReconnectAttempt: (attempt) => set({ reconnectAttempt: attempt }),
