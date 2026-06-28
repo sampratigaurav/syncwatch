@@ -44,8 +44,10 @@ const STEPS = [
 
 const TechTicker = () => {
   return (
-    <div className="w-full mt-12 overflow-hidden relative z-10 opacity-60">
-      <div className="absolute inset-0 z-20 pointer-events-none" style={{ background: 'linear-gradient(90deg, #050505 0%, transparent 5%, transparent 95%, #050505 100%)' }} />
+    <div 
+      className="w-full mt-12 overflow-hidden relative z-10 opacity-60"
+      style={{ WebkitMaskImage: 'linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%)', maskImage: 'linear-gradient(90deg, transparent 0%, black 10%, black 90%, transparent 100%)' }}
+    >
       <m.div 
         className="flex items-center gap-8 whitespace-nowrap w-max"
         animate={{ x: ["0%", "-50%"] }}
@@ -168,8 +170,6 @@ export default function Home() {
 
         {/* Tech Ticker */}
         <div className="w-full relative mt-16 tablet:mt-24 mb-8 tablet:mb-12">
-          <div className="absolute inset-y-0 left-0 w-8 tablet:w-16 bg-gradient-to-r from-[#050505] to-transparent z-10 pointer-events-none" />
-          <div className="absolute inset-y-0 right-0 w-8 tablet:w-16 bg-gradient-to-l from-[#050505] to-transparent z-10 pointer-events-none" />
           <TechTicker />
         </div>
 
