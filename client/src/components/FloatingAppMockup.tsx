@@ -75,7 +75,8 @@ export default function FloatingAppMockup() {
           rotateY,
           transformStyle: 'preserve-3d',
         }}
-        className="relative w-full max-w-[900px] aspect-video will-change-transform group/mockup"
+        whileHover={{ scale: 1.02 }}
+        className="relative w-full max-w-[900px] aspect-video will-change-transform group rounded-2xl transition-all duration-500 hover:shadow-[0_0_120px_rgba(20,184,166,0.25)]"
       >
         {/* Deep Ambient Shadow behind the window */}
         <div 
