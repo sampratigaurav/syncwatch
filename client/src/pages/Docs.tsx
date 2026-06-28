@@ -235,7 +235,7 @@ export default function Docs() {
                     <ul className="space-y-3">
                       <li className="flex items-start gap-3 text-zinc-400">
                         <Lock size={18} className="text-emerald-500/70 shrink-0 mt-1" />
-                        <span>A cryptographic hash of the first few megabytes of your file (to ensure everyone is watching the exact same file).</span>
+                        <span>An acoustic fingerprint of the audio track (to ensure everyone is watching the same content, even if resolutions differ).</span>
                       </li>
                       <li className="flex items-start gap-3 text-zinc-400">
                         <Play size={18} className="text-emerald-500/70 shrink-0 mt-1" />
