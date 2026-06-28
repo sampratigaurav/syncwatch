@@ -151,7 +151,7 @@ export default function Home() {
         </m.div>
 
         {/* Row 2: Centered Large Video Mockup */}
-        <div className="w-full max-w-4xl mx-auto flex items-center justify-center relative cursor-pointer group">
+        <div className="w-full max-w-6xl mx-auto flex items-center justify-center relative cursor-pointer group mt-4 tablet:mt-8 px-4 tablet:px-0">
            <Link to="/dashboard" className="w-full h-full block">
              <m.div 
                initial={{ opacity: 0, scale: 0.95 }}
@@ -164,7 +164,7 @@ export default function Home() {
                  <CssOrb />
                ) : (
                  <Suspense fallback={<div className="w-full h-full min-h-[500px]" />}>
-                   <div className="w-full h-full transform transition-transform duration-500 group-hover:shadow-[0_0_100px_rgba(20,184,166,0.2)] rounded-2xl pointer-events-none">
+                   <div className="w-full h-full transform transition-transform duration-500 group-hover:shadow-[0_0_120px_rgba(20,184,166,0.25)] rounded-2xl pointer-events-none">
                      <FloatingAppMockup />
                    </div>
                  </Suspense>

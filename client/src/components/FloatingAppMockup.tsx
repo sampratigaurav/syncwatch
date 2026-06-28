@@ -1,24 +1,12 @@
 import { m, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
-import { Play, Pause, Volume2, Maximize, MousePointer2 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { Play, Volume2, Maximize, MousePointer2 } from 'lucide-react';
 
 export default function FloatingAppMockup() {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   
-  const [isPlaying, setIsPlaying] = useState(true);
   const progressRef = useRef<HTMLDivElement>(null);
-
-  const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
 
   const handleTimeUpdate = () => {
     if (videoRef.current && progressRef.current) {
@@ -87,7 +75,7 @@ export default function FloatingAppMockup() {
           rotateY,
           transformStyle: 'preserve-3d',
         }}
-        className="relative w-[320px] tablet:w-[540px] aspect-video will-change-transform"
+        className="relative w-full max-w-[900px] aspect-video will-change-transform group/mockup"
       >
         {/* Deep Ambient Shadow behind the window */}
         <div 
@@ -126,17 +114,13 @@ export default function FloatingAppMockup() {
              />
              {/* Subtly animated video placeholder gradient overlay for extra premium color bleed */}
              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/30 via-transparent to-green-900/30 mix-blend-overlay pointer-events-none" />
-             <div 
-               onClick={togglePlay}
-               role="button"
-               aria-label={isPlaying ? "Pause Video" : "Play Video"}
-               className="relative z-10 w-14 h-14 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-2xl transition-all hover:scale-110 hover:bg-white/20 cursor-pointer"
-             >
-               {isPlaying ? (
-                 <Pause size={24} className="text-white fill-white/80" />
-               ) : (
-                 <Play size={24} className="text-white ml-1 fill-white/80" />
-               )}
+             
+             {/* Hover Overlay Button */}
+             <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none flex items-center justify-center backdrop-blur-[2px]">
+               <div className="flex items-center gap-2 px-6 py-3 bg-teal-500 text-white rounded-full font-semibold shadow-2xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-500">
+                 <Play size={18} className="fill-white" />
+                 <span>Create Watch Party</span>
+               </div>
              </div>
           </div>
 
