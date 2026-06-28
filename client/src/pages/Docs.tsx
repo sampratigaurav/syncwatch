@@ -23,7 +23,7 @@ const SECTIONS = [
 const FAQS = [
   {
     q: "Why does it say File Mismatch?",
-    a: "SyncWatch calculates a hash of your file. If your friend downloaded a 720p version and you have a 1080p version, they won't match. You must share the exact same source file."
+    a: "SyncWatch uses acoustic fingerprinting to ensure everyone is watching the same content. While you don't need the exact same file (e.g. 1080p vs 4K works perfectly), if one of you has an extended 'Director's Cut' or a completely different audio dub, the fingerprints won't match. You can always click 'Force Join' to bypass this error if you are sure they are the same."
   },
   {
     q: "The video won't auto-play for my friend.",
