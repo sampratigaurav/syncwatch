@@ -67,7 +67,7 @@ export const Header = () => {
 
           {/* Center: Desktop Navigation (Hidden on mobile) */}
           <nav className="hidden tablet:flex items-center justify-center gap-8">
-            <Link to="/getting-started" className="text-sm font-medium text-zinc-400 hover:text-teal-400 transition-colors">
+            <Link to="/dashboard" className="text-sm font-medium text-zinc-400 hover:text-teal-400 transition-colors">
               Getting Started
             </Link>
             <Link to="/docs" className="text-sm font-medium text-zinc-400 hover:text-teal-400 transition-colors">
