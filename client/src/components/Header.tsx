@@ -60,11 +60,6 @@ export const Header = () => {
           
           {/* Left: Logo */}
           <Link to="/" className="flex items-center gap-2 group justify-self-start">
-            <div className="bg-gradient-to-tr from-teal-400 to-emerald-400 p-2 rounded-xl group-hover:scale-105 transition-transform duration-300 shadow-[0_0_20px_rgba(45,212,191,0.2)]">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-950">
-                <polygon points="5 3 19 12 5 21 5 3"/>
-              </svg>
-            </div>
             <span className="text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
               SyncWatch
             </span>
