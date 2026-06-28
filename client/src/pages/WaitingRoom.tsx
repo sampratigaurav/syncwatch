@@ -10,6 +10,7 @@ import { Copy, Check, AlertTriangle, Loader2, WifiOff, Lock, Link2, UploadCloud,
 import { motion } from 'framer-motion';
 import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
+import { useSoundEffects } from '../hooks/useSoundEffects';
 
 export default function WaitingRoom() {
   const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast, magnetURI, setMagnetURI, setIsTorrent } = useRoomStore(useShallow(state => ({
@@ -31,6 +32,7 @@ export default function WaitingRoom() {
   useSocket(navigate);
   const { verifyFile, mismatchError, forceAccept } = useFileVerify();
   const fileName = useRoomStore(state => state.fileName);
+  const { initAudio } = useSoundEffects();
 
   const [copiedType, setCopiedType] = useState<'link' | 'code' | null>(null);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
@@ -266,7 +268,10 @@ export default function WaitingRoom() {
                     <p className="text-xs text-amber-500 text-center mt-3 mb-2 tablet:mt-0 tablet:mb-4 animate-pulse font-medium">Waiting for all participants to verify files...</p>
                   )}
                   <button
-                    onClick={() => navigate(`/room/${roomId}/watch`)}
+                    onClick={() => {
+                      initAudio();
+                      navigate(`/room/${roomId}/watch`);
+                    }}
                     disabled={!canStart}
                     className="w-full h-[56px] tablet:h-auto tablet:w-auto bg-teal-600 hover:bg-teal-500 disabled:bg-zinc-900 tablet:disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-semibold tablet:font-medium tablet:rounded-lg tablet:px-8 tablet:py-3 transition-colors shadow-[0_-4px_20px_rgba(0,0,0,0.4)] tablet:shadow-lg flex items-center justify-center text-[17px] tablet:text-base uppercase tracking-wider tablet:normal-case tablet:tracking-normal active:bg-teal-700 disabled:opacity-90"
                   >

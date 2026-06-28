@@ -102,7 +102,6 @@ export function VoiceChat() {
         </div>
       ) : (
         <div className="flex flex-col px-3">
-          {/* Participant List inside Voice */}
           <div className="space-y-3 mb-4 max-h-[140px] overflow-y-auto shrink-0 pr-1">
             {voiceParticipants.map((p) => {
               const bgHash = p.nickname.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
@@ -114,19 +113,34 @@ export function VoiceChat() {
                 'bg-rose-500/20 text-rose-400'
               ];
               const gradientColor = colors[bgHash % colors.length];
+              
+              // Get avatarUrl from the main participant state
+              const mainParticipant = useRoomStore.getState().participants.find(mp => mp.id === p.id);
+              const avatarUrl = mainParticipant?.avatarUrl;
 
               return (
                 <div key={p.id} className="flex items-center gap-3">
                   <div className="relative">
-                    <div 
-                      className={cn(
-                         "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold uppercase relative z-10",
-                         gradientColor,
-                         p.isSpeaking && !p.isMuted && "ring-2 ring-teal-500 ring-offset-2 ring-offset-zinc-950 transition-all duration-300"
-                      )}
-                    >
-                      {p.nickname.slice(0, 2)}
-                    </div>
+                    {avatarUrl ? (
+                      <img 
+                        src={avatarUrl} 
+                        alt={p.nickname} 
+                        className={cn(
+                          "w-8 h-8 rounded-full object-cover relative z-10",
+                          p.isSpeaking && !p.isMuted && "ring-2 ring-teal-500 ring-offset-2 ring-offset-zinc-950 transition-all duration-300"
+                        )} 
+                      />
+                    ) : (
+                      <div 
+                        className={cn(
+                           "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold uppercase relative z-10",
+                           gradientColor,
+                           p.isSpeaking && !p.isMuted && "ring-2 ring-teal-500 ring-offset-2 ring-offset-zinc-950 transition-all duration-300"
+                        )}
+                      >
+                        {p.nickname.slice(0, 2)}
+                      </div>
+                    )}
                     {/* Muted overlay icon on avatar */}
                     {p.isMuted && (
                       <div className="absolute -bottom-1 -right-1 bg-zinc-900 rounded-full p-[2px] z-20">

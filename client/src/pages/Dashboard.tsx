@@ -280,7 +280,7 @@ export default function Dashboard() {
         socket.once(EVENTS.ROOM_STATE, handleRoomState);
         
         if (!socket.connected) socket.connect();
-        socket.emit(EVENTS.JOIN_ROOM, { roomId: code, nickname: trimmed, password: pin });
+        socket.emit(EVENTS.JOIN_ROOM, { roomId: code, nickname: trimmed, password: pin, avatarUrl: useRoomStore.getState().avatarUrl || undefined });
       } else {
         useRoomStore.getState().setRoomPassword(null);
         setRoomId(code);

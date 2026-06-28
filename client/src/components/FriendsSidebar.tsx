@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useRoomStore } from '../store/roomStore';
 import { getFirestore, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { getDatabase, ref, onValue } from 'firebase/database';
-import { Users, X, UserPlus, Check, Clock, Copy, Inbox } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { Users, X, Copy, UserPlus, Inbox, Clock, Check } from 'lucide-react';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SERVER_URL } from '../lib/config';
+import { EmptyState } from './ui/EmptyState';
+import { SkeletonShimmer } from './ui/Skeleton';
 
 interface FriendProfile {
   displayName: string;
@@ -277,7 +279,11 @@ export const FriendsSidebar = () => {
                       <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
                       My Friend Code
                     </div>
-                    <div className="text-lg text-teal-400 font-mono tracking-[0.2em] drop-shadow-md">{friendCode || 'Loading...'}</div>
+                    {friendCode ? (
+                      <div className="text-lg text-teal-400 font-mono tracking-[0.2em] drop-shadow-md">{friendCode}</div>
+                    ) : (
+                      <SkeletonShimmer className="w-32 h-7 bg-teal-500/10 rounded-md mt-1" />
+                    )}
                   </div>
                   <div className="relative z-10 w-10 h-10 rounded-full bg-teal-500/10 border border-teal-500/20 flex items-center justify-center group-hover:bg-teal-500/20 group-hover:scale-110 group-hover:border-teal-500/40 transition-all duration-300">
                     <Copy size={18} className="text-teal-400" />
@@ -288,9 +294,12 @@ export const FriendsSidebar = () => {
                 {activeTab === 'friends' && (
                   <div className="flex flex-col gap-2">
                     {friends.length === 0 ? (
-                      <div className="text-sm text-zinc-500 text-center py-8">
-                        No friends yet. Add someone using their code!
-                      </div>
+                      <EmptyState 
+                        icon={<Users size={32} className="opacity-80" />}
+                        title="No friends yet"
+                        description="Share your friend code to start watching together."
+                        className="py-12"
+                      />
                     ) : (
                       friends.map(edge => {
                         const friendUid = edge.participants.find(p => p !== firebaseUid)!;
@@ -339,7 +348,12 @@ export const FriendsSidebar = () => {
                       </h3>
                       <div className="flex flex-col gap-2">
                         {incomingReqs.length === 0 ? (
-                          <div className="text-xs text-zinc-600">No incoming requests</div>
+                          <EmptyState 
+                            icon={<Inbox size={24} className="opacity-80" />}
+                            title="No incoming requests"
+                            description="You're all caught up."
+                            className="py-8"
+                          />
                         ) : (
                           incomingReqs.map(edge => {
                             const profile = edge.profiles[edge.requesterId];
@@ -377,7 +391,12 @@ export const FriendsSidebar = () => {
                       </h3>
                       <div className="flex flex-col gap-2">
                         {outgoingReqs.length === 0 ? (
-                          <div className="text-xs text-zinc-600">No pending sent requests</div>
+                          <EmptyState 
+                            icon={<Clock size={24} className="opacity-80" />}
+                            title="No pending requests"
+                            description="Requests you send will appear here."
+                            className="py-8"
+                          />
                         ) : (
                           outgoingReqs.map(edge => {
                             const targetUid = edge.participants.find(p => p !== firebaseUid)!;

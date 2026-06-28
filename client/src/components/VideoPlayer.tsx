@@ -43,10 +43,47 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const hasControl = useRoomStore(state => state.canIControl());
     const hostName = participants.find(p => p.role === 'host')?.nickname || 'Host';
     
-    // Internal refs
     const containerRef = useRef<HTMLDivElement>(null);
     const internalVideoRef = useRef<HTMLVideoElement | null>(null);
     const trackRef = useRef<HTMLTrackElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const rafRef = useRef<number | null>(null);
+
+    // Theater Mode Loop
+    useEffect(() => {
+      if (!internalVideoRef.current || !canvasRef.current) return;
+      const video = internalVideoRef.current;
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d', { alpha: false });
+      if (!ctx) return;
+
+      let lastDrawTime = 0;
+      const fps = 15;
+      const frameInterval = 1000 / fps;
+
+      const drawFrame = (time: number) => {
+        if (document.visibilityState === 'hidden' || video.paused || video.ended) {
+          rafRef.current = requestAnimationFrame(drawFrame);
+          return;
+        }
+
+        if (time - lastDrawTime >= frameInterval) {
+          try {
+            ctx.drawImage(video, 0, 0, 64, 36);
+            lastDrawTime = time;
+          } catch (e) {
+            // Ignore cross-origin canvas taint errors
+          }
+        }
+        rafRef.current = requestAnimationFrame(drawFrame);
+      };
+
+      rafRef.current = requestAnimationFrame(drawFrame);
+
+      return () => {
+        if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      };
+    }, []);
     
     // Sync external ref
     const setRefs = useCallback(
@@ -268,7 +305,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     return (
       <div 
         ref={containerRef} 
-        className="relative w-full aspect-video tablet:aspect-auto tablet:h-full bg-black group overflow-hidden"
+        className={cn("relative w-full aspect-video tablet:aspect-auto tablet:h-full bg-black group overflow-hidden", !showControls && "cursor-none")}
         onMouseMove={resetControlsTimeout}
         onMouseLeave={() => isPlaying ? setShowControls(false) : null}
         onClick={() => {
@@ -284,10 +321,28 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           }
         }}
       >
+        <style>
+          {`
+            video::cue {
+              transform: translateY(${showControls || showSubtitleMenu ? '-100px' : '-20px'});
+              background: rgba(0, 0, 0, 0.75);
+              border-radius: 4px;
+              padding: 4px 12px;
+            }
+          `}
+        </style>
+        
+        <canvas
+          ref={canvasRef}
+          width={64}
+          height={36}
+          className="absolute z-0 inset-0 w-full h-full object-cover blur-[100px] opacity-70 pointer-events-none scale-110"
+        />
+
         <video
           ref={setRefs}
           src={src || undefined}
-          className="w-full h-full object-contain cursor-pointer"
+          className="relative z-10 w-full h-full object-contain cursor-pointer"
           onPlay={handleNativePlay}
           onPause={handleNativePause}
           onSeeked={onSeeked}
@@ -330,8 +385,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
         {/* Controls Overlay */}
         <div 
           className={cn(
-            "absolute bottom-0 left-0 right-0 p-2 tablet:px-6 tablet:pt-16 tablet:pb-6 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-300 flex flex-col tablet:gap-4",
-            showControls || showSubtitleMenu ? "opacity-100" : "opacity-0 pointer-events-none"
+            "absolute z-50 bottom-4 left-4 right-4 tablet:bottom-8 tablet:left-1/2 tablet:-translate-x-1/2 tablet:w-[90%] tablet:max-w-4xl px-4 py-3 tablet:px-6 tablet:py-4 bg-zinc-950/70 backdrop-blur-2xl border border-white/10 rounded-2xl tablet:rounded-3xl transition-all duration-500 flex flex-col gap-2 tablet:gap-3 shadow-[0_20px_50px_rgba(0,0,0,0.6)]",
+            showControls || showSubtitleMenu ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
           )}
         >
           
@@ -357,7 +412,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
             <div className="absolute w-full h-[6px] tablet:h-[4px] bg-white/20 rounded-full group-hover/scrubber:h-[12px] tablet:group-hover/scrubber:h-[8px] transition-all duration-200" />
             {/* Fill track */}
             <div 
-              className="absolute h-[6px] tablet:h-[4px] bg-teal-500 rounded-full group-hover/scrubber:h-[12px] tablet:group-hover/scrubber:h-[8px] transition-all duration-200" 
+              className="absolute h-[6px] tablet:h-[4px] bg-teal-500 rounded-full group-hover/scrubber:h-[12px] tablet:group-hover/scrubber:h-[8px] transition-all duration-200 shadow-[0_0_15px_rgba(20,184,166,0.8)]" 
               style={{ width: `${progressPercentage}%` }}
             />
             {/* Scrubber dot */}

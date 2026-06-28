@@ -3,7 +3,7 @@ import { m, AnimatePresence } from 'framer-motion';
 import { X, Trash2, Key, Check, Link2, ShieldCheck, User as UserIcon } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { SERVER_URL } from '../lib/config';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { app } from '../firebase';
 import { getFirestore, collection, query, where, getDocs, doc, setDoc } from 'firebase/firestore';
 import { socket } from '../hooks/useSocket';

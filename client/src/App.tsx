@@ -1,5 +1,5 @@
 import { Routes, Route, useLocation } from 'react-router-dom'
-import { Toaster } from 'react-hot-toast'
+import { Toaster } from 'sonner'
 import Home from './pages/Home'
 import WaitingRoom from './pages/WaitingRoom'
 import Room from './pages/Room'
@@ -18,13 +18,7 @@ function App() {
     <div className="min-h-screen font-sans selection:bg-teal-500/30 transition-colors duration-300">
       <AuthSync />
       <FriendsSidebar />
-      <Toaster position="bottom-right" toastOptions={{
-        style: {
-          background: '#18181b',
-          color: '#fff',
-          border: '1px solid #27272a',
-        },
-      }} />
+      <Toaster theme="dark" position="bottom-right" richColors />
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
           

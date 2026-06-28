@@ -53,7 +53,7 @@ export const createAuthSlice: StateCreator<RoomStore, [], [], AuthSlice> = (set)
   theme: (localStorage.getItem('theme') as 'dark'|'light') || 'dark',
   authToken: null,
   firebaseUid: null,
-  avatarUrl: null,
+  avatarUrl: localStorage.getItem('avatarUrl') || null,
   friendCode: null,
   isAuthLoading: true, // true by default until Firebase initializes
 
@@ -81,7 +81,11 @@ export const createAuthSlice: StateCreator<RoomStore, [], [], AuthSlice> = (set)
   }),
   setAuthToken: (token) => set({ authToken: token }),
   setFirebaseUid: (uid) => set({ firebaseUid: uid }),
-  setAvatarUrl: (url) => set({ avatarUrl: url }),
+  setAvatarUrl: (url) => {
+    if (url) localStorage.setItem('avatarUrl', url);
+    else localStorage.removeItem('avatarUrl');
+    set({ avatarUrl: url });
+  },
   setFriendCode: (code) => set({ friendCode: code }),
   setIsAuthLoading: (loading) => set({ isAuthLoading: loading }),
 });

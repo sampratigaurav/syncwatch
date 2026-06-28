@@ -118,7 +118,7 @@ export const setupSocketHandlers = (io: Server) => {
       }
     });
 
-    socket.on(EVENTS.JOIN_ROOM, async (payload: { roomId: string, nickname: string, password?: string, reconnectToken?: string }) => {
+    socket.on(EVENTS.JOIN_ROOM, async (payload: { roomId: string, nickname: string, password?: string, reconnectToken?: string, avatarUrl?: string }) => {
       if (!payload) return;
       const { roomId, nickname, password, reconnectToken } = payload;
 
@@ -283,7 +283,8 @@ export const setupSocketHandlers = (io: Server) => {
         status: existing ? existing.status : 'disconnected',
         fileHash: existing ? existing.fileHash : null,
         latencyMs: existing ? existing.latencyMs : 0,
-        joinedAt: existing ? existing.joinedAt : Date.now()
+        joinedAt: existing ? existing.joinedAt : Date.now(),
+        avatarUrl: payload.avatarUrl || (existing ? existing.avatarUrl : undefined)
       };
 
       room.participants.set(socket.id, participant);
@@ -573,7 +574,8 @@ export const setupSocketHandlers = (io: Server) => {
         senderId: participant.id,
         senderNickname: participant.nickname,
         text: trimmed,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        avatarUrl: participant.avatarUrl
       };
 
       room.chatHistory.push(message);

@@ -383,9 +383,9 @@ export default function Room() {
       {/* Side Panel (Desktop) / Bottom Sheet (Mobile) */}
       <div 
         className={cn(
-          "bg-zinc-950 flex flex-col transition-all duration-300 z-20 overflow-hidden pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]",
+          "bg-[#0a0a0a] flex flex-col transition-all duration-300 z-20 overflow-hidden pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]",
           // Desktop specific overrides
-          "tablet:relative tablet:flex-shrink-0 tablet:h-screen tablet:border-l tablet:border-zinc-900 tablet:translate-y-0",
+          "tablet:relative tablet:flex-shrink-0 tablet:h-screen tablet:border-l tablet:border-white/10 tablet:translate-y-0",
           isSidebarCollapsed ? "tablet:w-0 tablet:border-l-0 opacity-0" : "tablet:w-80 desktop:w-96 opacity-100",
           // Mobile specific overrides
           "fixed left-0 right-0 rounded-t-3xl shadow-[0_-15px_40px_rgba(0,0,0,0.8)] pb-[calc(1rem+env(safe-area-inset-bottom))] tablet:rounded-none tablet:shadow-none tablet:pb-0 landscape:hidden tablet:landscape:flex",

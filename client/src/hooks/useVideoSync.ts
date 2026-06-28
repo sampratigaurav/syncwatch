@@ -5,7 +5,7 @@ import { socket } from './useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import type { PlaybackEvent } from '../../../shared/types';
 
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 export const useVideoSync = (videoRef: React.RefObject<HTMLVideoElement | null>) => {
   const { setLastActionAt } = useRoomStore(useShallow(state => ({

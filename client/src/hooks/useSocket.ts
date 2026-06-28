@@ -4,7 +4,7 @@ import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { EVENTS } from '../../../shared/socketEvents';
 import type { Participant } from '../../../shared/types';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import { SERVER_URL } from '../lib/config';
 import { useSoundEffects } from './useSoundEffects';
 
@@ -51,6 +51,7 @@ export const useSocket = (navigate?: (to: string) => void) => {
           nickname: state.nickname,
           password: state.roomPassword || undefined,
           reconnectToken: state.reconnectToken || undefined,
+          avatarUrl: state.avatarUrl || undefined,
         });
       }
     };
