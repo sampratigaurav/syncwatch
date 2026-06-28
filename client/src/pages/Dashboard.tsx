@@ -16,11 +16,21 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 const AmbientBackground = () => (
   <div className="fixed inset-0 pointer-events-none z-0 bg-[#050505] overflow-hidden">
+    {/* Dot Matrix Pattern */}
     <div 
-      className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] max-w-[800px] max-h-[800px] bg-teal-900/30 rounded-full blur-[120px] mix-blend-screen animate-orb-1" 
+      className="absolute inset-0 opacity-[0.06]"
+      style={{
+        backgroundImage: 'radial-gradient(circle at center, rgba(255,255,255,0.8) 1.5px, transparent 1.5px)',
+        backgroundSize: '32px 32px',
+        WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 50%, transparent 100%)',
+        maskImage: 'linear-gradient(to bottom, black 0%, black 50%, transparent 100%)'
+      }}
     />
     <div 
-      className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] bg-slate-800/40 rounded-full blur-[150px] mix-blend-screen animate-orb-2" 
+      className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] max-w-[800px] max-h-[800px] bg-teal-900/40 rounded-full blur-[120px] mix-blend-screen animate-orb-1" 
+    />
+    <div 
+      className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] bg-slate-800/50 rounded-full blur-[150px] mix-blend-screen animate-orb-2" 
     />
   </div>
 );
@@ -338,7 +348,7 @@ export default function Dashboard() {
 
           {/* Widget 2: Host Room (Hidden if urlRoomId) */}
           {!urlRoomId && (
-            <div className="col-span-1 tablet:col-span-1 tablet:row-span-2 bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/5 p-6 relative overflow-hidden group order-3 tablet:order-2 shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:border-white/10 transition-colors duration-300 flex flex-col">
+            <div className="col-span-1 tablet:col-span-2 bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/5 p-6 relative overflow-hidden group order-3 tablet:order-2 shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:border-white/10 transition-colors duration-300 flex flex-col">
               <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
               <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-6">Host a Watch Party</h3>
               
@@ -446,7 +456,7 @@ export default function Dashboard() {
           {/* Widget 3: Quick Join (Expands if urlRoomId exists) */}
           <div className={cn(
             "bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/5 p-6 relative overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:border-white/10 transition-colors duration-300 flex flex-col",
-            urlRoomId ? "col-span-1 tablet:col-span-2 order-1" : "col-span-1 tablet:col-span-1 order-4 tablet:order-3"
+            urlRoomId ? "col-span-1 tablet:col-span-2 order-1" : "col-span-1 tablet:col-span-2 order-4 tablet:order-4"
           )}>
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
             <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-6">
@@ -519,7 +529,7 @@ export default function Dashboard() {
           </div>
 
           {/* Widget 4: Network Status */}
-          <div className="col-span-1 bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/5 p-6 relative overflow-hidden group order-5 tablet:order-4 flex flex-col justify-between shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:border-white/10 transition-colors duration-300">
+          <div className="col-span-1 bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/5 p-6 relative overflow-hidden group order-5 tablet:order-3 flex flex-col justify-between shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:border-white/10 transition-colors duration-300">
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
             <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-2">Systems</h3>
             
