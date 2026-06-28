@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Github, User } from 'lucide-react';
-import { m, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence, LazyMotion, domAnimation } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -53,7 +53,7 @@ export const Header = () => {
   };
 
   return (
-    <>
+    <LazyMotion features={domAnimation}>
       <div className="sticky top-0 w-full z-50 backdrop-blur-xl bg-zinc-950/80 border-b border-white/10">
         <div className="max-w-7xl mx-auto grid grid-cols-2 tablet:grid-cols-3 items-center px-6 py-4">
           
@@ -148,6 +148,6 @@ export const Header = () => {
         </div>
       </div>
       <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
-    </>
+    </LazyMotion>
   );
 };
