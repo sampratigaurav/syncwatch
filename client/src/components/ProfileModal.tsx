@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { X, Trash2, Key, Check, Link2, ShieldCheck, User as UserIcon } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
+import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../lib/config';
 import toast from 'react-hot-toast';
 import { app } from '../firebase';
@@ -30,7 +31,14 @@ const AVATAR_SEEDS = [
 const getAvatarUrl = (seed: string) => `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}&backgroundColor=transparent`;
 
 export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
-  const { firebaseUid, authToken, nickname, avatarUrl, setNickname, setAvatarUrl } = useRoomStore();
+  const { firebaseUid, authToken, nickname, avatarUrl, setNickname, setAvatarUrl } = useRoomStore(useShallow(state => ({
+    firebaseUid: state.firebaseUid,
+    authToken: state.authToken,
+    nickname: state.nickname,
+    avatarUrl: state.avatarUrl,
+    setNickname: state.setNickname,
+    setAvatarUrl: state.setAvatarUrl
+  })));
   const [rooms, setRooms] = useState<RoomTemplate[]>([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
   const [editName, setEditName] = useState(nickname || '');
