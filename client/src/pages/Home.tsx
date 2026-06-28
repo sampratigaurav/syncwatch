@@ -1,6 +1,7 @@
 import { Suspense, lazy, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Link2, FileVideo, ShieldCheck, Play, Github, ChevronDown } from 'lucide-react';
+import { Link2, FileVideo, ShieldCheck, Play, Github, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { useRoomStore } from '../store/roomStore';
 
 import { m, LazyMotion, domAnimation, useMotionValue, useMotionTemplate, AnimatePresence } from 'framer-motion';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -233,6 +234,7 @@ const FAQAccordion = () => {
 };
 
 export default function Home() {
+  const firebaseUid = useRoomStore(state => state.firebaseUid);
   const isMobile = useMediaQuery('(max-width: 768px)');
 
 
@@ -269,8 +271,8 @@ export default function Home() {
               to="/dashboard"
               className="group relative flex items-center gap-2 px-8 py-3.5 bg-white text-zinc-950 hover:bg-zinc-100 rounded-full font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
             >
-              <Play size={18} className="fill-current" />
-              <span>Start Watching</span>
+              {firebaseUid ? <LayoutDashboard size={18} className="text-zinc-950" /> : <Play size={18} className="fill-current" />}
+              <span>{firebaseUid ? "Go to Dashboard" : "Start Watching"}</span>
             </Link>
           </div>
         </m.div>
