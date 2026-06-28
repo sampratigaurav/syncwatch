@@ -73,9 +73,14 @@ export const Header = () => {
             <Link to="/docs" className="text-sm font-medium text-zinc-400 hover:text-teal-400 transition-colors">
               Docs
             </Link>
-            <a href="https://github.com/sampratigaurav/syncwatch" target="_blank" rel="noreferrer" className="text-sm font-medium text-zinc-400 hover:text-teal-400 transition-colors">
-              Extension
-            </a>
+            <div className="relative group cursor-help">
+              <span className="text-sm font-medium text-zinc-400 group-hover:text-teal-400 transition-colors">
+                Extension
+              </span>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-black border border-white/10 rounded-lg text-xs font-medium text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-xl">
+                Extension coming soon 🚀
+              </div>
+            </div>
           </nav>
 
           {/* Right: Auth & Social */}
