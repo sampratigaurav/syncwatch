@@ -65,7 +65,7 @@ export default function FloatingAppMockup() {
   return (
     <div 
       ref={containerRef}
-      className="w-full h-full min-h-[400px] tablet:min-h-[500px] flex items-center justify-center cursor-crosshair overflow-visible z-20"
+      className="w-full h-full min-h-[400px] tablet:min-h-[500px] flex items-center justify-center overflow-visible z-20"
       style={{ perspective: 1200 }}
     >
       {/* 3D Wrapper */}

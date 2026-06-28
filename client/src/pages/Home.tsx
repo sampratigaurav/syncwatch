@@ -163,7 +163,7 @@ export default function Home() {
                  <CssOrb />
                ) : (
                  <Suspense fallback={<div className="w-full h-full min-h-[500px]" />}>
-                   <div className="w-full h-full transform transition-transform duration-500 rounded-2xl pointer-events-none">
+                   <div className="w-full h-full transform transition-transform duration-500 rounded-2xl">
                      <FloatingAppMockup />
                    </div>
                  </Suspense>
