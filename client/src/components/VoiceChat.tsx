@@ -4,6 +4,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useRoomStore } from '../store/roomStore';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));

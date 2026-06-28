@@ -9,9 +9,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn, getGradient } from '../lib/utils';
 
 export default function Chat() {
-  const { chatMessages, nickname, participants } = useRoomStore(useShallow(state => ({
+  const { chatMessages, participants } = useRoomStore(useShallow(state => ({
     chatMessages: state.chatMessages,
-    nickname: state.nickname,
     participants: state.participants
   })));
   const [text, setText] = useState('');
