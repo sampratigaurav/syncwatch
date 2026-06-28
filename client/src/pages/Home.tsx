@@ -407,12 +407,13 @@ export default function Home() {
       >
       <AmbientBackground />
         
-      {/* Floating Pill Header */}
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-[1200px] z-50 flex items-center justify-between backdrop-blur-xl bg-zinc-950/60 border border-white/10 shadow-2xl shadow-teal-500/5 px-6 py-4 rounded-2xl">
-        <h1 className="text-xl tablet:text-2xl font-bold tracking-tighter text-white drop-shadow-md">
-          SyncWatch
-        </h1>
-        <div className="flex items-center gap-6">
+      {/* Full & Sticky Header */}
+      <div className="sticky top-0 w-full z-50 backdrop-blur-xl bg-zinc-950/80 border-b border-white/10">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4">
+          <h1 className="text-xl tablet:text-2xl font-bold tracking-tighter text-white drop-shadow-md">
+            SyncWatch
+          </h1>
+          <div className="flex items-center gap-6">
           <a href="https://github.com/sampratigaurav/syncwatch" aria-label="GitHub Repository" target="_blank" rel="noopener noreferrer" className="text-zinc-400 hover:text-white transition-colors">
             <Github size={20} />
           </a>
@@ -484,10 +485,11 @@ export default function Home() {
             </button>
           )}
         </div>
+        </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="relative z-10 w-full max-w-[1200px] flex flex-col items-center px-4 tablet:px-8 pt-24 tablet:pt-32">
+      <div className="relative z-10 w-full max-w-[1200px] flex flex-col items-center px-4 tablet:px-8 pt-10 tablet:pt-16">
           
         {/* Row 1: Full-Width Centered Typography */}
         <m.div 
