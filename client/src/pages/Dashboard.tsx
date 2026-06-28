@@ -26,20 +26,22 @@ const AmbientBackground = () => (
 );
 
 export default function Dashboard() {
+
   const navigate = useNavigate();
   const { roomId: urlRoomId } = useParams();
-  const { setRoomId, nickname: authNickname, profileName } = useRoomStore(useShallow(state => ({
+  const { setRoomId, nickname: authNickname, profileName, avatarUrl } = useRoomStore(useShallow(state => ({
     setRoomId: state.setRoomId,
     nickname: state.nickname,
-    profileName: state.profileName
+    profileName: state.profileName,
+    avatarUrl: state.avatarUrl
   })));
 
   const savedNickname = profileName || localStorage.getItem('syncwatch_nickname') || authNickname || '';
   const [nickname, setNicknameInput] = useState(savedNickname);
   const [inputRoomId, setInputRoomId] = useState(urlRoomId || '');
   
-  const [activeTab, setActiveTab] = useState<'create' | 'join'>(urlRoomId ? 'join' : 'create');
   const [error, setError] = useState('');
+  const [missingIdentity, setMissingIdentity] = useState(false);
   
   const [lockRoom, setLockRoom] = useState(false);
   const [pin, setPin] = useState('');
@@ -52,6 +54,19 @@ export default function Dashboard() {
   const [showExpiredError, setShowExpiredError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPin, setShowPin] = useState(false);
+  
+  const [isConnected, setIsConnected] = useState(socket.connected);
+
+  useEffect(() => {
+    const onConnect = () => setIsConnected(true);
+    const onDisconnect = () => setIsConnected(false);
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+    }
+  }, []);
 
   const handleRoomIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputRoomId(e.target.value);
@@ -61,7 +76,6 @@ export default function Dashboard() {
   useEffect(() => {
     if (urlRoomId) {
       setInputRoomId(urlRoomId);
-      setActiveTab('join');
     }
   }, [urlRoomId]);
 
@@ -71,10 +85,16 @@ export default function Dashboard() {
     }
   }, [profileName]);
 
+  const triggerIdentityError = () => {
+    setMissingIdentity(true);
+    setTimeout(() => setMissingIdentity(false), 500);
+    setError('Please enter your identity above');
+  };
+
   const handleCreateRoom = async () => {
     const trimmed = nickname.trim();
     if (!trimmed || trimmed.length < 2) {
-      setError('Please enter a nickname to continue');
+      triggerIdentityError();
       return;
     }
     if (lockRoom) {
@@ -157,7 +177,7 @@ export default function Dashboard() {
   const handleJoinRoom = async () => {
     const trimmed = nickname.trim();
     if (!trimmed || trimmed.length < 2) {
-      setError('Please enter a nickname to continue');
+      triggerIdentityError();
       setShowExpiredError(false);
       return;
     }
@@ -278,250 +298,261 @@ export default function Dashboard() {
       >
         <AmbientBackground />
         
-        <div className="w-full max-w-[440px] bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 tablet:p-8 relative z-10 overflow-hidden mt-8 tablet:mt-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none" />
+        <div className="w-full max-w-5xl mx-auto mt-24 tablet:mt-32 pb-12 grid grid-cols-1 tablet:grid-cols-3 tablet:grid-rows-2 gap-4 tablet:gap-6 relative z-10 px-4">
           
-          <div className="relative z-10 flex flex-col gap-6">
-            {urlRoomId && (
-              <div className="text-center pb-2 border-b border-white/5">
-                <h2 className="text-xl font-bold text-white tracking-tight">You've been invited!</h2>
-                <p className="text-sm text-zinc-400 mt-1">Join room <span className="text-teal-400 font-mono">{urlRoomId}</span></p>
+          {/* Widget 1: Profile & Identity */}
+          <div className={cn(
+            "col-span-1 bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/5 p-6 relative overflow-hidden group order-2 tablet:order-1 transition-all duration-300 shadow-[0_0_30px_rgba(0,0,0,0.5)]",
+            missingIdentity ? "animate-[shake_0.5s_ease-in-out] border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.2)]" : "hover:border-white/10"
+          )}>
+            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
+            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-4">Your Identity</h3>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="w-12 h-12 rounded-full bg-zinc-800 border border-white/10" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
+                    <span className="text-teal-400 font-bold text-lg">{nickname ? nickname[0].toUpperCase() : '?'}</span>
+                  </div>
+                )}
+                <div className="flex-1">
+                  <input 
+                    id="nickname"
+                    type="text"
+                    value={nickname}
+                    onChange={e => {
+                      setNicknameInput(e.target.value);
+                      if (error === 'Please enter your identity above') setError('');
+                    }}
+                    className="w-full bg-transparent text-white font-medium text-lg focus:outline-none placeholder:text-zinc-600"
+                    placeholder="Enter nickname..."
+                    maxLength={20}
+                  />
+                  <div className="h-[1px] w-full bg-white/10 mt-1" />
+                </div>
               </div>
-            )}
-            
-            <div className="flex flex-col gap-2">
-              <label htmlFor="nickname" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider ml-1">Your Identity</label>
-              <input 
-                id="nickname"
-                type="text"
-                value={nickname}
-                onChange={e => {
-                  setNicknameInput(e.target.value);
-                  if (error === 'Please enter a nickname to continue') setError('');
-                }}
-                className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all placeholder:text-zinc-600 shadow-inner"
-                placeholder="Enter a nickname"
-                maxLength={20}
-              />
+              <p className="text-xs text-zinc-500">This name will be visible to others in the room.</p>
             </div>
+          </div>
 
-            <div className="bg-black/40 p-1 rounded-xl flex items-center border border-white/5 relative">
-              <div 
-                className={cn(
-                  "absolute inset-y-1 w-[calc(50%-4px)] bg-zinc-800 rounded-lg transition-transform duration-300 ease-out shadow-md",
-                  activeTab === 'create' ? "translate-x-0" : "translate-x-[calc(100%+2px)]"
-                )}
-              />
-              <button 
-                onClick={() => { setActiveTab('create'); setError(''); }}
-                className={cn(
-                  "flex-1 py-2 text-sm font-medium rounded-lg transition-colors relative z-10",
-                  activeTab === 'create' ? "text-white" : "text-zinc-400 hover:text-zinc-300"
-                )}
-              >
-                Create Room
-              </button>
-              <button 
-                onClick={() => { setActiveTab('join'); setError(''); }}
-                className={cn(
-                  "flex-1 py-2 text-sm font-medium rounded-lg transition-colors relative z-10",
-                  activeTab === 'join' ? "text-white" : "text-zinc-400 hover:text-zinc-300"
-                )}
-              >
-                Join Room
-              </button>
-            </div>
-
-            <div className="min-h-[140px] flex flex-col justify-end">
-              <AnimatePresence mode="wait">
-                {activeTab === 'create' ? (
-                  <m.div 
-                    key="create"
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 10 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex flex-col gap-5 w-full"
+          {/* Widget 2: Host Room (Hidden if urlRoomId) */}
+          {!urlRoomId && (
+            <div className="col-span-1 tablet:col-span-1 tablet:row-span-2 bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/5 p-6 relative overflow-hidden group order-3 tablet:order-2 shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:border-white/10 transition-colors duration-300 flex flex-col">
+              <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
+              <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-6">Host a Watch Party</h3>
+              
+              <div className="flex-1 flex flex-col gap-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {lockRoom ? <Lock size={16} className="text-teal-400" /> : <Unlock size={16} className="text-zinc-500" />}
+                    <span className="text-sm font-medium text-zinc-300">Lock with PIN</span>
+                  </div>
+                  <button 
+                    onClick={() => { setLockRoom(!lockRoom); setError(''); }}
+                    className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", lockRoom ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
                   >
-                    <div className="flex items-center justify-between px-1">
+                    <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", lockRoom ? "translate-x-[22px]" : "translate-x-0.5")} />
+                  </button>
+                </div>
+
+                <AnimatePresence>
+                  {lockRoom && (
+                    <m.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="relative w-full">
+                        <input
+                          type={showPin ? "text" : "password"}
+                          value={pin}
+                          onChange={e => {
+                            setPin(e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8));
+                            setError('');
+                          }}
+                          className="w-full h-12 bg-black/40 border border-white/10 rounded-xl pl-4 pr-12 text-white font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all placeholder:text-zinc-600 shadow-inner"
+                          placeholder="4-8 char PIN"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPin(!showPin)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+                        >
+                          {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </m.div>
+                  )}
+                </AnimatePresence>
+                
+                {firebaseUid && (
+                  <>
+                    <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center gap-2">
-                        {lockRoom ? <Lock size={16} className="text-teal-400" /> : <Unlock size={16} className="text-zinc-500" />}
-                        <span className="text-sm font-medium text-zinc-300">Lock with PIN</span>
+                        <Link2 size={16} className={isPersistent ? "text-teal-400" : "text-zinc-500"} />
+                        <span className="text-sm font-medium text-zinc-300">Custom Permanent Link</span>
                       </div>
                       <button 
-                        onClick={() => { setLockRoom(!lockRoom); setError(''); }}
-                        className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", lockRoom ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
+                        onClick={() => { setIsPersistent(!isPersistent); setError(''); }}
+                        className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", isPersistent ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
                       >
-                        <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", lockRoom ? "translate-x-[22px]" : "translate-x-0.5")} />
+                        <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", isPersistent ? "translate-x-[22px]" : "translate-x-0.5")} />
                       </button>
                     </div>
                     
-                    {firebaseUid && (
-                      <div className="flex flex-col gap-2">
-                        <div className="flex items-center justify-between px-1">
-                          <div className="flex items-center gap-2">
-                            <Link2 size={16} className={isPersistent ? "text-teal-400" : "text-zinc-500"} />
-                            <span className="text-sm font-medium text-zinc-300">Custom Permanent Link</span>
-                          </div>
-                          <button 
-                            onClick={() => { setIsPersistent(!isPersistent); setError(''); }}
-                            className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", isPersistent ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
-                          >
-                            <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", isPersistent ? "translate-x-[22px]" : "translate-x-0.5")} />
-                          </button>
-                        </div>
-                        
-                        <AnimatePresence>
-                        {isPersistent && (
-                          <m.div 
-                            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                            animate={{ opacity: 1, height: 'auto', marginBottom: 4 }}
-                            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                            className="overflow-hidden"
-                          >
-                              <div className="flex items-center bg-black/40 border border-white/10 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-teal-500/50 transition-all shadow-inner pl-4">
-                                <span className="text-zinc-500 font-medium whitespace-nowrap text-sm">syncwatch.com/join/</span>
-                                <input
-                                  aria-label="Custom Room ID"
-                                  type="text"
-                                  value={customRoomId}
-                                  onChange={e => {
-                                    setCustomRoomId(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
-                                    setError('');
-                                  }}
-                                  className="w-full h-12 bg-transparent text-white font-mono placeholder:text-zinc-600 outline-none px-2 text-sm"
-                                  placeholder="my-room"
-                                />
-                              </div>
-                          </m.div>
-                        )}
-                        </AnimatePresence>
-                      </div>
-                    )}
-                    
                     <AnimatePresence>
-                    {lockRoom && (
-                      <m.div 
-                        initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                        animate={{ opacity: 1, height: 'auto', marginBottom: 4 }}
-                        exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                        className="overflow-hidden"
-                      >
-                          <div className="relative w-full">
+                      {isPersistent && (
+                        <m.div 
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="flex items-center bg-black/40 border border-white/10 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-teal-500/50 transition-all shadow-inner pl-4">
+                            <span className="text-zinc-500 font-medium whitespace-nowrap text-sm">syncwatch.com/join/</span>
                             <input
-                              id="create-pin"
-                              aria-label="Create PIN"
-                              type={showPin ? "text" : "password"}
-                              value={pin}
+                              type="text"
+                              value={customRoomId}
                               onChange={e => {
-                                setPin(e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8));
+                                setCustomRoomId(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
                                 setError('');
                               }}
-                              className="w-full h-12 bg-black/40 border border-white/10 rounded-xl pl-4 pr-12 text-white font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all placeholder:text-zinc-600 shadow-inner"
-                              placeholder="4-8 char PIN"
+                              className="w-full h-12 bg-transparent text-white font-mono placeholder:text-zinc-600 outline-none px-2 text-sm"
+                              placeholder="my-room"
                             />
-                            <button
-                              type="button"
-                              onClick={() => setShowPin(!showPin)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
-                            >
-                              {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
-                            </button>
                           </div>
-                      </m.div>
-                    )}
+                        </m.div>
+                      )}
                     </AnimatePresence>
+                  </>
+                )}
+              </div>
 
-                    {error && activeTab === 'create' && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</div>}
+              <div className="mt-6 flex flex-col gap-2">
+                {error && !requiresPin && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</div>}
+                <button 
+                  onClick={() => { handleCreateRoom(); }}
+                  disabled={isLoading}
+                  className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98] bg-white text-zinc-950 hover:bg-zinc-200 flex items-center justify-center text-base disabled:opacity-50 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]"
+                >
+                  Start New Room
+                </button>
+              </div>
+            </div>
+          )}
 
-                    <button 
-                      onClick={handleCreateRoom}
-                      disabled={isLoading}
-                      className="w-full h-12 rounded-xl font-medium transition-all duration-200 active:scale-[0.98] bg-teal-600 hover:bg-teal-500 text-white flex items-center justify-center text-base disabled:opacity-50 shadow-[0_0_15px_rgba(13,148,136,0.3)] hover:shadow-[0_0_25px_rgba(13,148,136,0.5)]"
-                    >
-                      Start New Room
-                    </button>
-                  </m.div>
-                ) : (
+          {/* Widget 3: Quick Join (Expands if urlRoomId exists) */}
+          <div className={cn(
+            "bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/5 p-6 relative overflow-hidden group shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:border-white/10 transition-colors duration-300 flex flex-col",
+            urlRoomId ? "col-span-1 tablet:col-span-2 order-1" : "col-span-1 tablet:col-span-1 order-4 tablet:order-3"
+          )}>
+            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
+            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-6">
+              {urlRoomId ? "You've been invited!" : "Quick Join"}
+            </h3>
+            
+            <div className="flex-1 flex flex-col justify-center gap-4">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Paste Invite Link or Code"
+                  value={inputRoomId}
+                  onChange={handleRoomIdChange}
+                  disabled={requiresPin}
+                  className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all font-mono shadow-inner"
+                />
+                <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                  <Link2 className="w-4 h-4 text-zinc-500" />
+                </div>
+              </div>
+
+              <AnimatePresence>
+                {requiresPin && (
                   <m.div 
-                    key="join"
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="flex flex-col gap-5 w-full"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden"
                   >
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="roomCode" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider ml-1">Room Code or Invite Link</label>
-                        <div className="relative">
-                          <input
-                            id="roomCode"
-                            type="text"
-                            placeholder="e.g. AB1234 or my-room-name"
-                            value={inputRoomId}
-                            onChange={handleRoomIdChange}
-                            disabled={requiresPin}
-                            className="w-full h-12 bg-black/40 border border-white/10 rounded-xl px-4 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all font-mono"
-                          />
-                          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                            <Link2 className="w-4 h-4 text-zinc-500" />
-                          </div>
-                        </div>
+                    <div className="flex items-center gap-2 mb-2 ml-1">
+                      <Lock size={14} className="text-teal-400" />
+                      <span className="text-sm font-medium text-zinc-300">Room is locked</span>
                     </div>
-
-                    <AnimatePresence>
-                    {requiresPin && (
-                      <m.div 
-                        initial={{ opacity: 0, height: 0, marginTop: -10 }}
-                        animate={{ opacity: 1, height: 'auto', marginTop: 0 }}
-                        exit={{ opacity: 0, height: 0, marginTop: -10 }}
-                        className="overflow-hidden"
+                    <div className="relative w-full">
+                      <input
+                        type={showPin ? "text" : "password"}
+                        value={pin}
+                        onChange={e => {
+                          setPin(e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8));
+                          setError('');
+                        }}
+                        autoFocus
+                        className="w-full h-12 bg-black/40 border border-white/10 rounded-xl pl-4 pr-12 text-white font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all placeholder:text-zinc-600 shadow-inner"
+                        placeholder="Enter PIN"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPin(!showPin)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
                       >
-                          <div className="flex items-center gap-2 mb-2 ml-1 mt-1">
-                            <Lock size={14} className="text-teal-400" />
-                            <span className="text-sm font-medium text-zinc-300">Room is locked</span>
-                          </div>
-                          <div className="relative w-full">
-                            <input
-                              id="join-pin"
-                              aria-label="Enter Room PIN"
-                              type={showPin ? "text" : "password"}
-                              value={pin}
-                              onChange={e => {
-                                setPin(e.target.value.replace(/[^a-zA-Z0-9]/g, '').substring(0, 8));
-                                setError('');
-                              }}
-                              autoFocus
-                              className="w-full h-12 bg-black/40 border border-white/10 rounded-xl pl-4 pr-12 text-white font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all placeholder:text-zinc-600 shadow-inner"
-                              placeholder="Enter PIN"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPin(!showPin)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
-                            >
-                              {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
-                            </button>
-                          </div>
-                      </m.div>
-                    )}
-                    </AnimatePresence>
-
-                    {error && activeTab === 'join' && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</div>}
-                    {showExpiredError && activeTab === 'join' && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">This room has expired or does not exist.</div>}
-
-                    <button 
-                      onClick={handleJoinRoom}
-                      disabled={isLoading}
-                      className="w-full h-12 rounded-xl font-medium transition-all duration-200 active:scale-[0.98] bg-white text-zinc-900 hover:bg-zinc-200 flex items-center justify-center text-base disabled:opacity-50 shadow-[0_0_15px_rgba(255,255,255,0.2)] hover:shadow-[0_0_25px_rgba(255,255,255,0.4)]"
-                    >
-                      Join Room
-                    </button>
+                        {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
                   </m.div>
                 )}
               </AnimatePresence>
             </div>
+
+            <div className="mt-6 flex flex-col gap-2">
+              {error && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</div>}
+              {showExpiredError && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">This room has expired or does not exist.</div>}
+              <button 
+                onClick={() => { handleJoinRoom(); }}
+                disabled={isLoading}
+                className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98] bg-zinc-800 border border-white/10 hover:bg-zinc-700 hover:border-white/20 text-white flex items-center justify-center text-base disabled:opacity-50"
+              >
+                Join Room
+              </button>
+            </div>
           </div>
+
+          {/* Widget 4: Network Status */}
+          <div className="col-span-1 bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/5 p-6 relative overflow-hidden group order-5 tablet:order-4 flex flex-col justify-between shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:border-white/10 transition-colors duration-300">
+            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
+            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-2">Systems</h3>
+            
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <div className={cn(
+                  "w-3 h-3 rounded-full relative",
+                  isConnected ? "bg-green-500" : "bg-amber-500"
+                )}>
+                  <div className={cn(
+                    "absolute inset-0 rounded-full animate-ping opacity-75",
+                    isConnected ? "bg-green-400" : "bg-amber-400"
+                  )} />
+                </div>
+                <span className={cn(
+                  "text-xl font-bold tracking-tight",
+                  isConnected ? "text-white" : "text-amber-100"
+                )}>
+                  {isConnected ? "Online" : "Connecting..."}
+                </span>
+              </div>
+              <p className="text-sm text-zinc-500">
+                {isConnected ? "WebRTC signaling server active. Global routing operational." : "Establishing secure socket connection to signaling server..."}
+              </p>
+            </div>
+            <div className="mt-6 pt-4 border-t border-white/5">
+               <div className="flex justify-between items-center text-xs font-mono text-zinc-500">
+                  <span>LATENCY</span>
+                  <span className={isConnected ? "text-teal-400/80" : "text-amber-400/80"}>{isConnected ? "< 50ms" : "---"}</span>
+               </div>
+            </div>
+          </div>
+
         </div>
       </m.div>
     </LazyMotion>
