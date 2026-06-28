@@ -51,7 +51,7 @@ const corsOptions = {
     }
   },
   credentials: true,
-  methods: ["GET", "POST", "OPTIONS"]
+  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"]
 };
 
 const io = new Server(server, { cors: corsOptions });
