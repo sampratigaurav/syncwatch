@@ -145,8 +145,10 @@ export default function Docs() {
                     <div className="relative flex gap-6">
                       <div className="w-8 h-8 rounded-full bg-zinc-950 border-2 border-teal-500/30 flex items-center justify-center shrink-0 text-teal-400 font-bold text-sm shadow-[0_0_10px_rgba(20,184,166,0.2)] z-10">2</div>
                       <div>
-                        <h3 className="text-lg font-semibold text-white mb-2">Select the Same File</h3>
-                        <p className="text-zinc-400 leading-relaxed">SyncWatch works locally. This means <strong className="text-zinc-200">everyone must have the exact same video file</strong> on their own device. The video is never uploaded.</p>
+                        <h3 className="text-white font-semibold mb-1">Select Your File</h3>
+                        <p className="text-zinc-400 text-sm leading-relaxed">
+                          SyncWatch works locally. This means <strong>everyone must have their own copy of the video</strong> on their device. Thanks to our acoustic fingerprinting, it doesn't have to be the exact same file—a 1080p and a 4K version will sync perfectly as long as the audio matches! The video is never uploaded.
+                        </p>
                       </div>
                     </div>
 
