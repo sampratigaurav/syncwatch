@@ -34,7 +34,7 @@ const STEPS = [
   {
     icon: Link2,
     title: "Create or join a room",
-    desc: "Share a 6-character room code with whoever you want to watch with. No account needed."
+    desc: "Share your room link or code with whoever you want to watch with. No account needed."
   },
   {
     icon: FileVideo,

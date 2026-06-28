@@ -137,7 +137,7 @@ export default function Docs() {
                       <div className="w-8 h-8 rounded-full bg-zinc-950 border-2 border-teal-500/30 flex items-center justify-center shrink-0 text-teal-400 font-bold text-sm shadow-[0_0_10px_rgba(20,184,166,0.2)] z-10">1</div>
                       <div>
                         <h3 className="text-lg font-semibold text-white mb-2">Create or Join a Room</h3>
-                        <p className="text-zinc-400 leading-relaxed">One person creates a room (and can optionally lock it with a 4-8 character PIN) and shares the 6-character room code. Others use this code to join.</p>
+                        <p className="text-zinc-400 leading-relaxed">One person creates a room (and can optionally lock it with a 4-8 character PIN) and shares their room link or code. Others use this to join.</p>
                       </div>
                     </div>
 
