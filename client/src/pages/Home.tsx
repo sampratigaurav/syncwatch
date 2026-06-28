@@ -186,11 +186,10 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <Link 
               to="/dashboard"
-              className="group relative flex items-center gap-3 px-8 py-4 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 hover:text-teal-300 rounded-full border border-teal-500/30 hover:border-teal-500/60 transition-all duration-300 backdrop-blur-md"
+              className="group relative flex items-center gap-2 px-8 py-3.5 bg-white text-zinc-950 hover:bg-zinc-100 rounded-full font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
             >
-              <div className="absolute inset-0 bg-teal-500/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-full" />
-              <Play size={20} className="relative z-10 fill-current" />
-              <span className="relative z-10 font-bold tracking-wide">Start Watching for Free</span>
+              <Play size={18} className="fill-current" />
+              <span>Start Watching</span>
             </Link>
           </div>
         </m.div>
