@@ -1,8 +1,8 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Link2, FileVideo, ShieldCheck, Play, Github } from 'lucide-react';
+import { Link2, FileVideo, ShieldCheck, Play, Github, ChevronDown } from 'lucide-react';
 
-import { m, LazyMotion, domAnimation, useMotionValue, useMotionTemplate } from 'framer-motion';
+import { m, LazyMotion, domAnimation, useMotionValue, useMotionTemplate, AnimatePresence } from 'framer-motion';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import CssOrb from '../components/CssOrb';
 
@@ -151,6 +151,87 @@ const FeatureBentoGrid = () => {
   );
 };
 
+const FAQ_ITEMS = [
+  {
+    question: "Is it really free?",
+    answer: "Yes, entirely free. SyncWatch is an open-source project and doesn't run ads or charge subscriptions."
+  },
+  {
+    question: "Do you upload my video files?",
+    answer: "No, everything happens locally. The WebRTC connection only synchronizes timestamps and play/pause commands between you and your friends."
+  },
+  {
+    question: "Do my friends need to have the exact same file?",
+    answer: "Nope! Because SyncWatch uses advanced acoustic fingerprinting instead of strict file hashing, one of you can be watching a 4K rip while the other watches a 1080p version. As long as the audio tracks match, we'll keep you in perfect sync."
+  },
+  {
+    question: "What if we just want to watch YouTube?",
+    answer: "We've got you covered. You can grab the official SyncWatch Chrome Extension to sync YouTube videos directly on the YouTube website, no local files required."
+  },
+  {
+    question: "Does it work on mobile?",
+    answer: "Currently optimized for desktop/laptops due to browser restrictions on local file access, but mobile support is in our roadmap."
+  }
+];
+
+const FAQAccordion = () => {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  return (
+    <div className="w-full max-w-[800px] mx-auto mt-32 mb-16 px-4 tablet:px-8 relative z-10">
+      <div className="text-center mb-16">
+        <h2 className="text-3xl tablet:text-5xl font-bold tracking-tight text-white mb-4">Got questions?</h2>
+        <p className="text-base tablet:text-lg text-zinc-400">Everything you need to know about SyncWatch</p>
+      </div>
+      
+      <div className="space-y-4">
+        {FAQ_ITEMS.map((item, index) => {
+          const isOpen = openIndex === index;
+          return (
+            <m.div 
+              key={index}
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-10% 0px -10% 0px" }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
+              className={`rounded-2xl border transition-colors duration-300 overflow-hidden ${
+                isOpen ? 'bg-zinc-900/60 border-teal-500/30' : 'bg-zinc-900/20 border-white/5 hover:border-white/10 hover:bg-zinc-900/40'
+              } backdrop-blur-md`}
+            >
+              <button
+                onClick={() => setOpenIndex(isOpen ? null : index)}
+                className="group w-full flex items-center justify-between p-6 tablet:p-8 text-left focus:outline-none"
+              >
+                <span className="text-lg font-medium text-white tracking-tight pr-8">{item.question}</span>
+                <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  isOpen ? 'bg-teal-500/20 text-teal-400' : 'bg-white/5 text-zinc-400 group-hover:bg-white/10 group-hover:text-zinc-300'
+                }`}>
+                  <ChevronDown size={18} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`} />
+                </div>
+              </button>
+              
+              <AnimatePresence initial={false}>
+                {isOpen && (
+                  <m.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                  >
+                    <div className="px-6 tablet:px-8 pb-6 tablet:pb-8 text-zinc-400 leading-relaxed">
+                      {item.answer}
+                    </div>
+                  </m.div>
+                )}
+              </AnimatePresence>
+            </m.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 export default function Home() {
   const isMobile = useMediaQuery('(max-width: 768px)');
 
@@ -222,6 +303,8 @@ export default function Home() {
         </div>
 
         <FeatureBentoGrid />
+
+        <FAQAccordion />
 
         {/* Support Section */}
         <div className="w-full relative flex flex-col items-center mt-12 tablet:mt-16 pt-16 pb-24 overflow-hidden rounded-t-[40px]">
