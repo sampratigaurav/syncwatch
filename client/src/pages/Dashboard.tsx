@@ -165,8 +165,8 @@ export default function Dashboard() {
        parsedCode = parts[parts.length - 1];
     }
     
-    if (parsedCode.length < 6) {
-      setError('Room code or custom link must be at least 6 characters');
+    if (parsedCode.length < 3) {
+      setError('Room code or custom link must be at least 3 characters');
       setShowExpiredError(false);
       return;
     }
