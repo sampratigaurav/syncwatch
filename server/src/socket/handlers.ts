@@ -165,8 +165,14 @@ export const setupSocketHandlers = (io: Server) => {
           }
         }
 
-        const hashBuffer = await pbkdf2Async(password, room.passwordSalt!, 100_000, 32, 'sha256');
-        const hash = hashBuffer.toString('hex');
+        let hash: string;
+        if (room.passwordSalt) {
+          const hashBuffer = await pbkdf2Async(password, room.passwordSalt, 100_000, 32, 'sha256');
+          hash = hashBuffer.toString('hex');
+        } else {
+          hash = password; // Fallback for custom rooms created via client with raw PIN
+        }
+        
         if (hash !== room.password) {
           socket.emit(EVENTS.WRONG_PASSWORD, { message: 'Incorrect PIN' });
           return;
