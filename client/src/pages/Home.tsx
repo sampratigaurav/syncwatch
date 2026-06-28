@@ -43,8 +43,8 @@ const STEPS = [
   },
   {
     icon: ShieldCheck,
-    title: "File verified instantly",
-    desc: "A quick hash check confirms you both have the same file. Takes under a second."
+    title: "Audio verified instantly",
+    desc: "Acoustic fingerprinting confirms your audio tracks match. You can even mix 1080p and 4K video files!"
   },
   {
     icon: Play,
