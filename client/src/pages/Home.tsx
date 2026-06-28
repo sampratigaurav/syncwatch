@@ -1,7 +1,7 @@
-import { useEffect, Suspense, lazy } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
+import { Link } from 'react-router-dom';
 import { Link2, FileVideo, ShieldCheck, Play, Github } from 'lucide-react';
-import { useRoomStore } from '../store/roomStore';
+
 import { m, LazyMotion, domAnimation } from 'framer-motion';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 import CssOrb from '../components/CssOrb';
@@ -112,14 +112,8 @@ const FeatureBentoGrid = () => {
 
 export default function Home() {
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const navigate = useNavigate();
-  const firebaseUid = useRoomStore(state => state.firebaseUid);
 
-  useEffect(() => {
-    if (firebaseUid) {
-      navigate('/dashboard');
-    }
-  }, [firebaseUid, navigate]);
+
 
   return (
     <LazyMotion features={domAnimation}>
