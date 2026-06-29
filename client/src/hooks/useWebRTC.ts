@@ -22,14 +22,18 @@ interface WebRTCState {
   initiateCall: (targetId: string) => Promise<void>;
   createPeerConnection: (targetId: string) => RTCPeerConnection;
   sendSubtitlePayload: (payload: string) => void;
-  sendFingerprintPayload: (payload: number[] | number) => void;
+  sendFingerprintPayload: (payload: number[] | { size: number, duration: number }) => void;
 }
 
-const ICE_SERVERS = {
+const ICE_SERVERS: RTCConfiguration = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
     { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun.cloudflare.com:3478' },
+    // NOTE: To guarantee connection success behind symmetric NATs (e.g. corporate firewalls),
+    // inject a TURN server here via a service like Twilio Network Traversal or Metered.
+    // { urls: 'turn:global.turn.twilio.com:3478?transport=udp', username: '...', credential: '...' }
   ]
 };
 
@@ -65,10 +69,18 @@ const setupDataChannel = (dc: RTCDataChannel, targetId: string) => {
     }
   };
 
+  let lastFingerprintTime = 0;
+
   dc.onmessage = (event) => {
     try {
       const data = JSON.parse(event.data);
       if (data.type === 'FINGERPRINT') {
+        const now = Date.now();
+        if (now - lastFingerprintTime < 5000) {
+          console.warn("Ignoring rapid fingerprint verification request to prevent CPU exhaustion.");
+          return;
+        }
+        lastFingerprintTime = now;
         useRoomStore.getState().setCachedFingerprintPayload(data.payload);
       } else if (data.type === 'START') {
         chunkBuffer = [];
@@ -132,7 +144,7 @@ export const useWebRTC = create<WebRTCState>((set, get) => ({
     });
   },
 
-  sendFingerprintPayload: (payload: number[] | number) => {
+  sendFingerprintPayload: (payload: number[] | { size: number, duration: number }) => {
     const { dataChannels } = get();
     dataChannels.forEach((dc) => {
       if (dc.readyState === 'open') {

@@ -21,7 +21,7 @@ export const useFileVerify = () => {
   })));
   const sendFingerprintPayload = useWebRTC((state) => state.sendFingerprintPayload);
   
-  const [localFingerprint, setLocalFingerprint] = useState<number[] | number | null>(null);
+  const [localFingerprint, setLocalFingerprint] = useState<number[] | { size: number, duration: number } | null>(null);
   
   const compareWorkerRef = useRef<Worker | null>(null);
   const generateWorkerRef = useRef<Worker | null>(null);
@@ -112,7 +112,15 @@ export const useFileVerify = () => {
       setFileDetails(DUMMY_HASH, file.name);
     }
 
-    let payload: number[] | number = file.size;
+    const duration = await new Promise<number>((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => resolve(video.duration);
+      video.onerror = () => resolve(0);
+      video.src = URL.createObjectURL(file);
+    });
+
+    let payload: number[] | { size: number, duration: number } = { size: file.size, duration };
 
     try {
       const slice = file.slice(0, 10 * 1024 * 1024);
@@ -168,8 +176,8 @@ export const useFileVerify = () => {
       });
       payload = result;
     } catch (e) {
-      console.warn("Audio decoding failed, falling back to file size check", e);
-      payload = file.size;
+      console.warn("Audio decoding failed or inconclusive, falling back to file size/duration check", e);
+      // payload remains the { size, duration } object
     }
 
     if (!isSilentBackground) {
@@ -182,7 +190,7 @@ export const useFileVerify = () => {
       sendFingerprintPayload(payload);
       
       if (!isSilentBackground) {
-        socket.emit(EVENTS.FILE_VERIFIED, { hash: DUMMY_HASH, size: 0, name: file.name });
+        socket.emit(EVENTS.FILE_VERIFIED, { hash: DUMMY_HASH, size: file.size, name: file.name, duration });
       }
     }
   };

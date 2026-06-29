@@ -392,7 +392,7 @@ export const setupSocketHandlers = (io: Server) => {
 
       if (!canControl(room, socket.id)) return;
 
-      const validActions = ['play', 'pause', 'seek', 'sync_check', 'subtitle_toggle', 'subtitle_track_change'];
+      const validActions = ['play', 'pause', 'seek', 'sync_check', 'subtitle_toggle', 'subtitle_track_change', 'playback_rate_change'];
       if (typeof payload.action !== 'string' || !validActions.includes(payload.action)) {
         socket.emit('error', { message: 'Invalid playback action' });
         return;
@@ -434,6 +434,9 @@ export const setupSocketHandlers = (io: Server) => {
       room.playback.lastUpdatedAt = Date.now();
       room.playback.lastActionBy = socket.id;
       room.playback.lastActionNickname = participant.nickname;
+      if (payload.playbackRate !== undefined) {
+        room.playback.playbackRate = payload.playbackRate;
+      }
 
       await setRoom(room);
 
@@ -442,7 +445,8 @@ export const setupSocketHandlers = (io: Server) => {
         currentTime: payload.currentTime,
         timestamp: payload.timestamp,
         lastActionBy: socket.id,
-        lastActionNickname: participant.nickname
+        lastActionNickname: participant.nickname,
+        playbackRate: payload.playbackRate
       });
     });
 
@@ -588,10 +592,7 @@ export const setupSocketHandlers = (io: Server) => {
         avatarUrl: participant.avatarUrl
       };
 
-      room.chatHistory.push(message);
-      if (room.chatHistory.length > 100) {
-        room.chatHistory.shift();
-      }
+      room.chatHistory = [...room.chatHistory, message].slice(-100);
 
       await setRoom(room);
       io.to(roomId).emit(EVENTS.CHAT_BROADCAST, message);

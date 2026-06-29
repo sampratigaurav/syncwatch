@@ -21,6 +21,7 @@ export interface PlaybackState {
   hostId: string
   lastActionBy?: string
   lastActionNickname?: string
+  playbackRate?: number
 }
 
 export type ControlPolicy = 'host_only' | 'everyone' | 'selected'
@@ -71,7 +72,7 @@ export interface ChatMessage {
   avatarUrl?: string
 }
 
-export type PlaybackAction = 'play' | 'pause' | 'seek' | 'sync_check' | 'subtitle_toggle' | 'subtitle_track_change'
+export type PlaybackAction = 'play' | 'pause' | 'seek' | 'sync_check' | 'subtitle_toggle' | 'subtitle_track_change' | 'playback_rate_change'
 
 export interface PlaybackEvent {
   action: PlaybackAction
@@ -80,12 +81,14 @@ export interface PlaybackEvent {
   lastActionBy?: string
   lastActionNickname?: string
   subtitleState?: SubtitleState
+  playbackRate?: number
 }
 
 export interface FileVerifyPayload {
   hash: string
   name: string
   size: number
+  duration?: number
 }
 
 export interface ReactionPayload {

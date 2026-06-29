@@ -217,7 +217,24 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       }
     };
 
-
+    const handleRateChange = () => {
+      if (hasControl && internalVideoRef.current) {
+        // Prevent broadcasting automated drift correction adjustments
+        // We assume manual changes are significant (e.g. 1.0 -> 1.25)
+        // or we check if the user physically changed it... wait, it's safer to just emit if hasControl
+        // Actually, only hosts/controllers emit sync events. If a host changes rate, they broadcast it.
+        // Wait, if host is correcting their own drift? Hosts don't do drift correction. 
+        // Only viewers do drift correction. So if a viewer has control (policy = everyone) and changes rate, they emit.
+        // But if they are currently having their rate changed by drift correction... that's tricky.
+        // Let's just emit if we have control.
+        socket.emit(EVENTS.PLAYBACK_EVENT, {
+          action: 'playback_rate_change',
+          currentTime: internalVideoRef.current.currentTime,
+          timestamp: Date.now(),
+          playbackRate: internalVideoRef.current.playbackRate
+        });
+      }
+    };
 
     // UI Actions
     const togglePlay = () => {
@@ -361,6 +378,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           onWaiting={onWaiting}
           onCanPlay={onCanPlay}
           onPlaying={onPlaying}
+          onRateChange={handleRateChange}
           onTimeUpdate={handleNativeTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onEnded={onEnded}

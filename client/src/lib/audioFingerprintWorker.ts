@@ -27,6 +27,13 @@ self.onmessage = (e) => {
         fingerprint.push(rms);
       }
 
+      const sumRMS = fingerprint.reduce((a, b) => a + b, 0);
+      const meanRMS = fingerprint.length > 0 ? sumRMS / fingerprint.length : 0;
+      
+      if (meanRMS < 0.001) {
+        throw new Error('INCONCLUSIVE_SILENCE');
+      }
+
       self.postMessage({ type: 'GENERATE_RESULT', fingerprint });
     } catch (error: any) {
       self.postMessage({ type: 'ERROR', error: error.message });
@@ -35,11 +42,16 @@ self.onmessage = (e) => {
     try {
       const { localPayload, remotePayload } = payload;
 
-      // Handle Fallback Size check
-      if (typeof localPayload === 'number' && typeof remotePayload === 'number') {
-        const diff = Math.abs(localPayload - remotePayload);
-        const max = Math.max(localPayload, remotePayload);
-        const isMatch = (diff / max) <= 0.05; // 5% tolerance
+      // Handle Fallback Size and Duration check
+      if (
+        typeof localPayload === 'object' && localPayload !== null && 'size' in localPayload && 'duration' in localPayload &&
+        typeof remotePayload === 'object' && remotePayload !== null && 'size' in remotePayload && 'duration' in remotePayload
+      ) {
+        const sizeDiff = Math.abs(localPayload.size - remotePayload.size);
+        const durationDiff = Math.abs(localPayload.duration - remotePayload.duration);
+        
+        // Match if size difference is less than 50MB and duration difference is less than 1 second
+        const isMatch = sizeDiff < 50_000_000 && durationDiff < 1.0;
         self.postMessage({ type: 'COMPARE_RESULT', isMatch });
         return;
       }

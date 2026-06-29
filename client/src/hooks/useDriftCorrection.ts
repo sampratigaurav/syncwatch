@@ -26,7 +26,8 @@ export const useDriftCorrection = (videoRef: React.RefObject<HTMLVideoElement | 
       socket.emit(EVENTS.PLAYBACK_EVENT, {
         action: 'sync_check',
         currentTime: videoRef.current.currentTime,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        playbackRate: videoRef.current.playbackRate
       });
     }, 5000);
 
@@ -73,12 +74,14 @@ export const useDriftCorrection = (videoRef: React.RefObject<HTMLVideoElement | 
 
       const video = videoRef.current;
       
+      const targetRate = state.playback?.playbackRate || 1.0;
+      
       // If paused or missing sync data, reset state and normalize playback rate
       if (!video || video.paused || !lastSyncRef.current) {
          pidState.current.integral = 0;
          pidState.current.prevError = null;
-         if (video && video.playbackRate !== 1.0) {
-           video.playbackRate = 1.0;
+         if (video && video.playbackRate !== targetRate) {
+           video.playbackRate = targetRate;
          }
          return;
       }
@@ -91,8 +94,8 @@ export const useDriftCorrection = (videoRef: React.RefObject<HTMLVideoElement | 
       // Stop extrapolating if sync data is stale
       if (timeSinceSync > 10) return;
 
-      // Estimate the host's current time
-      const extrapolatedHostTime = lastSyncRef.current.hostTime + timeSinceSync;
+      // Estimate the host's current time based on target rate
+      const extrapolatedHostTime = lastSyncRef.current.hostTime + (timeSinceSync * targetRate);
       const localTime = video.currentTime;
       
       // Positive error means we are behind the host
@@ -109,7 +112,7 @@ export const useDriftCorrection = (videoRef: React.RefObject<HTMLVideoElement | 
         video.currentTime = extrapolatedHostTime;
         pidState.current.integral = 0;
         pidState.current.prevError = null;
-        if (video.playbackRate !== 1.0) video.playbackRate = 1.0;
+        if (video.playbackRate !== targetRate) video.playbackRate = targetRate;
         return;
       }
 
@@ -132,22 +135,22 @@ export const useDriftCorrection = (videoRef: React.RefObject<HTMLVideoElement | 
 
         const adjustment = (Kp * error) + (Ki * pidState.current.integral) + (Kd * derivative);
         
-        let newRate = 1.0 + adjustment;
-        // Clamp the playbackRate between 0.90 and 1.10
-        newRate = Math.max(0.90, Math.min(1.10, newRate));
+        let newRate = targetRate + adjustment;
+        // Clamp the playbackRate between targetRate-0.10 and targetRate+0.10
+        newRate = Math.max(Math.max(0.1, targetRate - 0.10), Math.min(2.0, targetRate + 0.10));
 
         // Apply safely to avoid DOM spam
         if (Math.abs(video.playbackRate - newRate) > 0.005) {
           video.playbackRate = newRate;
         }
       } else {
-        // Within 50ms tolerance window: smoothly ease playbackRate back to exactly 1.0
-        if (video.playbackRate !== 1.0) {
-          if (Math.abs(video.playbackRate - 1.0) < 0.01) {
-            video.playbackRate = 1.0;
+        // Within tolerance window: smoothly ease playbackRate back to exactly targetRate
+        if (video.playbackRate !== targetRate) {
+          if (Math.abs(video.playbackRate - targetRate) < 0.01) {
+            video.playbackRate = targetRate;
           } else {
-            // Lerp towards 1.0
-            video.playbackRate += (1.0 - video.playbackRate) * (dt * 5);
+            // Lerp towards targetRate
+            video.playbackRate += (targetRate - video.playbackRate) * (dt * 5);
           }
         }
         
