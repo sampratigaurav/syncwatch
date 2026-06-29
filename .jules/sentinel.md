@@ -16,3 +16,7 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+## 2024-06-29 - Data Exposure in Room State Broadcasts
+**Vulnerability:** Room state was broadcasted to clients in `SET_MAGNET_LINK` handler including the hashed `password` and `passwordSalt`.
+**Learning:** Spread operators `...room` can silently expose sensitive fields if we are not explicitly filtering out information that should not be shared with clients, especially when constructing objects to be broadcasted to all users in a room.
+**Prevention:** Never use direct spread of backend state objects in Socket.io broadcast payloads if they contain sensitive data. Always construct an explicit object or use `delete` to scrub sensitive fields like `password` and `passwordSalt` before emitting.
