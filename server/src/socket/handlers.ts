@@ -132,6 +132,11 @@ export const setupSocketHandlers = (io: Server) => {
         socket.emit('error', { message: 'Nickname must be 1-50 characters' });
         return;
       }
+      
+      if (payload.avatarUrl && (typeof payload.avatarUrl !== 'string' || payload.avatarUrl.length > 2000)) {
+        socket.emit('error', { message: 'Avatar URL is too long' });
+        return;
+      }
 
       const room = await getRoom(roomId);
       if (!room) {
@@ -478,7 +483,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.SET_MAGNET_LINK, async (payload: { magnetURI: string }) => {
-      if (!payload || typeof payload.magnetURI !== 'string') return;
+      if (!payload || typeof payload.magnetURI !== 'string' || payload.magnetURI.length > 5000) return;
       const roomId = socketToRoom.get(socket.id);
       if (!roomId) return;
       const room = await getRoom(roomId);
@@ -603,7 +608,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.LOAD_NEXT_EPISODE, async (payload: { filename: string }) => {
-      if (!payload || typeof payload.filename !== 'string') return;
+      if (!payload || typeof payload.filename !== 'string' || payload.filename.length > 255) return;
       const roomId = socketToRoom.get(socket.id);
       if (!roomId) return;
       const room = await getRoom(roomId);
@@ -810,6 +815,8 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on('profile_updated', async (payload: { displayName?: string, avatarUrl?: string }) => {
       if (!payload) return;
+      if (payload.displayName && (typeof payload.displayName !== 'string' || payload.displayName.length > MAX_NICKNAME_LENGTH)) return;
+      if (payload.avatarUrl && (typeof payload.avatarUrl !== 'string' || payload.avatarUrl.length > 2000)) return;
       const roomId = socketToRoom.get(socket.id);
       if (!roomId) return;
       const room = await getRoom(roomId);

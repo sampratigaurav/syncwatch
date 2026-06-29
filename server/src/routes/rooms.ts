@@ -2,7 +2,7 @@ import { Router, Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { promisify } from 'util';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
-import { createRoom, getRoom, deleteRoom, redisClient } from '../rooms/RoomManager';
+import { createRoom, getRoom, deleteRoom, setRoom, redisClient } from '../rooms/RoomManager';
 import { auth, db } from '../firebase';
 import { Server } from 'socket.io';
 import { EVENTS } from '../../../shared/socketEvents';
@@ -156,6 +156,15 @@ roomRouter.patch('/:id/pin', requireAuth, async (req, res) => {
       password: hash, // either string or null
       passwordSalt: salt // either string or null
     });
+    
+    // Fix: Also update the active room in Redis so the PIN change takes effect immediately
+    const activeRoom = await getRoom(id);
+    if (activeRoom) {
+      activeRoom.hasPassword = !!hash;
+      activeRoom.password = hash;
+      activeRoom.passwordSalt = salt;
+      await setRoom(activeRoom);
+    }
     
     res.json({ success: true });
   } catch (err) {
