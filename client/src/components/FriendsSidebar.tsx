@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useRoomStore } from '../store/roomStore';
 import { getFirestore, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { getDatabase, ref, onValue } from 'firebase/database';
@@ -24,7 +25,11 @@ interface FriendshipEdge {
 }
 
 export const FriendsSidebar = () => {
-  const { firebaseUid, authToken, friendCode } = useRoomStore();
+  const { firebaseUid, authToken, friendCode } = useRoomStore(useShallow(state => ({
+    firebaseUid: state.firebaseUid,
+    authToken: state.authToken,
+    friendCode: state.friendCode
+  })));
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'friends' | 'requests'>('friends');
   
