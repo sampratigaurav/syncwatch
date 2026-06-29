@@ -7,6 +7,8 @@ import { EVENTS } from '../../../shared/socketEvents';
 import { ReactionButton } from './ReactionButton';
 import { StatsForNerds } from './StatsForNerds';
 import SubtitleLoader from './SubtitleLoader';
+import { ProgressBar } from './ProgressBar';
+import { TimeDisplay } from './TimeDisplay';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -63,7 +65,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
 
       const drawFrame = (time: number) => {
         if (document.visibilityState === 'hidden' || video.paused || video.ended) {
-          rafRef.current = requestAnimationFrame(drawFrame);
+          rafRef.current = null;
           return;
         }
 
@@ -78,7 +80,10 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
         rafRef.current = requestAnimationFrame(drawFrame);
       };
 
-      rafRef.current = requestAnimationFrame(drawFrame);
+      // Only start if playing initially
+      if (!video.paused) {
+        rafRef.current = requestAnimationFrame(drawFrame);
+      }
 
       return () => {
         if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
@@ -132,7 +137,6 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
 
     // States
     const [isPlaying, setIsPlaying] = useState(false);
-    const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(1);
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
@@ -168,9 +172,6 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
 
     // Handle native video events to update UI
     const handleNativeTimeUpdate = () => {
-      if (internalVideoRef.current) {
-        setCurrentTime(internalVideoRef.current.currentTime);
-      }
       onTimeUpdate?.();
     };
 
@@ -178,6 +179,30 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       setIsPlaying(true);
       onPlay();
       resetControlsTimeout();
+
+      // Restart theater mode canvas loop
+      if (rafRef.current === null && internalVideoRef.current && canvasRef.current) {
+        const video = internalVideoRef.current;
+        const ctx = canvasRef.current.getContext('2d', { alpha: false });
+        if (ctx) {
+           let lastDrawTime = 0;
+           const frameInterval = 1000 / 15;
+           const drawFrame = (time: number) => {
+              if (document.visibilityState === 'hidden' || video.paused || video.ended) {
+                rafRef.current = null;
+                return;
+              }
+              if (time - lastDrawTime >= frameInterval) {
+                try {
+                  ctx.drawImage(video, 0, 0, 64, 36);
+                  lastDrawTime = time;
+                } catch (e) {}
+              }
+              rafRef.current = requestAnimationFrame(drawFrame);
+           };
+           rafRef.current = requestAnimationFrame(drawFrame);
+        }
+      }
     };
 
     const handleNativePause = () => {
@@ -192,12 +217,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       }
     };
 
-    // Format time (mm:ss)
-    const formatTime = (time: number) => {
-      const minutes = Math.floor(time / 60);
-      const seconds = Math.floor(time % 60);
-      return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    };
+
 
     // UI Actions
     const togglePlay = () => {
@@ -220,12 +240,6 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const skipBackward = () => {
       if (!hasControl || !internalVideoRef.current) return;
       internalVideoRef.current.currentTime = Math.max(0, internalVideoRef.current.currentTime - 10);
-    };
-
-    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (!hasControl || !internalVideoRef.current) return;
-      const time = parseFloat(e.target.value);
-      internalVideoRef.current.currentTime = time;
     };
 
     const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -268,8 +282,6 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       document.addEventListener('fullscreenchange', handleFullscreenChange);
       return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
     }, []);
-
-    const progressPercentage = (currentTime / (duration || 1)) * 100;
 
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
@@ -390,37 +402,12 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           )}
         >
           
-          {/* Time display (Mobile Only: Above Progress Bar) */}
-          <div className="flex tablet:hidden items-center justify-between text-xs font-medium text-white/90 px-2 mb-1 drop-shadow-md">
-            <span>{formatTime(currentTime)}</span>
-            <span>{formatTime(duration)}</span>
-          </div>
-
-          {/* Progress Bar (scrubber) */}
-          <div className="relative group/scrubber flex items-center w-full h-10 tablet:h-4 cursor-pointer">
-            <input 
-              type="range"
-              min={0}
-              max={duration || 100}
-              step="any"
-              value={currentTime}
-              onChange={handleSeek}
-              disabled={!hasControl}
-              className="absolute inset-0 w-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
-            />
-            {/* Base track */}
-            <div className="absolute w-full h-[6px] tablet:h-[4px] bg-white/20 rounded-full group-hover/scrubber:h-[12px] tablet:group-hover/scrubber:h-[8px] transition-all duration-200" />
-            {/* Fill track */}
-            <div 
-              className="absolute h-[6px] tablet:h-[4px] bg-teal-500 rounded-full group-hover/scrubber:h-[12px] tablet:group-hover/scrubber:h-[8px] transition-all duration-200 shadow-[0_0_15px_rgba(20,184,166,0.8)]" 
-              style={{ width: `${progressPercentage}%` }}
-            />
-            {/* Scrubber dot */}
-            <div 
-              className="absolute h-5 w-5 tablet:h-4 tablet:w-4 bg-white rounded-full tablet:scale-0 group-hover/scrubber:scale-100 transition-transform -ml-2.5 tablet:-ml-2 z-0 shadow-lg" 
-              style={{ left: `${progressPercentage}%` }}
-            />
-          </div>
+          {/* Progress Bar (scrubber) and Mobile Time Display */}
+          <ProgressBar 
+            videoRef={internalVideoRef} 
+            hasControl={hasControl} 
+            duration={duration} 
+          />
 
           <div className="flex items-center justify-between mt-1 tablet:mt-0 px-1 tablet:px-0">
             <div className="flex items-center gap-1 tablet:gap-4">
@@ -493,9 +480,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               </div>
 
               {/* Time display (Tablet/Desktop) */}
-              <span className="hidden tablet:block text-white/80 text-sm font-medium tabular-nums shadow-sm ml-2">
-                {formatTime(currentTime)} / {formatTime(duration)}
-              </span>
+              <TimeDisplay videoRef={internalVideoRef} duration={duration} />
             </div>
 
             <div className="flex items-center gap-1 tablet:gap-4">
