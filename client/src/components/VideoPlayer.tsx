@@ -350,17 +350,6 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           }
         }}
       >
-        <style>
-          {`
-            video::cue {
-              transform: translateY(${showControls || showSubtitleMenu ? '-100px' : '-20px'});
-              background: rgba(0, 0, 0, 0.75);
-              border-radius: 4px;
-              padding: 4px 12px;
-            }
-          `}
-        </style>
-        
         <canvas
           ref={canvasRef}
           width={64}
@@ -368,10 +357,12 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           className="absolute z-0 inset-0 w-full h-full object-cover blur-[100px] opacity-70 pointer-events-none scale-110"
         />
 
+        {/* Use data-controls attribute to control video::cue transform via CSS instead of inline style to prevent redundant global style recalculations on every render. */}
         <video
           ref={setRefs}
           src={src || undefined}
           className="relative z-10 w-full h-full object-contain cursor-pointer"
+          data-controls={showControls || showSubtitleMenu}
           onPlay={handleNativePlay}
           onPause={handleNativePause}
           onSeeked={onSeeked}
