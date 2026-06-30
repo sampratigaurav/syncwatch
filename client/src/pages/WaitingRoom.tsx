@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { SEO } from '../components/SEO';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useSocket } from '../hooks/useSocket';
@@ -168,8 +169,10 @@ export default function WaitingRoom() {
   if (!roomId) return null;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 15 }}
+    <>
+      <SEO title="Waiting Room | SyncWatch" />
+      <motion.div 
+        initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
@@ -434,5 +437,6 @@ export default function WaitingRoom() {
         </div>
       </div>
     </motion.div>
+    </>
   );
 }

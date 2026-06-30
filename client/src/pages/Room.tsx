@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { SEO } from '../components/SEO';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useSocket, socket } from '../hooks/useSocket';
@@ -188,8 +189,10 @@ export default function Room() {
   }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, scale: 0.98 }}
+    <>
+      <SEO title="Active Watch Room | SyncWatch" />
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
@@ -455,5 +458,6 @@ export default function Room() {
       </div>
       
     </motion.div>
+    </>
   );
 }

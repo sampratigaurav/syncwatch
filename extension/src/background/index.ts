@@ -17,6 +17,26 @@ const SERVER_URL = 'https://syncwatch-backend-vwk3.onrender.com'
 let activeYouTubeTabId: number | null = null
 let driftInterval: ReturnType<typeof setInterval> | null = null
 
+// ─── Offscreen Document ────────────────────────────────────────────────────────
+
+let creatingOffscreen: Promise<void> | null = null;
+async function setupOffscreenDocument() {
+  const hasDocument = await chrome.offscreen.hasDocument();
+  if (hasDocument) return;
+
+  if (creatingOffscreen) {
+    await creatingOffscreen;
+  } else {
+    creatingOffscreen = chrome.offscreen.createDocument({
+      url: 'src/offscreen/index.html',
+      reasons: [chrome.offscreen.Reason.WEB_RTC, chrome.offscreen.Reason.USER_MEDIA],
+      justification: 'Background WebRTC connection and voice chat handling'
+    });
+    await creatingOffscreen;
+    creatingOffscreen = null;
+  }
+}
+
 // ─── Wake-readiness gate ──────────────────────────────────────────────────────
 // Message handlers must await this before reading state, so they don't race
 // against onWake()'s async storage read.
@@ -27,6 +47,7 @@ async function onWake(): Promise<void> {
   patchState(stored)
 
   if (stored.roomId && stored.nickname) {
+    await setupOffscreenDocument()
     initSocket(getYouTubeTabId)
     startPingInterval()
     if (stored.role === 'host') startDriftCorrection()
@@ -152,6 +173,7 @@ chrome.runtime.onMessage.addListener(
             return
           }
 
+          await setupOffscreenDocument()
           const socket = initSocket(getYouTubeTabId)
           socket.emit(SOCKET_EVENTS.JOIN_ROOM, { roomId, nickname: message.nickname })
 
@@ -185,6 +207,7 @@ chrome.runtime.onMessage.addListener(
             return
           }
 
+          await setupOffscreenDocument()
           const socket = initSocket(getYouTubeTabId)
           socket.emit(SOCKET_EVENTS.JOIN_ROOM, { roomId: message.roomId, nickname: message.nickname })
 

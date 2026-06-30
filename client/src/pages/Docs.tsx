@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { SEO } from '../components/SEO';
 import { 
   ArrowLeft, FileVideo, ShieldCheck, HelpCircle, 
   Keyboard, Play, ChevronDown, Monitor, CheckCircle2,
@@ -68,8 +69,10 @@ export default function Docs() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-300 font-sans selection:bg-teal-500/30">
-      {/* Header */}
+    <>
+      <SEO title="Documentation | SyncWatch" />
+      <div className="min-h-screen bg-zinc-950 text-zinc-300 font-sans selection:bg-teal-500/30">
+        {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-50 flex items-center p-4 backdrop-blur-md bg-zinc-950/80 border-b border-zinc-900/50">
         <Link to="/" className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
           <ArrowLeft size={20} />
@@ -357,5 +360,6 @@ export default function Docs() {
         </div>
       </div>
     </div>
+    </>
   );
 }

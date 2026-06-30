@@ -1,4 +1,51 @@
+import React from 'react'
+import { createRoot } from 'react-dom/client'
 import type { ExtensionMessage } from '../shared/messages'
+import tailwindCss from '../styles/tailwind.css?inline'
+import Sidebar from './Sidebar'
+
+// ─── Shadow DOM Injection ─────────────────────────────────────────────────────
+
+function injectSidebar() {
+  // Wait for the YouTube player container to exist
+  const container = document.getElementById('movie_player') || document.body;
+  if (container.querySelector('#syncwatch-root')) return;
+
+  const rootEl = document.createElement('div');
+  rootEl.id = 'syncwatch-root';
+  rootEl.style.position = 'absolute';
+  rootEl.style.top = '0';
+  rootEl.style.left = '0';
+  rootEl.style.width = '100%';
+  rootEl.style.height = '100%';
+  rootEl.style.zIndex = '999999'; // Ensure it's on top inside #movie_player
+  // pointerEvents = none on wrapper so it doesn't block video clicks when closed
+  rootEl.style.pointerEvents = 'none'; 
+  container.appendChild(rootEl);
+
+  const shadowRoot = rootEl.attachShadow({ mode: 'open' });
+  
+  const style = document.createElement('style');
+  style.textContent = tailwindCss;
+  shadowRoot.appendChild(style);
+  
+  const reactRoot = document.createElement('div');
+  reactRoot.style.height = '100%';
+  reactRoot.style.pointerEvents = 'auto'; // Re-enable pointer events for the react app
+  shadowRoot.appendChild(reactRoot);
+
+  createRoot(reactRoot).render(<Sidebar />);
+}
+
+// Observe DOM for the player, as it might load asynchronously in SPA
+const observer = new MutationObserver(() => {
+  if (document.getElementById('movie_player')) {
+    injectSidebar();
+  }
+});
+observer.observe(document.body, { childList: true, subtree: true });
+// Also try immediately
+injectSidebar();
 
 // ─── Keep service worker alive ────────────────────────────────────────────────
 

@@ -2,6 +2,7 @@ import { Suspense, lazy, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Link2, FileVideo, ShieldCheck, Play, Github, ChevronDown, LayoutDashboard } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
+import { SEO } from '../components/SEO';
 
 import { m, LazyMotion, domAnimation, useMotionValue, useMotionTemplate, AnimatePresence } from 'framer-motion';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -137,7 +138,7 @@ const SpotlightCard = ({ step, index }: { step: typeof STEPS[0], index: number }
 
 const FeatureBentoGrid = () => {
   return (
-    <div className="w-full max-w-[1200px] mx-auto mt-32 relative z-10 pb-24 px-4 tablet:px-8">
+    <section aria-label="Features" className="w-full max-w-[1200px] mx-auto mt-32 relative z-10 pb-24 px-4 tablet:px-8">
       <div className="text-center mb-16 tablet:mb-24">
         <h2 className="text-3xl tablet:text-5xl font-bold tracking-tight text-white mb-4">How it works</h2>
         <p className="text-base tablet:text-lg text-zinc-400">From your file to in sync — in under 30 seconds</p>
@@ -148,7 +149,7 @@ const FeatureBentoGrid = () => {
           <SpotlightCard key={index} step={step} index={index} />
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 
@@ -179,7 +180,7 @@ const FAQAccordion = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <div className="w-full max-w-[800px] mx-auto mt-32 mb-16 px-4 tablet:px-8 relative z-10">
+    <section aria-label="FAQ" className="w-full max-w-[800px] mx-auto mt-32 mb-16 px-4 tablet:px-8 relative z-10">
       <div className="text-center mb-16">
         <h2 className="text-3xl tablet:text-5xl font-bold tracking-tight text-white mb-4">Got questions?</h2>
         <p className="text-base tablet:text-lg text-zinc-400">Everything you need to know about SyncWatch</p>
@@ -229,7 +230,7 @@ const FAQAccordion = () => {
           );
         })}
       </div>
-    </div>
+    </section>
   );
 };
 
@@ -240,7 +241,9 @@ export default function Home() {
 
 
   return (
-    <LazyMotion features={domAnimation}>
+    <>
+      <SEO title="SyncWatch - Watch Movies Together in Real-Time" />
+      <LazyMotion features={domAnimation}>
       <m.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -251,7 +254,7 @@ export default function Home() {
       <AmbientBackground />
       
       {/* Main Content Area */}
-      <div className="relative z-10 w-full max-w-[1200px] flex flex-col items-center px-4 tablet:px-8 pt-10 tablet:pt-16">
+      <main className="relative z-10 w-full max-w-[1200px] flex flex-col items-center px-4 tablet:px-8 pt-10 tablet:pt-16">
           
         {/* Row 1: Full-Width Centered Typography */}
         <m.div 
@@ -309,7 +312,7 @@ export default function Home() {
         <FAQAccordion />
 
         {/* Support Section */}
-        <div className="w-full relative flex flex-col items-center mt-12 tablet:mt-16 pt-16 pb-24 overflow-hidden rounded-t-[40px]">
+        <section aria-label="Support Us" className="w-full relative flex flex-col items-center mt-12 tablet:mt-16 pt-16 pb-24 overflow-hidden rounded-t-[40px]">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-teal-900/20 via-zinc-900/10 to-transparent pointer-events-none" />
           <div className="absolute bottom-0 w-full h-[1px] bg-gradient-to-r from-transparent via-teal-500/30 to-transparent" />
 
@@ -337,9 +340,10 @@ export default function Home() {
               </a>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
       </m.div>
     </LazyMotion>
+    </>
   );
 }

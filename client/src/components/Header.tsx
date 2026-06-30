@@ -55,7 +55,7 @@ export const Header = () => {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="sticky top-0 w-full z-50 backdrop-blur-xl bg-zinc-950/80 border-b border-white/10">
+      <header className="sticky top-0 w-full z-50 backdrop-blur-xl bg-zinc-950/80 border-b border-white/10">
         <div className="max-w-7xl mx-auto grid grid-cols-2 tablet:grid-cols-3 items-center px-6 py-4">
           
           {/* Left: Logo */}
@@ -153,7 +153,7 @@ export const Header = () => {
             )}
           </div>
         </div>
-      </div>
+      </header>
       <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
     </LazyMotion>
   );

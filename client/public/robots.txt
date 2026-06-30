@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /room/
+Disallow: /join/
+
+Sitemap: https://syncwatch.samprati.dev/sitemap.xml

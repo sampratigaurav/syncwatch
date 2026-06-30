@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { SEO } from '../components/SEO';
 import { Link2, Lock, Unlock, Eye, EyeOff } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -298,7 +299,9 @@ export default function Dashboard() {
   };
 
   return (
-    <LazyMotion features={domAnimation}>
+    <>
+      <SEO title="Dashboard | SyncWatch" />
+      <LazyMotion features={domAnimation}>
       <m.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -566,5 +569,6 @@ export default function Dashboard() {
         </div>
       </m.div>
     </LazyMotion>
+    </>
   );
 }

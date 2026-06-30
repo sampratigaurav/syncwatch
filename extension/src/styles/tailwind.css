@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Premium glassmorphism base styles */
+.glass-panel {
+  @apply bg-black/40 backdrop-blur-xl border-l border-white/10 shadow-2xl;
+}
