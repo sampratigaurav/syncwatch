@@ -101,15 +101,21 @@ if (process.env.NODE_ENV === 'production') {
     if (req.header('x-forwarded-proto') !== 'https') {
       const host = req.hostname;
       // Mitigate Open Redirect (SonarCloud tssecurity:S5146)
-      // Validate that the host is an expected production domain
       if (
         host === 'syncwatch.samprati.dev' || 
         host === 'api.syncwatch.samprati.dev' || 
         host === 'syncwatch-eosin.vercel.app'
       ) {
-        // Ensure the path doesn't start with multiple slashes (e.g., //evil.com)
-        const safePath = req.originalUrl.replace(/^\/+/, '/');
-        return res.redirect(301, `https://${host}${safePath}`);
+        try {
+          // Use URL parser to strictly extract the pathname and search query.
+          // This removes any protocol/host malicious injection from req.originalUrl.
+          const parsedUrl = new URL(req.originalUrl, `https://${host}`);
+          const strictRelativePath = parsedUrl.pathname + parsedUrl.search;
+          return res.redirect(301, `https://${host}${strictRelativePath}`);
+        } catch (error) {
+          // Fallback if URL parsing fails
+          return res.redirect(301, `https://${host}/`);
+        }
       }
       return res.status(400).send('Bad Request: Invalid Host');
     }
