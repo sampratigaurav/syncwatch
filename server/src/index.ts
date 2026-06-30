@@ -99,7 +99,19 @@ io.use((socket, next) => {
 if (process.env.NODE_ENV === 'production') {
   app.use((req, res, next) => {
     if (req.header('x-forwarded-proto') !== 'https') {
-      return res.redirect(301, `https://${req.header('host')}${req.url}`);
+      const host = req.hostname;
+      // Mitigate Open Redirect (SonarCloud tssecurity:S5146)
+      // Validate that the host is an expected production domain
+      if (
+        host === 'syncwatch.samprati.dev' || 
+        host === 'api.syncwatch.samprati.dev' || 
+        host === 'syncwatch-eosin.vercel.app'
+      ) {
+        // Ensure the path doesn't start with multiple slashes (e.g., //evil.com)
+        const safePath = req.originalUrl.replace(/^\/+/, '/');
+        return res.redirect(301, `https://${host}${safePath}`);
+      }
+      return res.status(400).send('Bad Request: Invalid Host');
     }
     next();
   });
