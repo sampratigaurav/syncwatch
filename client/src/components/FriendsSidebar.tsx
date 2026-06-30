@@ -272,13 +272,17 @@ export const FriendsSidebar = () => {
               <div className="flex-1 overflow-y-auto px-6 pb-6 custom-scrollbar">
                 
                 {/* My Code Banner */}
-                <div className="bg-teal-500/10 border border-teal-500/20 rounded-xl p-3 flex items-center justify-between mb-4 group cursor-pointer hover:bg-teal-500/20 transition-colors" onClick={copyMyCode}>
+                <button
+                  className="w-full text-left bg-teal-500/10 border border-teal-500/20 rounded-xl p-3 flex items-center justify-between mb-4 group cursor-pointer hover:bg-teal-500/20 transition-colors"
+                  onClick={copyMyCode}
+                  aria-label="Copy Friend Code"
+                >
                   <div>
                     <div className="text-xs text-teal-500/70 font-semibold uppercase tracking-wider mb-0.5">My Friend Code</div>
                     <div className="text-sm text-teal-400 font-mono tracking-widest">{friendCode || 'Loading...'}</div>
                   </div>
                   <Copy size={16} className="text-teal-500 opacity-50 group-hover:opacity-100 transition-opacity" />
-                </div>
+                </button>
 
                 {/* Friends Tab */}
                 {activeTab === 'friends' && (
