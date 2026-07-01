@@ -434,8 +434,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                  whileTap={hasControl ? { scale: 0.85 } : {}}
                  onClick={(e) => { e.stopPropagation(); skipBackward(); }}
                  disabled={!hasControl}
-                 aria-label="Skip back 10 seconds"
-                 title="Skip back 10 seconds"
+                 aria-label={!hasControl ? "Skip back disabled (no permission)" : "Skip back 10 seconds"}
+                 title={!hasControl ? "Only controllers can change playback" : "Skip back 10 seconds"}
                  className={cn(
                   "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
@@ -449,8 +449,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 whileTap={hasControl ? { scale: 0.85 } : {}}
                 onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                 disabled={!hasControl}
-                aria-label={isPlaying ? 'Pause' : 'Play'}
-                title={isPlaying ? 'Pause' : 'Play'}
+                aria-label={!hasControl ? "Playback control disabled (no permission)" : isPlaying ? 'Pause' : 'Play'}
+                title={!hasControl ? "Only controllers can change playback" : isPlaying ? 'Pause' : 'Play'}
                 className={cn(
                   "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
@@ -464,8 +464,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                  whileTap={hasControl ? { scale: 0.85 } : {}}
                  onClick={(e) => { e.stopPropagation(); skipForward(); }}
                  disabled={!hasControl}
-                 aria-label="Skip forward 10 seconds"
-                 title="Skip forward 10 seconds"
+                 aria-label={!hasControl ? "Skip forward disabled (no permission)" : "Skip forward 10 seconds"}
+                 title={!hasControl ? "Only controllers can change playback" : "Skip forward 10 seconds"}
                  className={cn(
                   "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
