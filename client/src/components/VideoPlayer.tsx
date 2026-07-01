@@ -73,7 +73,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           try {
             ctx.drawImage(video, 0, 0, 64, 36);
             lastDrawTime = time;
-          } catch (e) {
+          } catch {
             // Ignore cross-origin canvas taint errors
           }
         }
@@ -196,7 +196,9 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 try {
                   ctx.drawImage(video, 0, 0, 64, 36);
                   lastDrawTime = time;
-                } catch (e) {}
+                } catch {
+                  // Ignore cross-origin canvas taint errors
+                }
               }
               rafRef.current = requestAnimationFrame(drawFrame);
            };
@@ -432,10 +434,10 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               {/* Skip Back */}
               <motion.button 
                  whileTap={hasControl ? { scale: 0.85 } : {}}
-                 onClick={(e) => { e.stopPropagation(); skipBackward(); }}
+                 onClick={(e: React.MouseEvent) => { e.stopPropagation(); skipBackward(); }}
                  disabled={!hasControl}
-                 aria-label="Skip back 10 seconds"
-                 title="Skip back 10 seconds"
+                 aria-label={hasControl ? "Skip back 10 seconds" : "Skip back disabled (no permission)"}
+                 title={hasControl ? "Skip back 10 seconds" : "Controllers only"}
                  className={cn(
                   "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
@@ -447,10 +449,10 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               {/* Playback Toggle */}
               <motion.button 
                 whileTap={hasControl ? { scale: 0.85 } : {}}
-                onClick={(e) => { e.stopPropagation(); togglePlay(); }}
+                onClick={(e: React.MouseEvent) => { e.stopPropagation(); togglePlay(); }}
                 disabled={!hasControl}
-                aria-label={isPlaying ? 'Pause' : 'Play'}
-                title={isPlaying ? 'Pause' : 'Play'}
+                aria-label={hasControl ? (isPlaying ? 'Pause' : 'Play') : "Playback control disabled (no permission)"}
+                title={hasControl ? (isPlaying ? 'Pause' : 'Play') : "Controllers only"}
                 className={cn(
                   "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
@@ -462,10 +464,10 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               {/* Skip Forward */}
               <motion.button 
                  whileTap={hasControl ? { scale: 0.85 } : {}}
-                 onClick={(e) => { e.stopPropagation(); skipForward(); }}
+                 onClick={(e: React.MouseEvent) => { e.stopPropagation(); skipForward(); }}
                  disabled={!hasControl}
-                 aria-label="Skip forward 10 seconds"
-                 title="Skip forward 10 seconds"
+                 aria-label={hasControl ? "Skip forward 10 seconds" : "Skip forward disabled (no permission)"}
+                 title={hasControl ? "Skip forward 10 seconds" : "Controllers only"}
                  className={cn(
                   "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
                   !hasControl && "opacity-50 hover:text-white cursor-not-allowed"

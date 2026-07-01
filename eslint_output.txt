@@ -1,0 +1,149 @@
+
+> client@0.0.0 lint
+> eslint .
+
+
+/app/client/src/components/AuthSync.tsx
+  77:27  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/client/src/components/FriendsSidebar.tsx
+  139:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  160:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  177:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/client/src/components/Header.tsx
+  51:14  error  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/app/client/src/components/ProfileModal.tsx
+   55:6   warning  React Hook useEffect has a missing dependency: 'fetchRooms'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  104:14  error    'err' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+  123:14  error    'err' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+  147:14  error    'err' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+
+/app/client/src/components/ReactionOverlay.tsx
+  16:9  error  'pendingQueue' is never reassigned. Use 'const' instead  prefer-const
+
+/app/client/src/components/StatsForNerds.tsx
+  32:22  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/app/client/src/components/StatsForNerds.tsx:32:22
+  30 |
+  31 |     // Estimate current server time for the video
+> 32 |     const elapsed = (Date.now() - playback.lastUpdatedAt) / 1000;
+     |                      ^^^^^^^^^^ Cannot call impure function
+  33 |     const expectedTime = playback.currentTime + elapsed;
+  34 |     const diff = videoRef.current.currentTime - expectedTime;
+  35 |     return diff;  react-hooks/purity
+
+/app/client/src/components/VideoPlayer.tsx
+  136:8  warning  React Hook useEffect has a missing dependency: 'src'. Either include it or remove the dependency array                                                            react-hooks/exhaustive-deps
+  334:8  warning  React Hook useEffect has missing dependencies: 'skipBackward', 'skipForward', 'toggleMute', and 'togglePlay'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/client/src/hooks/useDriftCorrection.ts
+   35:6  warning  React Hook useEffect has a missing dependency: 'videoRef'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  168:6  warning  React Hook useEffect has a missing dependency: 'videoRef'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/client/src/hooks/useFileVerify.ts
+  128:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/client/src/hooks/useMediaQuery.ts
+  11:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/client/src/hooks/useMediaQuery.ts:11:7
+   9 |     const media = window.matchMedia(query);
+  10 |     if (media.matches !== matches) {
+> 11 |       setMatches(media.matches);
+     |       ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  12 |     }
+  13 |
+  14 |     const listener = () => setMatches(media.matches);  react-hooks/set-state-in-effect
+
+/app/client/src/hooks/useSocket.ts
+  192:65  error    Unexpected any. Specify a different type                                                                                                                      @typescript-eslint/no-explicit-any
+  237:6   warning  React Hook useEffect has missing dependencies: 'playJoinSound', 'playLeaveSound', and 'playMessageSound'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/client/src/hooks/useSound.ts
+  9:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/client/src/hooks/useSoundEffects.ts
+  9:58  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/client/src/hooks/useVideoSync.ts
+  120:41  error    Unexpected any. Specify a different type                                                                                        @typescript-eslint/no-explicit-any
+  154:6   warning  React Hook useEffect has missing dependencies: 'hasControl' and 'videoRef'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/app/client/src/hooks/useWebRTC.ts
+  186:60  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  341:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/client/src/lib/audioFingerprintWorker.ts
+  38:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  99:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/client/src/lib/subtitleUtils.ts
+  115:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/client/src/lib/subtitleWorker.ts
+  71:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/client/src/lib/torrentManager.ts
+  61:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/app/client/src/pages/Dashboard.tsx
+   97:6   warning  React Hook useEffect has missing dependencies: 'authNickname' and 'nickname'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  226:13  error    'res' is never reassigned. Use 'const' instead                                                                                    prefer-const
+
+/app/client/src/pages/Room.tsx
+   81:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/client/src/pages/Room.tsx:81:7
+  79 |   useEffect(() => {
+  80 |     if (errorToast) {
+> 81 |       setToastMessage(errorToast);
+     |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  82 |       setErrorToast(null);
+  83 |     }
+  84 |   }, [errorToast, setErrorToast]);                                                                                                                         react-hooks/set-state-in-effect
+  100:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/app/client/src/pages/Room.tsx:100:9
+   98 |     if (role !== 'host') {
+   99 |       if (!prevHasControl.current && hasControl) {
+> 100 |         setToastMessage("You can now control playback");
+      |         ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  101 |       } else if (prevHasControl.current && !hasControl) {
+  102 |         setToastMessage("Playback control removed");
+  103 |       }  react-hooks/set-state-in-effect
+
+/app/client/src/pages/WaitingRoom.tsx
+  330:25  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  332:40  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+  333:25  error  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  357:37  error  Unexpected any. Specify a different type                                                                             @typescript-eslint/no-explicit-any
+
+/app/client/src/store/slices/playbackSlice.ts
+  24:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  40:34  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 40 problems (32 errors, 8 warnings)
+  2 errors and 0 warnings potentially fixable with the `--fix` option.
