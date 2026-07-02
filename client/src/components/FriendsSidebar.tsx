@@ -192,6 +192,8 @@ export const FriendsSidebar = () => {
     <>
       <button 
         onClick={() => setIsOpen(true)}
+        aria-label="Open Friends Sidebar"
+        title="Open Friends Sidebar"
         className="fixed bottom-6 right-6 p-4 bg-teal-600 hover:bg-teal-500 text-white rounded-full shadow-[0_0_20px_rgba(20,184,166,0.3)] transition-all z-40 hover:scale-105"
       >
         <div className="relative">
@@ -229,7 +231,12 @@ export const FriendsSidebar = () => {
                     <Users className="text-teal-500" />
                     Friends
                   </h2>
-                  <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors text-zinc-400 hover:text-white">
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    aria-label="Close Friends Sidebar"
+                    title="Close"
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-zinc-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                  >
                     <X size={20} />
                   </button>
                 </div>
@@ -246,6 +253,8 @@ export const FriendsSidebar = () => {
                   <button 
                     onClick={handleSendRequest}
                     disabled={isSubmitting || !addFriendCode}
+                    aria-label="Send Friend Request"
+                    title="Send Friend Request"
                     className="relative px-4 bg-teal-600 hover:bg-teal-500 text-white rounded-xl transition-all disabled:opacity-50 disabled:hover:bg-teal-600 shadow-lg active:scale-95 flex items-center justify-center"
                   >
                     <UserPlus size={20} />
@@ -277,7 +286,7 @@ export const FriendsSidebar = () => {
               <div className="flex-1 overflow-y-auto px-6 pb-6 custom-scrollbar">
                 
                 {/* My Code Banner */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-teal-900/40 to-teal-950/40 border border-teal-500/30 rounded-2xl p-4 flex items-center justify-between mb-8 group cursor-pointer hover:border-teal-400/50 hover:shadow-[0_0_20px_rgba(20,184,166,0.15)] transition-all duration-300" onClick={copyMyCode}>
+                <button className="w-full text-left relative overflow-hidden bg-gradient-to-br from-teal-900/40 to-teal-950/40 border border-teal-500/30 rounded-2xl p-4 flex items-center justify-between mb-8 group cursor-pointer hover:border-teal-400/50 hover:shadow-[0_0_20px_rgba(20,184,166,0.15)] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500" onClick={copyMyCode} aria-label="Copy my friend code">
                   <div className="absolute inset-0 bg-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="relative z-10">
                     <div className="text-[10px] text-teal-300/70 font-semibold uppercase tracking-widest mb-1.5 flex items-center gap-2">
@@ -291,9 +300,9 @@ export const FriendsSidebar = () => {
                     )}
                   </div>
                   <div className="relative z-10 w-10 h-10 rounded-full bg-teal-500/10 border border-teal-500/20 flex items-center justify-center group-hover:bg-teal-500/20 group-hover:scale-110 group-hover:border-teal-500/40 transition-all duration-300">
-                    <Copy size={18} className="text-teal-400" />
+                    <Copy size={18} className="text-teal-400" aria-hidden="true" />
                   </div>
-                </div>
+                </button>
 
                 {/* Friends Tab */}
                 {activeTab === 'friends' && (
@@ -331,9 +340,10 @@ export const FriendsSidebar = () => {
                             <button 
                               onClick={() => handleRemoveFriend(friendUid)} 
                               className="p-2 text-red-400 opacity-0 group-hover:opacity-100 hover:bg-red-400/10 rounded-lg transition-all"
+                              aria-label={`Remove friend ${profile?.displayName || 'Unknown'}`}
                               title="Remove Friend"
                             >
-                              <X size={16} />
+                              <X size={16} aria-hidden="true" />
                             </button>
                           </div>
                         );
@@ -375,11 +385,11 @@ export const FriendsSidebar = () => {
                                   <div className="text-sm font-medium text-white">{profile?.displayName || 'Unknown'}</div>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  <button onClick={() => handleAcceptRequest(edge.requesterId)} className="p-1.5 bg-teal-500/20 hover:bg-teal-500/30 text-teal-400 rounded-lg transition-colors" title="Accept">
-                                    <Check size={16} />
+                                  <button onClick={() => handleAcceptRequest(edge.requesterId)} className="p-1.5 bg-teal-500/20 hover:bg-teal-500/30 text-teal-400 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500" aria-label={`Accept request from ${profile?.displayName || "Unknown"}`} title="Accept">
+                                    <Check size={16} aria-hidden="true" />
                                   </button>
-                                  <button onClick={() => handleRemoveFriend(edge.requesterId)} className="p-1.5 hover:bg-white/10 text-zinc-400 hover:text-red-400 rounded-lg transition-colors" title="Decline">
-                                    <X size={16} />
+                                  <button onClick={() => handleRemoveFriend(edge.requesterId)} className="p-1.5 hover:bg-white/10 text-zinc-400 hover:text-red-400 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400" aria-label={`Decline request from ${profile?.displayName || "Unknown"}`} title="Decline">
+                                    <X size={16} aria-hidden="true" />
                                   </button>
                                 </div>
                               </div>
@@ -414,8 +424,8 @@ export const FriendsSidebar = () => {
                                   </div>
                                   <div className="text-sm text-zinc-400">{profile?.displayName || 'Unknown'}</div>
                                 </div>
-                                <button onClick={() => handleRemoveFriend(targetUid)} className="p-1.5 hover:bg-white/10 text-zinc-500 hover:text-red-400 rounded-lg transition-colors" title="Cancel Request">
-                                  <X size={14} />
+                                <button onClick={() => handleRemoveFriend(targetUid)} className="p-1.5 hover:bg-white/10 text-zinc-500 hover:text-red-400 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400" aria-label={`Cancel request to ${profile?.displayName || "Unknown"}`} title="Cancel Request">
+                                  <X size={14} aria-hidden="true" />
                                 </button>
                               </div>
                             );
