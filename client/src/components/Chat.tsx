@@ -8,6 +8,13 @@ import { TypingIndicator } from './TypingIndicator';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, getGradient } from '../lib/utils';
 
+// Cache the formatter to prevent expensive recreation on every render/message
+const timeFormatter = new Intl.DateTimeFormat('en-US', {
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true
+});
+
 export default function Chat() {
   const { chatMessages, participants } = useRoomStore(useShallow(state => ({
     chatMessages: state.chatMessages,
@@ -73,11 +80,7 @@ export default function Chat() {
   };
 
   const formatTime = (timestamp: number) => {
-    return new Intl.DateTimeFormat('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    }).format(new Date(timestamp));
+    return timeFormatter.format(new Date(timestamp));
   };
 
   return (
