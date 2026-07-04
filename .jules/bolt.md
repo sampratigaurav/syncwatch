@@ -4,3 +4,6 @@
 ## 2024-05-15 - Zustand useRoomStore() Default Subscriptions
 **Learning:** Components calling `useRoomStore()` without a selector implicitly subscribe to the entire store. Because `latencyMs` updates every 10 seconds via socket pings, *any* component calling `useRoomStore()` re-renders globally every 10 seconds, causing unnecessary layout recalculations and react tree traversal.
 **Action:** Always use `useShallow` with an explicit selector for Zustand stores in heavy components (like `Room.tsx` or `VideoPlayer.tsx`) to isolate re-renders to only the properties the component actually consumes.
+## 2024-05-16 - Hoisting Intl Instances
+**Learning:** Recreating `Intl` instances (like `Intl.DateTimeFormat`) inside React components causes unnecessary performance overhead, especially in components that re-render frequently or map over large arrays (like chat messages), as initialization is expensive.
+**Action:** Always hoist and cache expensive initializations like `Intl` instances outside of React components so they are only created once and reused across renders.
