@@ -16,3 +16,8 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+
+## 2024-07-05 - Null Payload Destructuring Crash in Socket.IO
+**Vulnerability:** A Denial of Service (DoS) vulnerability where clients could crash the server by emitting `rotate_auth_token` with a `null` payload. The handler `socket.on('rotate_auth_token', async ({ token }) => {` immediately attempted to destructure an undefined or null object.
+**Learning:** In Socket.IO event handlers, we cannot guarantee that the payload object exists or that it takes a specific structure, especially when attackers bypass client-side validation. Destructuring properties directly from the handler parameters causes a `TypeError: Cannot destructure property 'token' of 'object null' as it is null.`
+**Prevention:** Avoid destructuring directly in the parameters of any external input handlers. Always receive a raw payload variable, validate its existence (`if (!payload) return;`), and verify types before destructuring or passing to other functions.

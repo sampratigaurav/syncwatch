@@ -107,8 +107,9 @@ export const setupSocketHandlers = (io: Server) => {
 
   io.on('connection', (socket: Socket) => {
     // Allows the client to rotate the token without reconnecting
-    socket.on('rotate_auth_token', async ({ token }) => {
-      if (!token) return;
+    socket.on('rotate_auth_token', async (payload: { token: string }) => {
+      if (!payload || !payload.token) return;
+      const { token } = payload;
       if (!auth) return;
       try {
         const decodedToken = await auth.verifyIdToken(token);
