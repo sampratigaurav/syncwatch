@@ -107,9 +107,8 @@ export const setupSocketHandlers = (io: Server) => {
 
   io.on('connection', (socket: Socket) => {
     // Allows the client to rotate the token without reconnecting
-    socket.on('rotate_auth_token', async (payload: { token: string } | undefined) => {
-      if (!payload || typeof payload.token !== 'string') return;
-      const { token } = payload;
+    socket.on('rotate_auth_token', async ({ token }) => {
+      if (!token) return;
       if (!auth) return;
       try {
         const decodedToken = await auth.verifyIdToken(token);
@@ -133,7 +132,7 @@ export const setupSocketHandlers = (io: Server) => {
         socket.emit('error', { message: 'Nickname must be 1-50 characters' });
         return;
       }
-      
+
       if (payload.avatarUrl && (typeof payload.avatarUrl !== 'string' || payload.avatarUrl.length > 2000)) {
         socket.emit('error', { message: 'Avatar URL is too long' });
         return;
@@ -158,7 +157,7 @@ export const setupSocketHandlers = (io: Server) => {
 
         // Rate limit PIN attempts per IP globally
         const ip = getClientIp(socket);
-        
+
         try {
           await getPinRateLimiter().consume(ip);
         } catch (rejRes) {
@@ -178,7 +177,7 @@ export const setupSocketHandlers = (io: Server) => {
         } else {
           hash = password; // Fallback for custom rooms created via client with raw PIN
         }
-        
+
         if (hash !== room.password) {
           socket.emit(EVENTS.WRONG_PASSWORD, { message: 'Incorrect PIN' });
           return;
@@ -247,7 +246,7 @@ export const setupSocketHandlers = (io: Server) => {
             // disconnect event and updated the status to 'disconnected'. The token itself
             // is the cryptographic proof of identity, so status check is relaxed here.
             const disconnectedMatch = Array.from(room.participants.values()).find(
-              p => p.nickname === nickname && 
+              p => p.nickname === nickname &&
                    (p.status === 'disconnected' || p.status === 'ready' || p.status === 'buffering')
             );
             if (disconnectedMatch) {
@@ -308,7 +307,7 @@ export const setupSocketHandlers = (io: Server) => {
       // Never transmit the password hash or salt to clients
       delete (roomStatePayload as any).password;
       delete (roomStatePayload as any).passwordSalt;
-      
+
       // Do not send historical chat to new joiners; new messages are pushed via CHAT_BROADCAST
       // But DO send it if they are an existing participant reclaiming their slot (reconnection)
       if (!existing) {
@@ -498,9 +497,9 @@ export const setupSocketHandlers = (io: Server) => {
 
       room.magnetURI = payload.magnetURI;
       participant.status = 'ready';
-      
+
       await setRoom(room);
-      
+
       const roomStatePayload = {
         ...room,
         participants: Array.from(room.participants.values())
@@ -615,10 +614,10 @@ export const setupSocketHandlers = (io: Server) => {
       if (!roomId) return;
       const room = await getRoom(roomId);
       if (!room) return;
-      
+
       const participant = room.participants.get(socket.id);
       if (!participant || participant.role !== 'host') return;
-      
+
       socket.to(roomId).emit(EVENTS.LOAD_NEXT_EPISODE, { filename: payload.filename });
     });
 
