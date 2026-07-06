@@ -174,11 +174,11 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-white/5">
             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <UserIcon className="w-6 h-6 text-teal-400" />
+              <UserIcon className="w-6 h-6 text-teal-400" aria-hidden="true" />
               My Profile
             </h2>
-            <button onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors">
-              <X className="w-6 h-6" />
+            <button onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors" aria-label="Close profile modal" title="Close profile modal">
+              <X className="w-6 h-6" aria-hidden="true" />
             </button>
           </div>
 
@@ -265,22 +265,25 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                             onClick={() => copyLink(room.id)}
                             className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                             title="Copy Room Link"
+                            aria-label="Copy room link"
                           >
-                            <Link2 className="w-4 h-4" />
+                            <Link2 className="w-4 h-4" aria-hidden="true" />
                           </button>
                           <button
                             onClick={() => setShowPinEdit(showPinEdit === room.id ? null : room.id)}
                             className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors"
                             title="Change PIN"
+                            aria-label="Change room PIN"
                           >
-                            <Key className="w-4 h-4" />
+                            <Key className="w-4 h-4" aria-hidden="true" />
                           </button>
                           <button
                             onClick={() => handleDeleteRoom(room.id)}
                             className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors"
                             title="Delete Room"
+                            aria-label="Delete room"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" aria-hidden="true" />
                           </button>
                         </div>
                       </div>
