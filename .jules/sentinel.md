@@ -16,3 +16,8 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+
+## 2026-07-08 - Server DoS via Null Payload Destructuring
+**Vulnerability:** In `server/src/socket/handlers.ts`, the `rotate_auth_token` handler destructured `{ token }` directly from the incoming payload. If a client sent a `null` payload, it caused a `TypeError` and crashed the entire Node.js process.
+**Learning:** Never destructure properties directly from an incoming Socket.IO payload in the function parameters, as a null payload will crash the process.
+**Prevention:** Always receive the raw payload object, validate its existence, and strictly check types before extracting properties or passing them to other functions.
