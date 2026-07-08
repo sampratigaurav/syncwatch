@@ -363,7 +363,11 @@ export default function Dashboard() {
                   </div>
                   <button 
                     onClick={() => { setLockRoom(!lockRoom); setError(''); }}
-                    className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", lockRoom ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
+                    role="switch"
+                    aria-checked={lockRoom}
+                    aria-label="Lock with PIN"
+                    title="Lock with PIN"
+                    className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900", lockRoom ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
                   >
                     <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", lockRoom ? "translate-x-[22px]" : "translate-x-0.5")} />
                   </button>
@@ -391,9 +395,11 @@ export default function Dashboard() {
                         <button
                           type="button"
                           onClick={() => setShowPin(!showPin)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+                          aria-label={showPin ? "Hide PIN" : "Show PIN"}
+                          title={showPin ? "Hide PIN" : "Show PIN"}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded"
                         >
-                          {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showPin ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                         </button>
                       </div>
                     </m.div>
@@ -409,7 +415,11 @@ export default function Dashboard() {
                       </div>
                       <button 
                         onClick={() => { setIsPersistent(!isPersistent); setError(''); }}
-                        className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", isPersistent ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
+                        role="switch"
+                        aria-checked={isPersistent}
+                        aria-label="Custom Permanent Link"
+                        title="Custom Permanent Link"
+                        className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900", isPersistent ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
                       >
                         <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", isPersistent ? "translate-x-[22px]" : "translate-x-0.5")} />
                       </button>
@@ -508,9 +518,11 @@ export default function Dashboard() {
                       <button
                         type="button"
                         onClick={() => setShowPin(!showPin)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
+                        aria-label={showPin ? "Hide PIN" : "Show PIN"}
+                        title={showPin ? "Hide PIN" : "Show PIN"}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded"
                       >
-                        {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showPin ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                       </button>
                     </div>
                   </m.div>
