@@ -107,11 +107,11 @@ export const setupSocketHandlers = (io: Server) => {
 
   io.on('connection', (socket: Socket) => {
     // Allows the client to rotate the token without reconnecting
-    socket.on('rotate_auth_token', async ({ token }) => {
-      if (!token) return;
+    socket.on('rotate_auth_token', async (payload: { token: string }) => {
+      if (!payload || !payload.token || typeof payload.token !== 'string') return;
       if (!auth) return;
       try {
-        const decodedToken = await auth.verifyIdToken(token);
+        const decodedToken = await auth.verifyIdToken(payload.token);
         socket.data.userId = decodedToken.uid;
       } catch (err) {
         console.error('Token rotation failed:', err);
