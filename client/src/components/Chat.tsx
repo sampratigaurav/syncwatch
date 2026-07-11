@@ -8,6 +8,16 @@ import { TypingIndicator } from './TypingIndicator';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, getGradient } from '../lib/utils';
 
+const timeFormatter = new Intl.DateTimeFormat('en-US', {
+  hour: 'numeric',
+  minute: '2-digit',
+  hour12: true
+});
+
+const formatTime = (timestamp: number) => {
+  return timeFormatter.format(new Date(timestamp));
+};
+
 export default function Chat() {
   const { chatMessages, participants } = useRoomStore(useShallow(state => ({
     chatMessages: state.chatMessages,
@@ -70,14 +80,6 @@ export default function Chat() {
     
     socket.emit(EVENTS.TYPING_STOP);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-  };
-
-  const formatTime = (timestamp: number) => {
-    return new Intl.DateTimeFormat('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    }).format(new Date(timestamp));
   };
 
   return (
