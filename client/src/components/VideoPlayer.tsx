@@ -400,7 +400,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           )}
         </video>
         
-        <StatsForNerds isVisible={showStats} videoRef={internalVideoRef} />
+        {/* Unmount component completely when hidden to prevent Zustand store subscriptions from triggering unnecessary re-renders */}
+        {showStats && <StatsForNerds videoRef={internalVideoRef} />}
 
         {/* Following Badge */}
         {!hasControl && controlPolicy === 'host_only' && (
