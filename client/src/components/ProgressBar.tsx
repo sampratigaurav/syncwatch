@@ -78,6 +78,8 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ videoRef, hasControl, 
           value={time}
           onChange={handleSeek}
           disabled={!hasControl}
+          aria-label={hasControl ? "Seek video" : "Seeking disabled"}
+          title={hasControl ? "Seek video" : "You don't have permission to control playback"}
           className="absolute inset-0 w-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
         />
         {/* Base track */}
