@@ -3,18 +3,15 @@ import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 
 interface StatsForNerdsProps {
-  isVisible: boolean;
-  videoRef: React.RefObject<HTMLVideoElement | null>;
+  readonly videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
-export function StatsForNerds({ isVisible, videoRef }: StatsForNerdsProps) {
+export function StatsForNerds({ videoRef }: StatsForNerdsProps) {
   const { latency, connectionStatus, participants } = useRoomStore(useShallow(state => ({
     latency: state.latencyMs,
     connectionStatus: state.connectionStatus,
     participants: state.participants,
   })));
-
-  if (!isVisible) return null;
 
   const getLatencyColor = (ms: number) => {
     if (ms < 50) return 'text-emerald-400';
