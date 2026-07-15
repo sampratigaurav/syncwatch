@@ -3,7 +3,7 @@ import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 
 interface StatsForNerdsProps {
-  videoRef: React.RefObject<HTMLVideoElement | null>;
+  readonly videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
 export function StatsForNerds({ videoRef }: StatsForNerdsProps) {
