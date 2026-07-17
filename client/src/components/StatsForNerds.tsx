@@ -1,41 +1,51 @@
 import { Activity, Wifi, Clock, Server } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
+import { useState, useEffect } from 'react';
 
 interface StatsForNerdsProps {
-  isVisible: boolean;
   videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
-export function StatsForNerds({ isVisible, videoRef }: StatsForNerdsProps) {
+export function StatsForNerds({ videoRef }: StatsForNerdsProps) {
   const { latency, connectionStatus, participants } = useRoomStore(useShallow(state => ({
     latency: state.latencyMs,
     connectionStatus: state.connectionStatus,
     participants: state.participants,
   })));
 
-  if (!isVisible) return null;
+  const [drift, setDrift] = useState(0);
+
+  useEffect(() => {
+    const updateDrift = () => {
+      if (!videoRef.current) {
+        setDrift(0);
+        return;
+      }
+      const state = useRoomStore.getState();
+      const playback = state.playback;
+      if (!playback || !playback.isPlaying) {
+        setDrift(0);
+        return;
+      }
+
+      // Estimate current server time for the video
+      const elapsed = (Date.now() - playback.lastUpdatedAt) / 1000;
+      const expectedTime = playback.currentTime + elapsed;
+      const diff = videoRef.current.currentTime - expectedTime;
+      setDrift(diff);
+    };
+
+    updateDrift();
+    const interval = setInterval(updateDrift, 1000);
+    return () => clearInterval(interval);
+  }, [videoRef]);
 
   const getLatencyColor = (ms: number) => {
     if (ms < 50) return 'text-emerald-400';
     if (ms < 150) return 'text-yellow-400';
     return 'text-red-400';
   };
-
-  const getSyncDrift = () => {
-    if (!videoRef.current) return 0;
-    const state = useRoomStore.getState();
-    const playback = state.playback;
-    if (!playback || !playback.isPlaying) return 0;
-    
-    // Estimate current server time for the video
-    const elapsed = (Date.now() - playback.lastUpdatedAt) / 1000;
-    const expectedTime = playback.currentTime + elapsed;
-    const diff = videoRef.current.currentTime - expectedTime;
-    return diff;
-  };
-
-  const drift = getSyncDrift();
 
   return (
     <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-md border border-zinc-800 rounded-lg p-4 w-72 shadow-2xl z-50 text-xs font-mono text-zinc-300">
