@@ -1,6 +1,7 @@
 import { Activity, Wifi, Clock, Server } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
+import { useState, useEffect } from 'react';
 
 interface StatsForNerdsProps {
   isVisible: boolean;
@@ -14,6 +15,32 @@ export function StatsForNerds({ isVisible, videoRef }: StatsForNerdsProps) {
     participants: state.participants,
   })));
 
+  const [drift, setDrift] = useState<number>(0);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const interval = setInterval(() => {
+      if (!videoRef.current) {
+        setDrift(0);
+        return;
+      }
+      const state = useRoomStore.getState();
+      const playback = state.playback;
+      if (!playback || !playback.isPlaying) {
+        setDrift(0);
+        return;
+      }
+
+      const elapsed = (Date.now() - playback.lastUpdatedAt) / 1000;
+      const expectedTime = playback.currentTime + elapsed;
+      const currentDiff = videoRef.current.currentTime - expectedTime;
+      setDrift(currentDiff);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isVisible, videoRef]);
+
   if (!isVisible) return null;
 
   const getLatencyColor = (ms: number) => {
@@ -21,21 +48,6 @@ export function StatsForNerds({ isVisible, videoRef }: StatsForNerdsProps) {
     if (ms < 150) return 'text-yellow-400';
     return 'text-red-400';
   };
-
-  const getSyncDrift = () => {
-    if (!videoRef.current) return 0;
-    const state = useRoomStore.getState();
-    const playback = state.playback;
-    if (!playback || !playback.isPlaying) return 0;
-    
-    // Estimate current server time for the video
-    const elapsed = (Date.now() - playback.lastUpdatedAt) / 1000;
-    const expectedTime = playback.currentTime + elapsed;
-    const diff = videoRef.current.currentTime - expectedTime;
-    return diff;
-  };
-
-  const drift = getSyncDrift();
 
   return (
     <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-md border border-zinc-800 rounded-lg p-4 w-72 shadow-2xl z-50 text-xs font-mono text-zinc-300">
