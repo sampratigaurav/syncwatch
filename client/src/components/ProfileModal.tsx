@@ -177,7 +177,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               <UserIcon className="w-6 h-6 text-teal-400" />
               My Profile
             </h2>
-            <button onClick={onClose} aria-label="Close Profile Modal" className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+            <button type="button" onClick={onClose} aria-label="Close Profile Modal" className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -200,6 +200,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       placeholder="Your display name"
                     />
                     <button
+                      type="button"
                       onClick={() => handleSaveIdentity()}
                       disabled={isSavingIdentity || editName === nickname}
                       className="px-6 bg-teal-500 hover:bg-teal-400 text-black font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -217,6 +218,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       const isSelected = avatarUrl === url;
                       return (
                         <button
+                          type="button"
                           key={seed}
                           onClick={() => handleSaveIdentity(url)}
                           className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group ${
@@ -262,6 +264,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         </div>
                         <div className="flex items-center gap-2">
                           <button
+                            type="button"
                             onClick={() => copyLink(room.id)}
                             aria-label="Copy Room Link"
                             className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
@@ -270,6 +273,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                             <Link2 className="w-4 h-4" />
                           </button>
                           <button
+                            type="button"
                             onClick={() => setShowPinEdit(showPinEdit === room.id ? null : room.id)}
                             aria-label="Change Room PIN"
                             className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
@@ -278,6 +282,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                             <Key className="w-4 h-4" />
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleDeleteRoom(room.id)}
                             aria-label="Delete Room"
                             className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
@@ -303,6 +308,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                             className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                           />
                           <button
+                            type="button"
                             onClick={() => handleUpdatePin(room.id)}
                             className="px-4 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 font-medium rounded-lg text-sm transition-colors"
                           >
