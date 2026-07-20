@@ -48,7 +48,7 @@ export const Header = () => {
       const auth = getAuth(app);
       await signOut(auth);
       toast.success('Logged out');
-    } catch (err: unknown) {
+    } catch {
       toast.error('Failed to logout');
     }
   };
@@ -87,9 +87,11 @@ export const Header = () => {
               href="https://github.com/sampratigaurav/syncwatch" 
               target="_blank" 
               rel="noreferrer"
-              className="text-zinc-400 hover:text-white transition-colors"
+              aria-label="GitHub Repository"
+              title="GitHub Repository"
+              className="text-zinc-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded-full"
             >
-              <Github className="w-5 h-5" />
+              <Github className="w-5 h-5" aria-hidden="true" />
             </a>
 
             {isAuthLoading ? (
