@@ -16,3 +16,8 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+
+## 2025-05-18 - [Weak RNG for Friend Code Generation]
+**Vulnerability:** Weak random number generation using Math.random() for sensitive friend codes.
+**Learning:** Using predictable randomness allows attackers to guess codes easily, potentially leading to unauthorized operations.
+**Prevention:** Always use cryptographically secure RNGs (like crypto.randomInt) when generating security identifiers or codes.
