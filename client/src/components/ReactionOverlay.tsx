@@ -13,7 +13,7 @@ export function ReactionOverlay() {
   const participantCount = useRoomStore(state => state.participants.length);
 
   useEffect(() => {
-    let pendingQueue: ReactionPayload[] = [];
+    const pendingQueue: ReactionPayload[] = [];
     let isProcessing = false;
 
     const processQueue = () => {
