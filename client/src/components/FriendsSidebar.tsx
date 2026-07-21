@@ -279,8 +279,14 @@ export const FriendsSidebar = () => {
               <div className="flex-1 overflow-y-auto px-6 pb-6 custom-scrollbar">
                 
                 {/* My Code Banner */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-teal-900/40 to-teal-950/40 border border-teal-500/30 rounded-2xl p-4 flex items-center justify-between mb-8 group cursor-pointer hover:border-teal-400/50 hover:shadow-[0_0_20px_rgba(20,184,166,0.15)] transition-all duration-300" onClick={copyMyCode}>
-                  <div className="absolute inset-0 bg-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <button
+                  type="button"
+                  aria-label="Copy my friend code"
+                  title="Copy my friend code"
+                  className="w-full text-left relative overflow-hidden bg-gradient-to-br from-teal-900/40 to-teal-950/40 border border-teal-500/30 rounded-2xl p-4 flex items-center justify-between mb-8 group cursor-pointer hover:border-teal-400/50 hover:shadow-[0_0_20px_rgba(20,184,166,0.15)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 transition-all duration-300"
+                  onClick={copyMyCode}
+                >
+                  <div className="absolute inset-0 bg-teal-500/5 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-300" />
                   <div className="relative z-10">
                     <div className="text-[10px] text-teal-300/70 font-semibold uppercase tracking-widest mb-1.5 flex items-center gap-2">
                       <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
@@ -292,10 +298,10 @@ export const FriendsSidebar = () => {
                       <SkeletonShimmer className="w-32 h-7 bg-teal-500/10 rounded-md mt-1" />
                     )}
                   </div>
-                  <div className="relative z-10 w-10 h-10 rounded-full bg-teal-500/10 border border-teal-500/20 flex items-center justify-center group-hover:bg-teal-500/20 group-hover:scale-110 group-hover:border-teal-500/40 transition-all duration-300">
-                    <Copy size={18} className="text-teal-400" />
+                  <div className="relative z-10 w-10 h-10 rounded-full bg-teal-500/10 border border-teal-500/20 flex items-center justify-center group-hover:bg-teal-500/20 group-hover:scale-110 group-hover:border-teal-500/40 group-focus-visible:bg-teal-500/20 group-focus-visible:scale-110 group-focus-visible:border-teal-500/40 transition-all duration-300">
+                    <Copy size={18} className="text-teal-400" aria-hidden="true" />
                   </div>
-                </div>
+                </button>
 
                 {/* Friends Tab */}
                 {activeTab === 'friends' && (
