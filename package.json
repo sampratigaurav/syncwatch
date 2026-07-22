@@ -29,6 +29,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "concurrently": "^9.2.3"
+    "concurrently": "^9.2.3",
+    "playwright": "^1.61.1"
   }
 }
