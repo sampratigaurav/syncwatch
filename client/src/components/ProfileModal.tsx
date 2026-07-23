@@ -28,6 +28,9 @@ const AVATAR_SEEDS = [
   'Whiskers', 'Luna', 'Cleo', 'Buster', 'Tiger', 'Simba'
 ];
 
+// Hoisted Intl.DateTimeFormat outside component to prevent expensive recreation on every render/map iteration
+const dateFormatter = new Intl.DateTimeFormat();
+
 const getAvatarUrl = (seed: string) => `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}&backgroundColor=transparent`;
 
 export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
@@ -177,7 +180,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               <UserIcon className="w-6 h-6 text-teal-400" />
               My Profile
             </h2>
-            <button onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors">
+            <button type="button" onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors">
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -199,7 +202,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all"
                       placeholder="Your display name"
                     />
-                    <button
+                    <button type="button"
                       onClick={() => handleSaveIdentity()}
                       disabled={isSavingIdentity || editName === nickname}
                       className="px-6 bg-teal-500 hover:bg-teal-400 text-black font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -216,7 +219,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       const url = getAvatarUrl(seed);
                       const isSelected = avatarUrl === url;
                       return (
-                        <button
+                        <button type="button"
                           key={seed}
                           onClick={() => handleSaveIdentity(url)}
                           className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group ${
@@ -258,24 +261,24 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-mono text-teal-400 text-lg">{room.id}</h4>
-                          <p className="text-xs text-zinc-500">Created {new Date(room.createdAt).toLocaleDateString()}</p>
+                          <p className="text-xs text-zinc-500">Created {room.createdAt ? dateFormatter.format(new Date(room.createdAt)) : 'Unknown'}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <button
+                          <button type="button"
                             onClick={() => copyLink(room.id)}
                             className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                             title="Copy Room Link"
                           >
                             <Link2 className="w-4 h-4" />
                           </button>
-                          <button
+                          <button type="button"
                             onClick={() => setShowPinEdit(showPinEdit === room.id ? null : room.id)}
                             className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors"
                             title="Change PIN"
                           >
                             <Key className="w-4 h-4" />
                           </button>
-                          <button
+                          <button type="button"
                             onClick={() => handleDeleteRoom(room.id)}
                             className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors"
                             title="Delete Room"
@@ -299,7 +302,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                             maxLength={8}
                             className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                           />
-                          <button
+                          <button type="button"
                             onClick={() => handleUpdatePin(room.id)}
                             className="px-4 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 font-medium rounded-lg text-sm transition-colors"
                           >
