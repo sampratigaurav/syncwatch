@@ -28,6 +28,9 @@ const AVATAR_SEEDS = [
   'Whiskers', 'Luna', 'Cleo', 'Buster', 'Tiger', 'Simba'
 ];
 
+// Hoisted Intl.DateTimeFormat outside component to prevent expensive recreation on every render/map iteration
+const dateFormatter = new Intl.DateTimeFormat();
+
 const getAvatarUrl = (seed: string) => `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}&backgroundColor=transparent`;
 
 export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
@@ -258,7 +261,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-mono text-teal-400 text-lg">{room.id}</h4>
-                          <p className="text-xs text-zinc-500">Created {new Date(room.createdAt).toLocaleDateString()}</p>
+                          <p className="text-xs text-zinc-500">Created {room.createdAt ? dateFormatter.format(new Date(room.createdAt)) : 'Unknown'}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <button
