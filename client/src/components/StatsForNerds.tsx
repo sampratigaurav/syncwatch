@@ -1,20 +1,21 @@
+import React from 'react';
 import { Activity, Wifi, Clock, Server } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 
 interface StatsForNerdsProps {
-  isVisible: boolean;
   videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
-export function StatsForNerds({ isVisible, videoRef }: StatsForNerdsProps) {
+export function StatsForNerds({ videoRef }: StatsForNerdsProps) {
+  // OPTIMIZATION: We no longer take an isVisible prop.
+  // By conditionally rendering this component at the parent level, we prevent
+  // these store hooks from executing on every latency update when hidden.
   const { latency, connectionStatus, participants } = useRoomStore(useShallow(state => ({
     latency: state.latencyMs,
     connectionStatus: state.connectionStatus,
     participants: state.participants,
   })));
-
-  if (!isVisible) return null;
 
   const getLatencyColor = (ms: number) => {
     if (ms < 50) return 'text-emerald-400';
@@ -22,20 +23,29 @@ export function StatsForNerds({ isVisible, videoRef }: StatsForNerdsProps) {
     return 'text-red-400';
   };
 
-  const getSyncDrift = () => {
-    if (!videoRef.current) return 0;
-    const state = useRoomStore.getState();
-    const playback = state.playback;
-    if (!playback || !playback.isPlaying) return 0;
-    
-    // Estimate current server time for the video
-    const elapsed = (Date.now() - playback.lastUpdatedAt) / 1000;
-    const expectedTime = playback.currentTime + elapsed;
-    const diff = videoRef.current.currentTime - expectedTime;
-    return diff;
-  };
+  const [drift, setDrift] = React.useState(0);
 
-  const drift = getSyncDrift();
+  React.useEffect(() => {
+    const calculateDrift = () => {
+      if (!videoRef.current) return 0;
+      const state = useRoomStore.getState();
+      const playback = state.playback;
+      if (!playback || !playback.isPlaying) return 0;
+
+      // Estimate current server time for the video
+      const elapsed = (Date.now() - playback.lastUpdatedAt) / 1000;
+      const expectedTime = playback.currentTime + elapsed;
+      const diff = videoRef.current.currentTime - expectedTime;
+      return diff;
+    };
+
+    setDrift(calculateDrift());
+    const interval = setInterval(() => {
+      setDrift(calculateDrift());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [videoRef]);
 
   return (
     <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-md border border-zinc-800 rounded-lg p-4 w-72 shadow-2xl z-50 text-xs font-mono text-zinc-300">
