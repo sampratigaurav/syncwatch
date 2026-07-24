@@ -71,14 +71,14 @@ export const Header = () => {
             <Link to="/docs" className="text-sm font-medium text-zinc-400 hover:text-teal-400 transition-colors">
               Docs
             </Link>
-            <div className="relative group cursor-help">
-              <span className="text-sm font-medium text-zinc-400 group-hover:text-teal-400 transition-colors">
+            <button type="button" className="relative group cursor-help focus-visible:outline-none">
+              <span className="text-sm font-medium text-zinc-400 group-hover:text-teal-400 group-focus-visible:text-teal-400 transition-colors">
                 Extension
               </span>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-black border border-white/10 rounded-lg text-xs font-medium text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-xl">
+              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-black border border-white/10 rounded-lg text-xs font-medium text-zinc-300 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap shadow-xl">
                 Extension coming soon 🚀
               </div>
-            </div>
+            </button>
           </nav>
 
           {/* Right: Auth & Social */}
@@ -87,9 +87,11 @@ export const Header = () => {
               href="https://github.com/sampratigaurav/syncwatch" 
               target="_blank" 
               rel="noreferrer"
-              className="text-zinc-400 hover:text-white transition-colors"
+              className="text-zinc-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded-sm"
+              aria-label="View on GitHub"
+              title="View on GitHub"
             >
-              <Github className="w-5 h-5" />
+              <Github className="w-5 h-5" aria-hidden="true" />
             </a>
 
             {isAuthLoading ? (
@@ -98,13 +100,16 @@ export const Header = () => {
               <div className="relative">
                 <button 
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full transition-all duration-300"
+                  className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                  aria-expanded={isProfileDropdownOpen}
+                  aria-haspopup="true"
+                  aria-label="User profile menu"
                 >
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar" className="w-6 h-6 rounded-full bg-zinc-800" />
                   ) : (
                     <div className="w-6 h-6 rounded-full bg-teal-500/20 flex items-center justify-center">
-                      <User className="w-3.5 h-3.5 text-teal-400" />
+                      <User className="w-3.5 h-3.5 text-teal-400" aria-hidden="true" />
                     </div>
                   )}
                   <span className="text-sm font-medium text-white max-w-[100px] truncate">
@@ -145,9 +150,9 @@ export const Header = () => {
             ) : (
               <button 
                 onClick={handleLogin}
-                className="flex items-center gap-2 px-4 py-2 bg-white text-zinc-950 text-sm font-semibold rounded-lg border border-transparent hover:bg-zinc-950 hover:text-white hover:border-zinc-700 hover:shadow-xl hover:shadow-white/5 transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 bg-white text-zinc-950 text-sm font-semibold rounded-lg border border-transparent hover:bg-zinc-950 hover:text-white hover:border-zinc-700 hover:shadow-xl hover:shadow-white/5 transition-all duration-300 hover:-translate-y-0.5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
               >
-                <GoogleIcon className="w-4 h-4" />
+                <GoogleIcon className="w-4 h-4" aria-hidden="true" />
                 <span>Sign In</span>
               </button>
             )}
