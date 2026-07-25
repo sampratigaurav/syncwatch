@@ -436,6 +436,10 @@ export const setupSocketHandlers = (io: Server) => {
       room.playback.lastActionBy = socket.id;
       room.playback.lastActionNickname = participant.nickname;
       if (payload.playbackRate !== undefined) {
+        if (typeof payload.playbackRate !== 'number' || !Number.isFinite(payload.playbackRate) || payload.playbackRate <= 0) {
+          socket.emit('error', { message: 'Invalid playback rate' });
+          return;
+        }
         room.playback.playbackRate = payload.playbackRate;
       }
 
