@@ -400,7 +400,10 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           )}
         </video>
         
-        <StatsForNerds isVisible={showStats} videoRef={internalVideoRef} />
+        {/* OPTIMIZATION: Conditionally rendering StatsForNerds at the parent level instead of passing a visibility prop.
+            This fully unmounts the component when hidden, preventing it from executing Zustand hooks and unnecessarily
+            re-rendering every 10 seconds during background ping intervals. */}
+        {showStats && <StatsForNerds videoRef={internalVideoRef} />}
 
         {/* Following Badge */}
         {!hasControl && controlPolicy === 'host_only' && (
