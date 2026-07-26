@@ -30,6 +30,10 @@ const AVATAR_SEEDS = [
 
 const getAvatarUrl = (seed: string) => `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}&backgroundColor=transparent`;
 
+// ⚡ BOLT OPTIMIZATION: Hoist expensive Intl.DateTimeFormat outside render loop
+// to prevent severe performance degradation on continuous re-renders.
+const dateFormatter = new Intl.DateTimeFormat(undefined);
+
 export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const { firebaseUid, authToken, nickname, profileName, avatarUrl, setProfileName, setAvatarUrl } = useRoomStore(useShallow(state => ({
     firebaseUid: state.firebaseUid,
@@ -258,7 +262,9 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       <div className="flex items-center justify-between">
                         <div>
                           <h4 className="font-mono text-teal-400 text-lg">{room.id}</h4>
-                          <p className="text-xs text-zinc-500">Created {new Date(room.createdAt).toLocaleDateString()}</p>
+                          <p className="text-xs text-zinc-500">
+                            Created {room.createdAt ? dateFormatter.format(new Date(room.createdAt)) : 'Unknown'}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <button
