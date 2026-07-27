@@ -99,6 +99,7 @@ export const Header = () => {
             ) : firebaseUid ? (
               <div className="relative">
                 <button 
+                  type="button"
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
                   className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full transition-all duration-300"
                 >
@@ -123,6 +124,7 @@ export const Header = () => {
                       className="absolute right-0 mt-2 w-48 bg-[#111111] border border-white/10 rounded-xl shadow-xl overflow-hidden py-1 z-50"
                     >
                       <button
+                        type="button"
                         onClick={() => {
                           setIsProfileDropdownOpen(false);
                           setIsProfileOpen(true);
@@ -132,6 +134,7 @@ export const Header = () => {
                         My Profile
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
                           setIsProfileDropdownOpen(false);
                           handleLogout();
@@ -146,6 +149,7 @@ export const Header = () => {
               </div>
             ) : (
               <button 
+                type="button"
                 onClick={handleLogin}
                 className="flex items-center gap-2 px-4 py-2 bg-white text-zinc-950 text-sm font-semibold rounded-lg border border-transparent hover:bg-zinc-950 hover:text-white hover:border-zinc-700 hover:shadow-xl hover:shadow-white/5 transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
               >
