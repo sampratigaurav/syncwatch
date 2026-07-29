@@ -82,7 +82,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     try {
       const targetName = editName.trim() || profileName || nickname;
       const targetAvatar = newAvatarUrl !== undefined ? newAvatarUrl : avatarUrl;
-      
+
       const db = getFirestore(app);
       await setDoc(doc(db, 'users', firebaseUid), {
         displayName: targetName,
@@ -91,13 +91,13 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
       setProfileName(targetName);
       setAvatarUrl(targetAvatar);
-      
+
       // Sync to live rooms
       socket.emit('profile_updated', {
         displayName: targetName,
         avatarUrl: targetAvatar
       });
-      
+
       if (newAvatarUrl === undefined) {
         toast.success('Profile updated');
       }
@@ -177,17 +177,17 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               <UserIcon className="w-6 h-6 text-teal-400" />
               My Profile
             </h2>
-            <button type="button" aria-label="Close Profile Modal" title="Close" onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70">
-              <X className="w-6 h-6" aria-hidden="true" />
+            <button onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors">
+              <X className="w-6 h-6" />
             </button>
           </div>
 
           <div className="p-6 overflow-y-auto custom-scrollbar flex flex-col md:flex-row gap-8">
-            
+
             {/* Left Column: Identity */}
             <div className="flex-1 space-y-6">
               <h3 className="text-lg font-semibold text-white/90 mb-4">Identity</h3>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-zinc-400 mb-1">Display Name</label>
@@ -244,7 +244,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                 <ShieldCheck className="w-5 h-5 text-indigo-400" />
                 Permanent Rooms
               </h3>
-              
+
               <div className="space-y-3">
                 {isLoadingRooms ? (
                   <div className="text-center py-8 text-zinc-500 animate-pulse">Loading rooms...</div>
@@ -262,31 +262,25 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         </div>
                         <div className="flex items-center gap-2">
                           <button
-                            type="button"
                             onClick={() => copyLink(room.id)}
-                            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70"
-                            aria-label="Copy Room Link"
+                            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                             title="Copy Room Link"
                           >
-                            <Link2 className="w-4 h-4" aria-hidden="true" />
+                            <Link2 className="w-4 h-4" />
                           </button>
                           <button
-                            type="button"
                             onClick={() => setShowPinEdit(showPinEdit === room.id ? null : room.id)}
-                            className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/70"
-                            aria-label="Change PIN"
+                            className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors"
                             title="Change PIN"
                           >
-                            <Key className="w-4 h-4" aria-hidden="true" />
+                            <Key className="w-4 h-4" />
                           </button>
                           <button
-                            type="button"
                             onClick={() => handleDeleteRoom(room.id)}
-                            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/70"
-                            aria-label="Delete Room"
+                            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors"
                             title="Delete Room"
                           >
-                            <Trash2 className="w-4 h-4" aria-hidden="true" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
