@@ -18,7 +18,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 const AmbientBackground = () => (
   <div className="fixed inset-0 pointer-events-none z-0 bg-[#050505] overflow-hidden">
     {/* Dot Matrix Pattern */}
-    <div 
+    <div
       className="absolute inset-0 opacity-[0.06]"
       style={{
         backgroundImage: 'radial-gradient(circle at center, rgba(255,255,255,0.8) 1.5px, transparent 1.5px)',
@@ -27,11 +27,11 @@ const AmbientBackground = () => (
         maskImage: 'linear-gradient(to bottom, black 0%, black 50%, transparent 100%)'
       }}
     />
-    <div 
-      className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] max-w-[800px] max-h-[800px] bg-teal-900/40 rounded-full blur-[120px] mix-blend-screen animate-orb-1" 
+    <div
+      className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] max-w-[800px] max-h-[800px] bg-teal-900/40 rounded-full blur-[120px] mix-blend-screen animate-orb-1"
     />
-    <div 
-      className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] bg-slate-800/50 rounded-full blur-[150px] mix-blend-screen animate-orb-2" 
+    <div
+      className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] bg-slate-800/50 rounded-full blur-[150px] mix-blend-screen animate-orb-2"
     />
   </div>
 );
@@ -50,22 +50,22 @@ export default function Dashboard() {
   const savedNickname = profileName || localStorage.getItem('syncwatch_nickname') || authNickname || '';
   const [nickname, setNicknameInput] = useState(savedNickname);
   const [inputRoomId, setInputRoomId] = useState(urlRoomId || '');
-  
+
   const [error, setError] = useState('');
   const [missingIdentity, setMissingIdentity] = useState(false);
-  
+
   const [lockRoom, setLockRoom] = useState(false);
   const [pin, setPin] = useState('');
   const [requiresPin, setRequiresPin] = useState(false);
   const firebaseUid = useRoomStore(state => state.firebaseUid);
-  
+
   const [isPersistent, setIsPersistent] = useState(false);
   const [customRoomId, setCustomRoomId] = useState('');
 
   const [showExpiredError, setShowExpiredError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showPin, setShowPin] = useState(false);
-  
+
   const [isConnected, setIsConnected] = useState(socket.connected);
 
   useEffect(() => {
@@ -118,7 +118,7 @@ export default function Dashboard() {
         return;
       }
     }
-    
+
     if (isPersistent) {
       if (!customRoomId || customRoomId.length < 3) {
         setError('Custom link must be at least 3 characters');
@@ -129,7 +129,7 @@ export default function Dashboard() {
         return;
       }
     }
-    
+
     setError('');
     setIsLoading(true);
     localStorage.setItem('syncwatch_nickname', trimmed);
@@ -138,10 +138,10 @@ export default function Dashboard() {
         const { app } = await import('../firebase');
         const { getFirestore, doc, setDoc, getDoc } = await import('firebase/firestore');
         const db = getFirestore(app);
-        
+
         const docRef = doc(db, 'roomTemplates', customRoomId);
         const docSnap = await getDoc(docRef);
-        
+
         if (docSnap.exists() && docSnap.data().hostId !== firebaseUid) {
           setError('This custom link is already taken.');
           setIsLoading(false);
@@ -154,7 +154,7 @@ export default function Dashboard() {
           password: lockRoom ? pin : null,
           createdAt: Date.now()
         }, { merge: true });
-        
+
         useRoomStore.getState().setRoomPassword(lockRoom ? pin : null);
         setRoomId(customRoomId);
         useRoomStore.getState().setNickname(trimmed);
@@ -162,14 +162,14 @@ export default function Dashboard() {
         return;
       }
 
-      const res = await fetch(`${SERVER_URL}/api/rooms`, { 
+      const res = await fetch(`${SERVER_URL}/api/rooms`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(lockRoom ? { password: pin } : {})
       });
       if (!res.ok) throw new Error('Failed to create room');
       const data = await res.json();
-      
+
       useRoomStore.getState().setRoomPassword(lockRoom ? pin : null);
       setRoomId(data.roomId);
       useRoomStore.getState().setNickname(trimmed);
@@ -193,7 +193,7 @@ export default function Dashboard() {
       return;
     }
     let parsedCode = inputRoomId.trim();
-    
+
     if (parsedCode.includes('/join/')) {
        parsedCode = parsedCode.split('/join/')[1].split('?')[0].split('/')[0];
     } else if (parsedCode.includes('/room/')) {
@@ -202,7 +202,7 @@ export default function Dashboard() {
        const parts = parsedCode.split('/');
        parsedCode = parts[parts.length - 1];
     }
-    
+
     if (parsedCode.length < 3) {
       setError('Room code or custom link must be at least 3 characters');
       setShowExpiredError(false);
@@ -218,15 +218,15 @@ export default function Dashboard() {
     setShowExpiredError(false);
     setIsLoading(true);
     localStorage.setItem('syncwatch_nickname', trimmed);
-    
+
     try {
       let code = parsedCode;
-      
+
       if (!requiresPin) {
         let res = await fetch(`${SERVER_URL}/api/rooms/${code}/exists`);
         if (!res.ok) throw new Error('Failed to check room');
         let data = await res.json();
-        
+
         if (!data.exists && code.length === 6 && code !== code.toUpperCase()) {
           const upperCode = code.toUpperCase();
           const upperRes = await fetch(`${SERVER_URL}/api/rooms/${upperCode}/exists`);
@@ -238,7 +238,7 @@ export default function Dashboard() {
             }
           }
         }
-        
+
         if (!data.exists) {
           if (urlRoomId) {
             setShowExpiredError(true);
@@ -248,7 +248,7 @@ export default function Dashboard() {
           setIsLoading(false);
           return;
         }
-        
+
         if (data.hasPassword) {
           setRequiresPin(true);
           setIsLoading(false);
@@ -263,7 +263,7 @@ export default function Dashboard() {
           setIsLoading(false);
           cleanup();
         };
-        
+
         const handleRoomState = () => {
           useRoomStore.getState().setRoomPassword(pin);
           setRoomId(code);
@@ -279,7 +279,7 @@ export default function Dashboard() {
 
         socket.once(EVENTS.WRONG_PASSWORD, handleWrongPassword);
         socket.once(EVENTS.ROOM_STATE, handleRoomState);
-        
+
         if (!socket.connected) socket.connect();
         socket.emit(EVENTS.JOIN_ROOM, { roomId: code, nickname: trimmed, password: pin, avatarUrl: useRoomStore.getState().avatarUrl || undefined });
       } else {
@@ -302,7 +302,7 @@ export default function Dashboard() {
     <>
       <SEO title="Dashboard | SyncWatch" />
       <LazyMotion features={domAnimation}>
-      <m.div 
+      <m.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -310,9 +310,9 @@ export default function Dashboard() {
         className="opacity-0 relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden selection:bg-teal-500/30 bg-[#050505] p-4"
       >
         <AmbientBackground />
-        
+
         <div className="w-full max-w-5xl mx-auto mt-24 tablet:mt-32 pb-12 grid grid-cols-1 tablet:grid-cols-3 tablet:grid-rows-2 gap-4 tablet:gap-6 relative z-10 px-4">
-          
+
           {/* Widget 1: Profile & Identity */}
           <div className={cn(
             "col-span-1 bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/5 p-6 relative overflow-hidden group order-2 tablet:order-1 transition-all duration-300 shadow-[0_0_30px_rgba(0,0,0,0.5)]",
@@ -330,7 +330,7 @@ export default function Dashboard() {
                   </div>
                 )}
                 <div className="flex-1">
-                  <input 
+                  <input
                     id="nickname"
                     type="text"
                     value={nickname}
@@ -354,21 +354,16 @@ export default function Dashboard() {
             <div className="col-span-1 tablet:col-span-2 bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/5 p-6 relative overflow-hidden group order-3 tablet:order-2 shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:border-white/10 transition-colors duration-300 flex flex-col">
               <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
               <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-6">Host a Watch Party</h3>
-              
+
               <div className="flex-1 flex flex-col gap-5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     {lockRoom ? <Lock size={16} className="text-teal-400" /> : <Unlock size={16} className="text-zinc-500" />}
                     <span className="text-sm font-medium text-zinc-300">Lock with PIN</span>
                   </div>
-                  <button 
-                    type="button"
-                    role="switch"
-                    aria-checked={lockRoom}
-                    aria-label="Lock with PIN"
-                    title="Lock with PIN"
+                  <button
                     onClick={() => { setLockRoom(!lockRoom); setError(''); }}
-                    className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70", lockRoom ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
+                    className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", lockRoom ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
                   >
                     <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", lockRoom ? "translate-x-[22px]" : "translate-x-0.5")} />
                   </button>
@@ -376,7 +371,7 @@ export default function Dashboard() {
 
                 <AnimatePresence>
                   {lockRoom && (
-                    <m.div 
+                    <m.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
@@ -395,18 +390,16 @@ export default function Dashboard() {
                         />
                         <button
                           type="button"
-                          aria-label={showPin ? 'Hide PIN' : 'Show PIN'}
-                          title={showPin ? 'Hide PIN' : 'Show PIN'}
                           onClick={() => setShowPin(!showPin)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
                         >
-                          {showPin ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+                          {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                       </div>
                     </m.div>
                   )}
                 </AnimatePresence>
-                
+
                 {firebaseUid && (
                   <>
                     <div className="flex items-center justify-between mt-2">
@@ -414,22 +407,17 @@ export default function Dashboard() {
                         <Link2 size={16} className={isPersistent ? "text-teal-400" : "text-zinc-500"} />
                         <span className="text-sm font-medium text-zinc-300">Custom Permanent Link</span>
                       </div>
-                      <button 
-                        type="button"
-                        role="switch"
-                        aria-checked={isPersistent}
-                        aria-label="Custom Permanent Link"
-                        title="Custom Permanent Link"
+                      <button
                         onClick={() => { setIsPersistent(!isPersistent); setError(''); }}
-                        className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70", isPersistent ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
+                        className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", isPersistent ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
                       >
                         <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", isPersistent ? "translate-x-[22px]" : "translate-x-0.5")} />
                       </button>
                     </div>
-                    
+
                     <AnimatePresence>
                       {isPersistent && (
-                        <m.div 
+                        <m.div
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
@@ -457,7 +445,7 @@ export default function Dashboard() {
 
               <div className="mt-6 flex flex-col gap-2">
                 {error && !requiresPin && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</div>}
-                <button 
+                <button
                   onClick={() => { handleCreateRoom(); }}
                   disabled={isLoading}
                   className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98] bg-white text-zinc-950 hover:bg-zinc-200 flex items-center justify-center text-base disabled:opacity-50 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]"
@@ -477,7 +465,7 @@ export default function Dashboard() {
             <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-6">
               {urlRoomId ? "You've been invited!" : "Quick Join"}
             </h3>
-            
+
             <div className="flex-1 flex flex-col justify-center gap-4">
               <div className="relative">
                 <input
@@ -495,7 +483,7 @@ export default function Dashboard() {
 
               <AnimatePresence>
                 {requiresPin && (
-                  <m.div 
+                  <m.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
@@ -519,12 +507,10 @@ export default function Dashboard() {
                       />
                       <button
                         type="button"
-                        aria-label={showPin ? 'Hide PIN' : 'Show PIN'}
-                        title={showPin ? 'Hide PIN' : 'Show PIN'}
                         onClick={() => setShowPin(!showPin)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-zinc-300 transition-colors"
                       >
-                        {showPin ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+                        {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
                   </m.div>
@@ -535,7 +521,7 @@ export default function Dashboard() {
             <div className="mt-6 flex flex-col gap-2">
               {error && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</div>}
               {showExpiredError && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">This room has expired or does not exist.</div>}
-              <button 
+              <button
                 onClick={() => { handleJoinRoom(); }}
                 disabled={isLoading}
                 className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98] bg-zinc-800 border border-white/10 hover:bg-zinc-700 hover:border-white/20 text-white flex items-center justify-center text-base disabled:opacity-50"
@@ -549,7 +535,7 @@ export default function Dashboard() {
           <div className="col-span-1 bg-zinc-900/40 backdrop-blur-2xl rounded-3xl border border-white/5 p-6 relative overflow-hidden group order-5 tablet:order-3 flex flex-col justify-between shadow-[0_0_30px_rgba(0,0,0,0.5)] hover:border-white/10 transition-colors duration-300">
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
             <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-2">Systems</h3>
-            
+
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <div className={cn(
