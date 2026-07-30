@@ -361,7 +361,7 @@ export default function Dashboard() {
                     {lockRoom ? <Lock size={16} className="text-teal-400" /> : <Unlock size={16} className="text-zinc-500" />}
                     <span className="text-sm font-medium text-zinc-300">Lock with PIN</span>
                   </div>
-                  <button 
+                  <button type="button"
                     onClick={() => { setLockRoom(!lockRoom); setError(''); }}
                     className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", lockRoom ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
                   >
@@ -407,7 +407,7 @@ export default function Dashboard() {
                         <Link2 size={16} className={isPersistent ? "text-teal-400" : "text-zinc-500"} />
                         <span className="text-sm font-medium text-zinc-300">Custom Permanent Link</span>
                       </div>
-                      <button 
+                      <button type="button"
                         onClick={() => { setIsPersistent(!isPersistent); setError(''); }}
                         className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", isPersistent ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
                       >
@@ -445,7 +445,7 @@ export default function Dashboard() {
 
               <div className="mt-6 flex flex-col gap-2">
                 {error && !requiresPin && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</div>}
-                <button 
+                <button type="button"
                   onClick={() => { handleCreateRoom(); }}
                   disabled={isLoading}
                   className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98] bg-white text-zinc-950 hover:bg-zinc-200 flex items-center justify-center text-base disabled:opacity-50 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]"
@@ -521,7 +521,7 @@ export default function Dashboard() {
             <div className="mt-6 flex flex-col gap-2">
               {error && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</div>}
               {showExpiredError && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">This room has expired or does not exist.</div>}
-              <button 
+              <button type="button"
                 onClick={() => { handleJoinRoom(); }}
                 disabled={isLoading}
                 className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98] bg-zinc-800 border border-white/10 hover:bg-zinc-700 hover:border-white/20 text-white flex items-center justify-center text-base disabled:opacity-50"
