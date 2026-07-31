@@ -223,7 +223,7 @@ export default function Dashboard() {
       let code = parsedCode;
       
       if (!requiresPin) {
-        let res = await fetch(`${SERVER_URL}/api/rooms/${code}/exists`);
+        const res = await fetch(`${SERVER_URL}/api/rooms/${code}/exists`);
         if (!res.ok) throw new Error('Failed to check room');
         let data = await res.json();
         
