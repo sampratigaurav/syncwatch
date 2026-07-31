@@ -21,6 +21,17 @@ export function ReactionOverlay() {
         isProcessing = false;
         return;
       }
+
+      // To fix SonarQube maintainability issue where setState is called inside a timeout which was created inside setState:
+      // we can do the setTimeout OUTSIDE of the setState callback.
+      const payload = pendingQueue.shift()!;
+      const xPos = 15 + Math.random() * 70;
+      const newReaction: FloatingReaction = { ...payload, xPos };
+
+      // Remove it after animation completes
+      setTimeout(() => {
+        setActiveReactions(current => current.filter(r => r.id !== newReaction.id));
+      }, 2000);
       
       setActiveReactions(prev => {
         // Cap at 8 simultaneous reactions
@@ -28,20 +39,6 @@ export function ReactionOverlay() {
           setTimeout(processQueue, 200); // Try again later
           return prev;
         }
-        
-        const payload = pendingQueue.shift()!;
-        const xPos = 15 + Math.random() * 70; // Random position between 15% and 85%
-        
-        const newReaction: FloatingReaction = {
-          ...payload,
-          xPos
-        };
-        
-        // Remove it after animation completes (2000ms)
-        setTimeout(() => {
-          setActiveReactions(current => current.filter(r => r.id !== newReaction.id));
-        }, 2000);
-
         return [...prev, newReaction];
       });
       
