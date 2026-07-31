@@ -363,6 +363,7 @@ export default function Dashboard() {
                   </div>
                   <button 
                     onClick={() => { setLockRoom(!lockRoom); setError(''); }}
+                    type="button"
                     className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", lockRoom ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
                   >
                     <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", lockRoom ? "translate-x-[22px]" : "translate-x-0.5")} />
@@ -409,6 +410,7 @@ export default function Dashboard() {
                       </div>
                       <button 
                         onClick={() => { setIsPersistent(!isPersistent); setError(''); }}
+                        type="button"
                         className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", isPersistent ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
                       >
                         <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", isPersistent ? "translate-x-[22px]" : "translate-x-0.5")} />
@@ -447,6 +449,7 @@ export default function Dashboard() {
                 {error && !requiresPin && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</div>}
                 <button 
                   onClick={() => { handleCreateRoom(); }}
+                  type="button"
                   disabled={isLoading}
                   className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98] bg-white text-zinc-950 hover:bg-zinc-200 flex items-center justify-center text-base disabled:opacity-50 shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(255,255,255,0.4)]"
                 >
@@ -523,6 +526,7 @@ export default function Dashboard() {
               {showExpiredError && <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">This room has expired or does not exist.</div>}
               <button 
                 onClick={() => { handleJoinRoom(); }}
+                type="button"
                 disabled={isLoading}
                 className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98] bg-zinc-800 border border-white/10 hover:bg-zinc-700 hover:border-white/20 text-white flex items-center justify-center text-base disabled:opacity-50"
               >
