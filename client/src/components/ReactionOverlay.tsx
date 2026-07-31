@@ -25,7 +25,12 @@ export function ReactionOverlay() {
       // To fix SonarQube maintainability issue where setState is called inside a timeout which was created inside setState:
       // we can do the setTimeout OUTSIDE of the setState callback.
       const payload = pendingQueue.shift()!;
-      const xPos = 15 + Math.random() * 70;
+
+      // Use crypto.getRandomValues instead of Math.random to avoid SonarCloud security hotspot for predictable random
+      const randomBuffer = new Uint32Array(1);
+      window.crypto.getRandomValues(randomBuffer);
+      const randomFactor = randomBuffer[0] / (0xffffffff + 1);
+      const xPos = 15 + randomFactor * 70;
       const newReaction: FloatingReaction = { ...payload, xPos };
 
       // Remove it after animation completes
