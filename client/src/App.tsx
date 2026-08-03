@@ -5,7 +5,6 @@ import WaitingRoom from './pages/WaitingRoom'
 import Room from './pages/Room'
 import Docs from './pages/Docs'
 import Dashboard from './pages/Dashboard'
-import TestVideo from './pages/TestVideo'
 import { MarketingLayout } from './components/MarketingLayout'
 import { RoomLayout } from './components/RoomLayout'
 import { AnimatePresence } from 'framer-motion'
@@ -29,7 +28,6 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/join/:roomId" element={<Dashboard />} />
             <Route path="/docs" element={<Docs />} />
-            <Route path="/test-video" element={<TestVideo />} />
           </Route>
 
           {/* Pages WITHOUT the Navigation Header */}
