@@ -4,3 +4,9 @@
 ## 2024-05-15 - Zustand useRoomStore() Default Subscriptions
 **Learning:** Components calling `useRoomStore()` without a selector implicitly subscribe to the entire store. Because `latencyMs` updates every 10 seconds via socket pings, *any* component calling `useRoomStore()` re-renders globally every 10 seconds, causing unnecessary layout recalculations and react tree traversal.
 **Action:** Always use `useShallow` with an explicit selector for Zustand stores in heavy components (like `Room.tsx` or `VideoPlayer.tsx`) to isolate re-renders to only the properties the component actually consumes.
+## 2024-05-16 - Conditional Unmounting of Connected Components
+**Learning:** React components that subscribe to frequently updating Zustand stores (like `latencyMs` updating via `useRoomStore`) will trigger re-renders even if they early return `null` when visually hidden. Passing an `isVisible` prop into the component executes the store hook on every update regardless of visibility.
+**Action:** Always unconditionally unmount connected components (e.g., `{showStats && <StatsForNerds />}`) from their parent container rather than using early returns inside the child component, to entirely prevent subscription overhead and React tree traversal when the UI is hidden.
+## 2024-05-16 - Impure Functions in Render Phase
+**Learning:** Calling an impure function like `Date.now()` directly in the body of a React component during the render phase causes SonarCloud Maintainability Rating failures (and goes against React's purity guidelines).
+**Action:** Always wrap impure calculations (like timing or intervals) inside a `useEffect` hook and manage the resulting values using state (e.g., `useState`).
