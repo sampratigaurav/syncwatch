@@ -7,3 +7,6 @@
 ## 2024-05-16 - Conditional Unmounting of Connected Components
 **Learning:** React components that subscribe to frequently updating Zustand stores (like `latencyMs` updating via `useRoomStore`) will trigger re-renders even if they early return `null` when visually hidden. Passing an `isVisible` prop into the component executes the store hook on every update regardless of visibility.
 **Action:** Always unconditionally unmount connected components (e.g., `{showStats && <StatsForNerds />}`) from their parent container rather than using early returns inside the child component, to entirely prevent subscription overhead and React tree traversal when the UI is hidden.
+## 2024-05-16 - Impure Functions in Render Phase
+**Learning:** Calling an impure function like `Date.now()` directly in the body of a React component during the render phase causes SonarCloud Maintainability Rating failures (and goes against React's purity guidelines).
+**Action:** Always wrap impure calculations (like timing or intervals) inside a `useEffect` hook and manage the resulting values using state (e.g., `useState`).
