@@ -400,7 +400,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           )}
         </video>
         
-        <StatsForNerds isVisible={showStats} videoRef={internalVideoRef} />
+        {/* Optimization: Unmount to prevent store subscriptions when hidden */}
+        {showStats && <StatsForNerds videoRef={internalVideoRef} />}
 
         {/* Following Badge */}
         {!hasControl && controlPolicy === 'host_only' && (
