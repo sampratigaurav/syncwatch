@@ -519,7 +519,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-white font-medium text-sm">Subtitles</h4>
                       {subtitleBlobUrl && (
-                        <button 
+                        <button type="button"
                           onClick={() => onSubtitleToggle()}
                           className={cn(
                             "w-10 h-5 rounded-full relative transition-colors",
@@ -546,7 +546,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                   </motion.div>
                 )}
                 </AnimatePresence>
-                <button 
+                <button type="button"
                   onClick={(e) => { 
                      e.stopPropagation(); 
                      setShowSubtitleMenu(!showSubtitleMenu);
@@ -565,7 +565,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 </button>
               </div>
 
-              <button
+              <button type="button"
                 onClick={(e) => { e.stopPropagation(); setShowStats(!showStats); }}
                 aria-label="Toggle Stats for Nerds"
                 title="Toggle Stats for Nerds"
@@ -582,7 +582,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               />
 
               {/* Fullscreen Toggle */}
-              <button
+              <button type="button"
                 onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
                 aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
                 title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
