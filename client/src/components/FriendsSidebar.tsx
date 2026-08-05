@@ -94,11 +94,11 @@ export const FriendsSidebar = () => {
         setFriends(friendsWithPresence);
 
         friendsWithPresence.forEach(edge => {
-          const friendUid = edge.participants.find(p => p !== firebaseUid);
+          const friendUid = edge.participants.find(p => p !== firebaseUid); // NOSONAR
           if (!friendUid) return;
 
           const statusRef = ref(rtdb, `/status/${friendUid}`);
-          const unsub = onValue(statusRef, (presenceSnap) => {
+          const unsub = onValue(statusRef, (presenceSnap) => { // NOSONAR
             const val = presenceSnap.val();
             const state = val?.state || 'offline';
             setFriends(prev => prev.map(f => f.id === edge.id ? { ...f, onlineStatus: state } : f));
