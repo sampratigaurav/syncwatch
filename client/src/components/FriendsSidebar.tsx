@@ -3,7 +3,7 @@ import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { getFirestore, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { getDatabase, ref, onValue } from 'firebase/database';
-import { Users, X, Copy, UserPlus, Inbox, Clock, Check } from 'lucide-react';
+import { Users, X, Copy, UserPlus, Inbox, Clock, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SERVER_URL } from '../lib/config';
@@ -239,18 +239,24 @@ export const FriendsSidebar = () => {
                   <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-500/0 via-teal-500/10 to-teal-500/0 rounded-xl opacity-0 group-focus-within:opacity-100 blur transition-opacity duration-500" />
                   <input
                     type="text"
+                    aria-label="Friend Code"
                     placeholder="Enter Friend Code (e.g. A8X2-94P1)"
                     value={addFriendCode}
                     onChange={e => setAddFriendCode(e.target.value.toUpperCase())}
                     className="relative flex-1 bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-teal-500/50 focus:bg-white/[0.02] transition-all uppercase placeholder:normal-case shadow-inner"
                   />
                   <button 
+                    type="button"
                     aria-label="Send Friend Request"
                     onClick={handleSendRequest}
                     disabled={isSubmitting || !addFriendCode}
                     className="relative px-4 bg-teal-600 hover:bg-teal-500 text-white rounded-xl transition-all disabled:opacity-50 disabled:hover:bg-teal-600 shadow-lg active:scale-95 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
                   >
-                    <UserPlus size={20} aria-hidden="true" />
+                    {isSubmitting ? (
+                      <Loader2 size={20} className="animate-spin" aria-hidden="true" />
+                    ) : (
+                      <UserPlus size={20} aria-hidden="true" />
+                    )}
                   </button>
                 </div>
 
