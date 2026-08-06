@@ -2,19 +2,20 @@ import { Activity, Wifi, Clock, Server } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 
+// ⚡ Bolt Performance Optimization:
+// We do not pass `isVisible` here. Instead, we conditionally unmount the component entirely at the parent level.
+// This prevents this component from silently executing Zustand store subscriptions
+// (like `latencyMs` which updates frequently from pings) when the stats are hidden.
 interface StatsForNerdsProps {
-  isVisible: boolean;
   videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
-export function StatsForNerds({ isVisible, videoRef }: StatsForNerdsProps) {
+export function StatsForNerds({ videoRef }: StatsForNerdsProps) {
   const { latency, connectionStatus, participants } = useRoomStore(useShallow(state => ({
     latency: state.latencyMs,
     connectionStatus: state.connectionStatus,
     participants: state.participants,
   })));
-
-  if (!isVisible) return null;
 
   const getLatencyColor = (ms: number) => {
     if (ms < 50) return 'text-emerald-400';
