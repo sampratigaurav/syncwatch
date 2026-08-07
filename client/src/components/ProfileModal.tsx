@@ -262,25 +262,31 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         </div>
                         <div className="flex items-center gap-2">
                           <button
+                            type="button"
                             onClick={() => copyLink(room.id)}
-                            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                            aria-label="Copy Room Link"
                             title="Copy Room Link"
+                            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                           >
-                            <Link2 className="w-4 h-4" />
+                            <Link2 className="w-4 h-4" aria-hidden="true" />
                           </button>
                           <button
+                            type="button"
                             onClick={() => setShowPinEdit(showPinEdit === room.id ? null : room.id)}
-                            className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors"
+                            aria-label="Change Room PIN"
                             title="Change PIN"
+                            className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                           >
-                            <Key className="w-4 h-4" />
+                            <Key className="w-4 h-4" aria-hidden="true" />
                           </button>
                           <button
+                            type="button"
                             onClick={() => handleDeleteRoom(room.id)}
-                            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors"
+                            aria-label="Delete Room"
                             title="Delete Room"
+                            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" aria-hidden="true" />
                           </button>
                         </div>
                       </div>
