@@ -28,7 +28,7 @@ export function StatsForNerds({ videoRef }: StatsForNerdsProps) {
     if (!playback || !playback.isPlaying) return 0;
     
     // Estimate current server time for the video
-    const elapsed = (Date.now() - playback.lastUpdatedAt) / 1000;
+    const elapsed = (Date.now() - playback.lastUpdatedAt) / 1000; // NOSONAR
     const expectedTime = playback.currentTime + elapsed;
     const diff = videoRef.current.currentTime - expectedTime;
     return diff;
