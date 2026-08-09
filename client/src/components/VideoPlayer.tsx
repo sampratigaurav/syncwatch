@@ -333,7 +333,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
 
     return (
       <div 
-        ref={containerRef} 
+        ref={containerRef}
+        style={{ '--cue-offset': showControls || showSubtitleMenu ? '-100px' : '-20px' } as React.CSSProperties}
         className={cn("relative w-full aspect-video tablet:aspect-auto tablet:h-full bg-black group overflow-hidden", !showControls && "cursor-none")}
         onMouseMove={resetControlsTimeout}
         onMouseLeave={() => isPlaying ? setShowControls(false) : null}
@@ -350,16 +351,6 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           }
         }}
       >
-        <style>
-          {`
-            video::cue {
-              transform: translateY(${showControls || showSubtitleMenu ? '-100px' : '-20px'});
-              background: rgba(0, 0, 0, 0.75);
-              border-radius: 4px;
-              padding: 4px 12px;
-            }
-          `}
-        </style>
         
         <canvas
           ref={canvasRef}
@@ -430,7 +421,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           <div className="flex items-center justify-between mt-1 tablet:mt-0 px-1 tablet:px-0">
             <div className="flex items-center gap-1 tablet:gap-4">
               {/* Skip Back */}
-              <motion.button 
+              <motion.button type="button"
                  whileTap={hasControl ? { scale: 0.85 } : {}}
                  onClick={(e) => { e.stopPropagation(); skipBackward(); }}
                  disabled={!hasControl}
@@ -445,7 +436,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               </motion.button>
 
               {/* Playback Toggle */}
-              <motion.button 
+              <motion.button type="button"
                 whileTap={hasControl ? { scale: 0.85 } : {}}
                 onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                 disabled={!hasControl}
@@ -460,7 +451,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               </motion.button>
 
               {/* Skip Forward */}
-              <motion.button 
+              <motion.button type="button"
                  whileTap={hasControl ? { scale: 0.85 } : {}}
                  onClick={(e) => { e.stopPropagation(); skipForward(); }}
                  disabled={!hasControl}
@@ -518,7 +509,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-white font-medium text-sm">Subtitles</h4>
                       {subtitleBlobUrl && (
-                        <button 
+                        <button type="button"
                           onClick={() => onSubtitleToggle()}
                           className={cn(
                             "w-10 h-5 rounded-full relative transition-colors",
@@ -545,7 +536,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                   </motion.div>
                 )}
                 </AnimatePresence>
-                <button 
+                <button type="button"
                   onClick={(e) => { 
                      e.stopPropagation(); 
                      setShowSubtitleMenu(!showSubtitleMenu);
