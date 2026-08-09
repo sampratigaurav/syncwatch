@@ -4,3 +4,6 @@
 ## 2024-05-15 - Zustand useRoomStore() Default Subscriptions
 **Learning:** Components calling `useRoomStore()` without a selector implicitly subscribe to the entire store. Because `latencyMs` updates every 10 seconds via socket pings, *any* component calling `useRoomStore()` re-renders globally every 10 seconds, causing unnecessary layout recalculations and react tree traversal.
 **Action:** Always use `useShallow` with an explicit selector for Zustand stores in heavy components (like `Room.tsx` or `VideoPlayer.tsx`) to isolate re-renders to only the properties the component actually consumes.
+## 2024-05-16 - Dynamic Inline Styles for Pseudo-elements
+**Learning:** Using inline `<style>` tags with dynamic string interpolations inside a React render function (like `VideoPlayer` dynamically styling `video::cue` based on state) injects a new `<style>` block into the DOM on every state change, causing severe layout thrashing and performance degradation.
+**Action:** Instead of inline `<style>` tags for pseudo-elements, use CSS custom properties (variables) on the component's `style` prop (e.g., `style={{ '--cue-offset': value }}`) and map that variable in the global CSS (e.g., `transform: translateY(var(--cue-offset))`).
