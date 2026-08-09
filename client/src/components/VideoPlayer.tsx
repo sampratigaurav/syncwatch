@@ -421,7 +421,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           <div className="flex items-center justify-between mt-1 tablet:mt-0 px-1 tablet:px-0">
             <div className="flex items-center gap-1 tablet:gap-4">
               {/* Skip Back */}
-              <motion.button 
+              <motion.button type="button"
                  whileTap={hasControl ? { scale: 0.85 } : {}}
                  onClick={(e) => { e.stopPropagation(); skipBackward(); }}
                  disabled={!hasControl}
@@ -436,7 +436,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               </motion.button>
 
               {/* Playback Toggle */}
-              <motion.button 
+              <motion.button type="button"
                 whileTap={hasControl ? { scale: 0.85 } : {}}
                 onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                 disabled={!hasControl}
@@ -451,7 +451,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               </motion.button>
 
               {/* Skip Forward */}
-              <motion.button 
+              <motion.button type="button"
                  whileTap={hasControl ? { scale: 0.85 } : {}}
                  onClick={(e) => { e.stopPropagation(); skipForward(); }}
                  disabled={!hasControl}
@@ -509,7 +509,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-white font-medium text-sm">Subtitles</h4>
                       {subtitleBlobUrl && (
-                        <button 
+                        <button type="button"
                           onClick={() => onSubtitleToggle()}
                           className={cn(
                             "w-10 h-5 rounded-full relative transition-colors",
@@ -536,7 +536,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                   </motion.div>
                 )}
                 </AnimatePresence>
-                <button 
+                <button type="button"
                   onClick={(e) => { 
                      e.stopPropagation(); 
                      setShowSubtitleMenu(!showSubtitleMenu);
