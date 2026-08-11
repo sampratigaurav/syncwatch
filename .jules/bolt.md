@@ -7,3 +7,6 @@
 ## 2024-05-19 - Unmounting Component Hiding Zustand Hooks
 **Learning:** Components subscribing to frequently updating Zustand stores (like `useRoomStore` which updates `latencyMs` regularly) still execute their hooks and cause React reconciliation even if they internally return `null` when a visibility prop is false.
 **Action:** When optimizing conditionally visible React components that subscribe to stores, completely unmount them using conditional rendering at the parent level (e.g., `{isVisible && <Component />}`) rather than passing visibility down as a prop to early return `null`.
+## 2024-05-19 - SonarCloud S5147 Maintainability
+**Learning:** SonarCloud's Maintainability rule on new code (javascript:S5147) strictly flags missing `type="button"` attributes on `<button>` elements, which can cause CI failure on entire files if new UI features are added without it.
+**Action:** Always include explicit `type="button"` attributes when modifying or adding buttons in React components to avoid form submission side-effects and CI quality gate failures.
