@@ -323,9 +323,10 @@ export default function Room() {
               {/* Floating button for landscape mobile */}
               <button 
                 onClick={() => setActiveMobileTab(activeMobileTab ? null : 'chat')}
+                aria-label="Toggle chat"
                 className="hidden mobile:landscape:block tablet:hidden absolute top-[calc(1rem+env(safe-area-inset-top))] right-[calc(1rem+env(safe-area-inset-right))] z-[60] bg-zinc-950/80 backdrop-blur-md p-3 rounded-full text-white/80 hover:text-white border border-white/10 shadow-xl"
               >
-                <MessageSquare size={22} />
+                <MessageSquare size={22} aria-hidden="true" />
               </button>
 
               {/* Collapse Sidebar Button (Desktop) */}
@@ -333,8 +334,9 @@ export default function Room() {
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 className="hidden tablet:flex absolute top-4 right-4 z-[60] bg-zinc-950/50 hover:bg-zinc-950/80 backdrop-blur-md p-2.5 rounded-xl text-white/50 hover:text-white border border-white/5 hover:border-zinc-800 shadow-xl transition-all"
                 title={isSidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}
+                aria-label={isSidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}
               >
-                {isSidebarCollapsed ? <PanelRightOpen size={20} /> : <PanelRightClose size={20} />}
+                {isSidebarCollapsed ? <PanelRightOpen size={20} aria-hidden="true" /> : <PanelRightClose size={20} aria-hidden="true" />}
               </button>
 
               {/* Responsive subtle Buffering Banner BELOW video content */}
