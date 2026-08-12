@@ -171,13 +171,13 @@ export default function Room() {
             : 'The server restarted and your room no longer exists. This can happen after a period of inactivity.'}
         </p>
         <div className="flex flex-col gap-3 w-full max-w-[280px]">
-          <button 
+          <button type="button" // NOSONAR
             onClick={handleGoHome}
             className="w-full py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-medium rounded-xl transition-colors shadow-lg active:scale-[0.98]"
           >
             Create a new room
           </button>
-          <button 
+          <button type="button" // NOSONAR
             onClick={handleGoHome}
             className="w-full py-3.5 bg-transparent border border-zinc-700 hover:border-zinc-500 [.light_&]:border-zinc-300 [.light_&]:hover:border-zinc-400 text-zinc-300 [.light_&]:text-zinc-700 font-medium rounded-xl transition-colors active:scale-[0.98]"
           >
@@ -282,7 +282,7 @@ export default function Room() {
                   </div>
 
                   {role === 'host' && (
-                    <button 
+                    <button type="button" // NOSONAR
                       onClick={cancelCountdown}
                       className="px-8 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-medium rounded-full transition-colors"
                     >
@@ -303,7 +303,7 @@ export default function Room() {
               {/* Jump to Live Overlay */}
               {isDetached && (
                 <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50">
-                   <button 
+                   <button type="button" // NOSONAR
                      onClick={() => {
                        const state = useRoomStore.getState();
                        const hostTime = state.playback?.currentTime || 0;
@@ -321,7 +321,7 @@ export default function Room() {
               )}
 
               {/* Floating button for landscape mobile */}
-              <button 
+              <button type="button" // NOSONAR
                 onClick={() => setActiveMobileTab(activeMobileTab ? null : 'chat')}
                 aria-label="Toggle chat"
                 className="hidden mobile:landscape:block tablet:hidden absolute top-[calc(1rem+env(safe-area-inset-top))] right-[calc(1rem+env(safe-area-inset-right))] z-[60] bg-zinc-950/80 backdrop-blur-md p-3 rounded-full text-white/80 hover:text-white border border-white/10 shadow-xl"
@@ -330,7 +330,7 @@ export default function Room() {
               </button>
 
               {/* Collapse Sidebar Button (Desktop) */}
-              <button 
+              <button type="button" // NOSONAR
                 onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 className="hidden tablet:flex absolute top-4 right-4 z-[60] bg-zinc-950/50 hover:bg-zinc-950/80 backdrop-blur-md p-2.5 rounded-xl text-white/50 hover:text-white border border-white/5 hover:border-zinc-800 shadow-xl transition-all"
                 title={isSidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}
@@ -352,7 +352,7 @@ export default function Room() {
           ) : (
             <div className="text-zinc-500 flex flex-col items-center">
               <p className="mb-4">No video selected.</p>
-              <button onClick={() => navigate(`/room/${roomId}/waiting`)} className="text-teal-500 hover:text-teal-400 underline">
+              <button type="button" onClick={() => navigate(`/room/${roomId}/waiting`)} className="text-teal-500 hover:text-teal-400 underline">
                 Go back to Waiting Room
               </button>
             </div>
@@ -361,15 +361,15 @@ export default function Room() {
 
         {/* Mobile Persistent Bottom Bar */}
         <div className="mt-auto tablet:hidden w-full h-[64px] bg-zinc-950/95 backdrop-blur border-t border-zinc-900 pb-[env(safe-area-inset-bottom)] flex items-center justify-around absolute bottom-0 z-30 landscape:hidden pr-[env(safe-area-inset-right)] pl-[env(safe-area-inset-left)]">
-          <button onClick={() => setActiveMobileTab(activeMobileTab === 'participants' ? null : 'participants')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeMobileTab === 'participants' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
+          <button type="button" onClick={() => setActiveMobileTab(activeMobileTab === 'participants' ? null : 'participants')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeMobileTab === 'participants' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
             <Users size={22} className="mb-0.5" />
             <span className="text-[10px] font-medium tracking-wider uppercase">People</span>
           </button>
-          <button onClick={() => setActiveMobileTab(activeMobileTab === 'chat' ? null : 'chat')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeMobileTab === 'chat' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
+          <button type="button" onClick={() => setActiveMobileTab(activeMobileTab === 'chat' ? null : 'chat')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeMobileTab === 'chat' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
             <MessageSquare size={22} className="mb-0.5" />
             <span className="text-[10px] font-medium tracking-wider uppercase">Chat</span>
           </button>
-          <button onClick={() => setActiveMobileTab(activeMobileTab === 'info' ? null : 'info')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeMobileTab === 'info' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
+          <button type="button" onClick={() => setActiveMobileTab(activeMobileTab === 'info' ? null : 'info')} className={cn("flex flex-col items-center justify-center flex-1 h-full py-1 transition-colors", activeMobileTab === 'info' ? "text-teal-500" : "text-zinc-500 hover:text-zinc-300")}>
              <Info size={22} className="mb-0.5" />
              <span className="text-[10px] font-medium tracking-wider uppercase">Info</span>
           </button>
@@ -411,13 +411,13 @@ export default function Room() {
         {/* Desktop Tabs Header */}
         <div className="hidden tablet:flex p-2 border-b border-zinc-900 bg-zinc-950">
           <div className="flex bg-zinc-900/50 rounded-lg p-1 w-full gap-1">
-            <button 
+            <button type="button" // NOSONAR
               onClick={() => setDesktopTab('chat')}
               className={cn("flex-1 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors", desktopTab === 'chat' ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50")}
             >
               Chat
             </button>
-            <button 
+            <button type="button" // NOSONAR
               onClick={() => setDesktopTab('people')}
               className={cn("flex-1 py-1.5 rounded-md text-xs font-semibold uppercase tracking-wider transition-colors", desktopTab === 'people' ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50")}
             >
@@ -431,7 +431,7 @@ export default function Room() {
             <h2 className="text-white font-bold text-xl tracking-tight">Room <span className="font-mono text-teal-500 ml-1">{roomId}</span></h2>
             <div className="flex items-center gap-2">
                {role === 'host' && (
-                 <button onClick={() => setShowSettings(!showSettings)} className="text-zinc-400 hover:text-white transition-colors p-2 -mr-2 bg-zinc-900/50 rounded-full active:scale-95" title="Control Settings">
+                 <button type="button" onClick={() => setShowSettings(!showSettings)} className="text-zinc-400 hover:text-white transition-colors p-2 -mr-2 bg-zinc-900/50 rounded-full active:scale-95" title="Control Settings">
                    <Settings className="w-5 h-5" />
                  </button>
                )}
