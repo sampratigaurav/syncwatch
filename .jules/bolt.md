@@ -4,3 +4,6 @@
 ## 2024-05-15 - Zustand useRoomStore() Default Subscriptions
 **Learning:** Components calling `useRoomStore()` without a selector implicitly subscribe to the entire store. Because `latencyMs` updates every 10 seconds via socket pings, *any* component calling `useRoomStore()` re-renders globally every 10 seconds, causing unnecessary layout recalculations and react tree traversal.
 **Action:** Always use `useShallow` with an explicit selector for Zustand stores in heavy components (like `Room.tsx` or `VideoPlayer.tsx`) to isolate re-renders to only the properties the component actually consumes.
+## 2024-05-18 - Unmount frequently updating Zustand components
+**Learning:** Components subscribing to frequently updating Zustand stores (like latencyMs which updates every ping) execute their hooks on every update even if they return `null` internally based on a visibility prop. This causes unnecessary react tree traversal.
+**Action:** When optimizing React components that subscribe to frequently updating Zustand stores, avoid passing visibility props and returning `null` internally. Instead, completely unmount the component using conditional rendering at the parent level (e.g., `{isVisible && <Component />}`).
