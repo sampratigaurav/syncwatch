@@ -202,19 +202,22 @@ const FAQAccordion = () => {
             >
               <button
                 onClick={() => setOpenIndex(isOpen ? null : index)}
-                className="group w-full flex items-center justify-between p-6 tablet:p-8 text-left focus:outline-none"
+                aria-expanded={isOpen}
+                aria-controls={`faq-answer-${index}`}
+                className="group w-full flex items-center justify-between p-6 tablet:p-8 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal-500 rounded-2xl"
               >
                 <span className="text-lg font-medium text-white tracking-tight pr-8">{item.question}</span>
                 <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
                   isOpen ? 'bg-teal-500/20 text-teal-400' : 'bg-white/5 text-zinc-400 group-hover:bg-white/10 group-hover:text-zinc-300'
                 }`}>
-                  <ChevronDown size={18} className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`} />
+                  <ChevronDown size={18} aria-hidden="true" className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : 'rotate-0'}`} />
                 </div>
               </button>
               
               <AnimatePresence initial={false}>
                 {isOpen && (
                   <m.div
+                    id={`faq-answer-${index}`}
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
