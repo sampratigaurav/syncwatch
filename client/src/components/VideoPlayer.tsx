@@ -400,7 +400,12 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           )}
         </video>
         
-        <StatsForNerds isVisible={showStats} videoRef={internalVideoRef} />
+        {/*
+          Optimization: Conditionally render StatsForNerds to completely unmount it when hidden.
+          This prevents the component from executing useRoomStore hooks and re-rendering in the
+          background every time latencyMs updates.
+        */}
+        {showStats && <StatsForNerds videoRef={internalVideoRef} />}
 
         {/* Following Badge */}
         {!hasControl && controlPolicy === 'host_only' && (
