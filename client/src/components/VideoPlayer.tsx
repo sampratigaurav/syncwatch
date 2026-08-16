@@ -349,17 +349,9 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
              togglePlay();
           }
         }}
+        // Optimization: Injecting transform as CSS variable to avoid inline <style> layout thrashing
+        style={{ '--cue-transform': `translateY(${showControls || showSubtitleMenu ? '-100px' : '-20px'})` } as React.CSSProperties}
       >
-        <style>
-          {`
-            video::cue {
-              transform: translateY(${showControls || showSubtitleMenu ? '-100px' : '-20px'});
-              background: rgba(0, 0, 0, 0.75);
-              border-radius: 4px;
-              padding: 4px 12px;
-            }
-          `}
-        </style>
         
         <canvas
           ref={canvasRef}
