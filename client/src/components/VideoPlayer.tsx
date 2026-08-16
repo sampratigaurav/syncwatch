@@ -349,17 +349,9 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
              togglePlay();
           }
         }}
+        // Optimization: Injecting transform as CSS variable to avoid inline <style> layout thrashing
+        style={{ '--cue-transform': `translateY(${showControls || showSubtitleMenu ? '-100px' : '-20px'})` } as React.CSSProperties}
       >
-        <style>
-          {`
-            video::cue {
-              transform: translateY(${showControls || showSubtitleMenu ? '-100px' : '-20px'});
-              background: rgba(0, 0, 0, 0.75);
-              border-radius: 4px;
-              padding: 4px 12px;
-            }
-          `}
-        </style>
         
         <canvas
           ref={canvasRef}
@@ -519,6 +511,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                       <h4 className="text-white font-medium text-sm">Subtitles</h4>
                       {subtitleBlobUrl && (
                         <button 
+                          type="button"
                           onClick={() => onSubtitleToggle()}
                           className={cn(
                             "w-10 h-5 rounded-full relative transition-colors",
@@ -546,6 +539,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 )}
                 </AnimatePresence>
                 <button 
+                  type="button"
                   onClick={(e) => { 
                      e.stopPropagation(); 
                      setShowSubtitleMenu(!showSubtitleMenu);
@@ -565,6 +559,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               </div>
 
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); setShowStats(!showStats); }}
                 aria-label="Toggle Stats for Nerds"
                 title="Toggle Stats for Nerds"
@@ -582,6 +577,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
 
               {/* Fullscreen Toggle */}
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
                 aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
                 title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
