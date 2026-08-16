@@ -8,7 +8,7 @@ import { useShallow } from 'zustand/react/shallow';
 import ProfileModal from './ProfileModal';
 
 const GoogleIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg className={className} aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
     <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
@@ -48,7 +48,7 @@ export const Header = () => {
       const auth = getAuth(app);
       await signOut(auth);
       toast.success('Logged out');
-    } catch (err: unknown) {
+    } catch {
       toast.error('Failed to logout');
     }
   };
@@ -59,7 +59,7 @@ export const Header = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-2 tablet:grid-cols-3 items-center px-6 py-4">
           
           {/* Left: Logo */}
-          <Link to="/" className="flex items-center gap-2 group justify-self-start">
+          <Link to="/" aria-label="SyncWatch Home" className="flex items-center gap-2 group justify-self-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded">
             <span className="text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
               SyncWatch
             </span>
@@ -68,7 +68,7 @@ export const Header = () => {
           {/* Center: Desktop Navigation (Hidden on mobile) */}
           <nav className="hidden tablet:flex items-center justify-center gap-8">
 
-            <Link to="/docs" className="text-sm font-medium text-zinc-400 hover:text-teal-400 transition-colors">
+            <Link to="/docs" aria-label="Documentation" className="text-sm font-medium text-zinc-400 hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded px-1">
               Docs
             </Link>
             <div className="relative group cursor-help">
@@ -87,9 +87,11 @@ export const Header = () => {
               href="https://github.com/sampratigaurav/syncwatch" 
               target="_blank" 
               rel="noreferrer"
-              className="text-zinc-400 hover:text-white transition-colors"
+              aria-label="GitHub Repository"
+              title="GitHub Repository"
+              className="text-zinc-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded p-1"
             >
-              <Github className="w-5 h-5" />
+              <Github className="w-5 h-5" aria-hidden="true" />
             </a>
 
             {isAuthLoading ? (
@@ -98,7 +100,10 @@ export const Header = () => {
               <div className="relative">
                 <button 
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full transition-all duration-300"
+                  aria-expanded={isProfileDropdownOpen}
+                  aria-haspopup="menu"
+                  aria-label="User menu"
+                  className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                 >
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar" className="w-6 h-6 rounded-full bg-zinc-800" />
@@ -121,20 +126,22 @@ export const Header = () => {
                       className="absolute right-0 mt-2 w-48 bg-[#111111] border border-white/10 rounded-xl shadow-xl overflow-hidden py-1 z-50"
                     >
                       <button
+                        role="menuitem"
                         onClick={() => {
                           setIsProfileDropdownOpen(false);
                           setIsProfileOpen(true);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 transition-colors"
+                        className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:bg-white/10 focus-visible:text-white"
                       >
                         My Profile
                       </button>
                       <button
+                        role="menuitem"
                         onClick={() => {
                           setIsProfileDropdownOpen(false);
                           handleLogout();
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors"
+                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:bg-white/10 focus-visible:text-red-300"
                       >
                         Sign Out
                       </button>
@@ -145,7 +152,7 @@ export const Header = () => {
             ) : (
               <button 
                 onClick={handleLogin}
-                className="flex items-center gap-2 px-4 py-2 bg-white text-zinc-950 text-sm font-semibold rounded-lg border border-transparent hover:bg-zinc-950 hover:text-white hover:border-zinc-700 hover:shadow-xl hover:shadow-white/5 transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 bg-white text-zinc-950 text-sm font-semibold rounded-lg border border-transparent hover:bg-zinc-950 hover:text-white hover:border-zinc-700 hover:shadow-xl hover:shadow-white/5 transition-all duration-300 hover:-translate-y-0.5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
               >
                 <GoogleIcon className="w-4 h-4" />
                 <span>Sign In</span>
