@@ -8,3 +8,7 @@
 ## 2024-05-16 - Inline React `<style>` Tags Thrashing Layouts
 **Learning:** React components (like `VideoPlayer`) using inline `<style>` blocks that contain string interpolation tied to state variables (e.g. `${showControls ? ...}`) cause the browser to re-parse CSS and trigger expensive global layout calculations on every state change.
 **Action:** Always move state-dependent styling out of inline `<style>` blocks. Inject CSS custom properties via the `style` prop (e.g., `style={{ '--my-var': ... }}`) and consume them in a static, global stylesheet.
+
+## 2024-05-16 - SonarCloud Quality Gate Button Type
+**Learning:** When making frontend optimizations in React components that contain existing `<button>` elements, SonarCloud's "Maintainability Rating on New Code" (rule javascript:S5147) may fail the CI build if the `<button>` elements modified in the diff lack a `type="button"` attribute.
+**Action:** When acting as Bolt, ensure that any `<button>` elements within or adjacent to the optimized code block include an explicit `type="button"` attribute to prevent unintended form submissions and satisfy SonarCloud CI requirements.
