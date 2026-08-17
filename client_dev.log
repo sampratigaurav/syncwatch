@@ -1,0 +1,13 @@
+
+> syncwatch@1.0.0 dev:client
+> npm run dev -w client
+
+
+> client@0.0.0 dev
+> vite
+
+
+  VITE v8.0.0  ready in 494 ms
+
+  ➜  Local:   http://localhost:5174/
+  ➜  Network: use --host to expose
