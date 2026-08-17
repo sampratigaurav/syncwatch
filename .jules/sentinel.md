@@ -16,3 +16,13 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+
+## 2024-05-26 - Missing Null Object Validation on Nested Socket Payloads
+**Vulnerability:** The WebRTC socket event handlers in `server/src/socket/handlers.ts` (`WEBRTC_OFFER`, `WEBRTC_ANSWER`, `WEBRTC_ICE_CANDIDATE`) didn't validate that the nested properties like `payload.offer` were non-null objects. A malicious client could send `null`, which bypasses loose existence checks and evaluates as `typeof === 'object'`, leading to server crashes when those null values are processed further down the line.
+**Learning:** Checking `typeof obj === 'object'` is not enough to prevent null values. Socket.IO forwards `null` directly, which means null objects can cause DoS if not properly validated.
+**Prevention:** Always explicitly check for `obj !== null` when validating object properties in Socket.IO payloads (`typeof obj === 'object' && obj !== null`).
+
+## 2024-05-26 - Unvalidated Optional Numeric Socket Payload Properties
+**Vulnerability:** In `server/src/socket/handlers.ts`, the `PLAYBACK_EVENT` handler checked if `payload.playbackRate !== undefined` before assigning it to the room state, but failed to validate its type or bounds. A malicious client could send a massive string, object, or negative number, causing state pollution or unexpected behavior for all connected clients.
+**Learning:** Checking for existence/truthiness (`!== undefined`) is insufficient for optional properties in Socket.IO payloads. Socket.IO allows arbitrary types for any property.
+**Prevention:** Always explicitly verify the type (e.g., `typeof value === 'number'`) and bounds (e.g., `Number.isFinite(value)`) of optional numeric properties before assigning them to server state.
