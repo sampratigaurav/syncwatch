@@ -335,6 +335,9 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       <div 
         ref={containerRef} 
         className={cn("relative w-full aspect-video tablet:aspect-auto tablet:h-full bg-black group overflow-hidden", !showControls && "cursor-none")}
+        // ⚡ Bolt: Using CSS variables instead of inline <style> tags for pseudo-elements (video::cue)
+        // prevents severe DOM layout thrashing on every re-render when controls are toggled.
+        style={{ '--cue-offset': showControls || showSubtitleMenu ? '-100px' : '-20px' } as React.CSSProperties}
         onMouseMove={resetControlsTimeout}
         onMouseLeave={() => isPlaying ? setShowControls(false) : null}
         onClick={() => {
@@ -350,16 +353,6 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           }
         }}
       >
-        <style>
-          {`
-            video::cue {
-              transform: translateY(${showControls || showSubtitleMenu ? '-100px' : '-20px'});
-              background: rgba(0, 0, 0, 0.75);
-              border-radius: 4px;
-              padding: 4px 12px;
-            }
-          `}
-        </style>
         
         <canvas
           ref={canvasRef}
