@@ -519,9 +519,14 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                       <h4 className="text-white font-medium text-sm">Subtitles</h4>
                       {subtitleBlobUrl && (
                         <button 
+                          type="button"
+                          role="switch"
+                          aria-checked={subtitleEnabled}
+                          aria-label="Toggle subtitles"
+                          title={subtitleEnabled ? "Disable subtitles" : "Enable subtitles"}
                           onClick={() => onSubtitleToggle()}
                           className={cn(
-                            "w-10 h-5 rounded-full relative transition-colors",
+                            "w-10 h-5 rounded-full relative transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900",
                             subtitleEnabled ? "bg-teal-500" : "bg-zinc-700"
                           )}
                         >
