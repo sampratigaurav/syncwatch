@@ -59,7 +59,7 @@ export const Header = () => {
         <div className="max-w-7xl mx-auto grid grid-cols-2 tablet:grid-cols-3 items-center px-6 py-4">
           
           {/* Left: Logo */}
-          <Link to="/" className="flex items-center gap-2 group justify-self-start">
+          <Link to="/" aria-label="Go to homepage" title="Homepage" className="flex items-center gap-2 group justify-self-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded">
             <span className="text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
               SyncWatch
             </span>
@@ -68,7 +68,7 @@ export const Header = () => {
           {/* Center: Desktop Navigation (Hidden on mobile) */}
           <nav className="hidden tablet:flex items-center justify-center gap-8">
 
-            <Link to="/docs" className="text-sm font-medium text-zinc-400 hover:text-teal-400 transition-colors">
+            <Link to="/docs" aria-label="Documentation" title="Documentation" className="text-sm font-medium text-zinc-400 hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded px-2 py-1">
               Docs
             </Link>
             <div className="relative group cursor-help">
@@ -87,9 +87,11 @@ export const Header = () => {
               href="https://github.com/sampratigaurav/syncwatch" 
               target="_blank" 
               rel="noreferrer"
-              className="text-zinc-400 hover:text-white transition-colors"
+              aria-label="GitHub Repository"
+              title="GitHub Repository"
+              className="text-zinc-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded-full p-1"
             >
-              <Github className="w-5 h-5" />
+              <Github className="w-5 h-5" aria-hidden="true" />
             </a>
 
             {isAuthLoading ? (
@@ -97,8 +99,13 @@ export const Header = () => {
             ) : firebaseUid ? (
               <div className="relative">
                 <button 
+                  type="button"
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full transition-all duration-300"
+                  aria-expanded={isProfileDropdownOpen}
+                  aria-haspopup="menu"
+                  aria-label="User menu"
+                  title="User menu"
+                  className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                 >
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar" className="w-6 h-6 rounded-full bg-zinc-800" />
@@ -118,23 +125,28 @@ export const Header = () => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 10 }}
+                      role="menu"
                       className="absolute right-0 mt-2 w-48 bg-[#111111] border border-white/10 rounded-xl shadow-xl overflow-hidden py-1 z-50"
                     >
                       <button
+                        type="button"
+                        role="menuitem"
                         onClick={() => {
                           setIsProfileDropdownOpen(false);
                           setIsProfileOpen(true);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 transition-colors"
+                        className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:bg-white/10"
                       >
                         My Profile
                       </button>
                       <button
+                        type="button"
+                        role="menuitem"
                         onClick={() => {
                           setIsProfileDropdownOpen(false);
                           handleLogout();
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors"
+                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:bg-white/10"
                       >
                         Sign Out
                       </button>
@@ -144,10 +156,11 @@ export const Header = () => {
               </div>
             ) : (
               <button 
+                type="button"
                 onClick={handleLogin}
-                className="flex items-center gap-2 px-4 py-2 bg-white text-zinc-950 text-sm font-semibold rounded-lg border border-transparent hover:bg-zinc-950 hover:text-white hover:border-zinc-700 hover:shadow-xl hover:shadow-white/5 transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 bg-white text-zinc-950 text-sm font-semibold rounded-lg border border-transparent hover:bg-zinc-950 hover:text-white hover:border-zinc-700 hover:shadow-xl hover:shadow-white/5 transition-all duration-300 hover:-translate-y-0.5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
               >
-                <GoogleIcon className="w-4 h-4" />
+                <GoogleIcon className="w-4 h-4" aria-hidden="true" />
                 <span>Sign In</span>
               </button>
             )}
