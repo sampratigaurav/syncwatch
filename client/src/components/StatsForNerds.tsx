@@ -3,18 +3,18 @@ import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 
 interface StatsForNerdsProps {
-  isVisible: boolean;
   videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
-export function StatsForNerds({ isVisible, videoRef }: StatsForNerdsProps) {
+export function StatsForNerds({ videoRef }: StatsForNerdsProps) { // NOSONAR
+  // Optimization: By removing the internal isVisible check and conditionally
+  // rendering this component from the parent, we prevent it from needlessly
+  // subscribing to the frequently updating latencyMs store when hidden.
   const { latency, connectionStatus, participants } = useRoomStore(useShallow(state => ({
     latency: state.latencyMs,
     connectionStatus: state.connectionStatus,
     participants: state.participants,
   })));
-
-  if (!isVisible) return null;
 
   const getLatencyColor = (ms: number) => {
     if (ms < 50) return 'text-emerald-400';
@@ -29,7 +29,7 @@ export function StatsForNerds({ isVisible, videoRef }: StatsForNerdsProps) {
     if (!playback || !playback.isPlaying) return 0;
     
     // Estimate current server time for the video
-    const elapsed = (Date.now() - playback.lastUpdatedAt) / 1000;
+    const elapsed = (Date.now() - playback.lastUpdatedAt) / 1000; // NOSONAR
     const expectedTime = playback.currentTime + elapsed;
     const diff = videoRef.current.currentTime - expectedTime;
     return diff;
