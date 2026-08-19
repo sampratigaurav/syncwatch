@@ -3,18 +3,18 @@ import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 
 interface StatsForNerdsProps {
-  isVisible: boolean;
   videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
-export function StatsForNerds({ isVisible, videoRef }: StatsForNerdsProps) {
+export function StatsForNerds({ videoRef }: StatsForNerdsProps) {
+  // Optimization: This component is now completely unmounted at the parent level when hidden.
+  // This prevents unnecessary executions of useRoomStore hooks and global re-renders
+  // on frequent state updates (e.g. latencyMs ping) while the stats are invisible.
   const { latency, connectionStatus, participants } = useRoomStore(useShallow(state => ({
     latency: state.latencyMs,
     connectionStatus: state.connectionStatus,
     participants: state.participants,
   })));
-
-  if (!isVisible) return null;
 
   const getLatencyColor = (ms: number) => {
     if (ms < 50) return 'text-emerald-400';
