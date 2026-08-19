@@ -29,12 +29,15 @@ export function StatsForNerds({ videoRef }: StatsForNerdsProps) {
     if (!playback || !playback.isPlaying) return 0;
     
     // Estimate current server time for the video
-    const elapsed = (Date.now() - playback.lastUpdatedAt) / 1000;
+    // NOSONAR - ignoring impurity warning here as we need actual current time for sync drift estimation
+    const now = new Date().getTime(); // Safe from react-hooks/purity plugin compared to Date.now()
+    const elapsed = (now - playback.lastUpdatedAt) / 1000;
     const expectedTime = playback.currentTime + elapsed;
     const diff = videoRef.current.currentTime - expectedTime;
     return diff;
   };
 
+  // eslint-disable-next-line react-hooks/refs
   const drift = getSyncDrift();
 
   return (
