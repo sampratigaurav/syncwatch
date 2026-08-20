@@ -16,3 +16,7 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+## 2024-05-24 - Secure Friend Code Generation
+**Vulnerability:** Friend codes were being generated using `Math.random()`, which is not cryptographically secure and could allow attackers to predict friend codes.
+**Learning:** `Math.random()` should never be used for security-sensitive operations like generating unique identifiers. Node's `crypto` module is not fully global, so `import crypto from 'crypto';` is strictly required to use methods like `crypto.randomInt()`.
+**Prevention:** Always use a cryptographically secure random number generator (e.g., `crypto.randomInt()` in Node.js or `window.crypto.getRandomValues()` in the browser) when generating sensitive values, and ensure all necessary modules are properly imported.
