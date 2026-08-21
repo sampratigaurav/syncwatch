@@ -87,9 +87,11 @@ export const Header = () => {
               href="https://github.com/sampratigaurav/syncwatch" 
               target="_blank" 
               rel="noreferrer"
-              className="text-zinc-400 hover:text-white transition-colors"
+              aria-label="View source on GitHub"
+              title="View source on GitHub"
+              className="text-zinc-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded-md p-1"
             >
-              <Github className="w-5 h-5" />
+              <Github className="w-5 h-5" aria-hidden="true" />
             </a>
 
             {isAuthLoading ? (
@@ -97,8 +99,13 @@ export const Header = () => {
             ) : firebaseUid ? (
               <div className="relative">
                 <button 
+                  type="button"
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full transition-all duration-300"
+                  aria-expanded={isProfileDropdownOpen}
+                  aria-haspopup="true"
+                  aria-label="User profile menu"
+                  title="User profile menu"
+                  className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 px-3 py-1.5 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                 >
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar" className="w-6 h-6 rounded-full bg-zinc-800" />
@@ -121,20 +128,22 @@ export const Header = () => {
                       className="absolute right-0 mt-2 w-48 bg-[#111111] border border-white/10 rounded-xl shadow-xl overflow-hidden py-1 z-50"
                     >
                       <button
+                        type="button"
                         onClick={() => {
                           setIsProfileDropdownOpen(false);
                           setIsProfileOpen(true);
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 transition-colors"
+                        className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:text-white hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:z-10 relative"
                       >
                         My Profile
                       </button>
                       <button
+                        type="button"
                         onClick={() => {
                           setIsProfileDropdownOpen(false);
                           handleLogout();
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors"
+                        className="w-full text-left px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:z-10 relative"
                       >
                         Sign Out
                       </button>
@@ -144,8 +153,9 @@ export const Header = () => {
               </div>
             ) : (
               <button 
+                type="button"
                 onClick={handleLogin}
-                className="flex items-center gap-2 px-4 py-2 bg-white text-zinc-950 text-sm font-semibold rounded-lg border border-transparent hover:bg-zinc-950 hover:text-white hover:border-zinc-700 hover:shadow-xl hover:shadow-white/5 transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 bg-white text-zinc-950 text-sm font-semibold rounded-lg border border-transparent hover:bg-zinc-950 hover:text-white hover:border-zinc-700 hover:shadow-xl hover:shadow-white/5 transition-all duration-300 hover:-translate-y-0.5 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
               >
                 <GoogleIcon className="w-4 h-4" />
                 <span>Sign In</span>
