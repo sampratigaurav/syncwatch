@@ -1,4 +1,3 @@
-
-## 2024-05-18 - Improved Custom Toggle Switches Accessibility
-**Learning:** Custom UI toggle switches designed with standard `<button>` tags and `div` elements often lack semantic meaning, causing screen readers to misinterpret their state and function. Standard generic buttons used as toggles fail to communicate their "on/off" or "checked/unchecked" status to assistive technologies.
-**Action:** When creating custom toggle switches (like "Lock room" or "Grant Control"), always explicitly set `role="switch"` and use `aria-checked={true/false}`. Pair these with descriptive `aria-label` and `title` attributes. Additionally, always add explicit `:focus-visible` styles (`focus-visible:ring-2`) since custom components usually strip native browser focus outlines, breaking keyboard navigation visibility.
+## 2023-10-27 - Added ARIA attributes and focus-visible states to Header
+**Learning:** Adding explicit `type="button"` to elements triggering modals/dropdowns prevents unintentional form submission behaviors that may occur in certain frameworks, while `aria-expanded` accurately reflects state for screen readers interacting with custom dropdowns.
+**Action:** Consistently add `type="button"`, `aria-expanded` (for toggles), and `focus-visible` styling to all custom interactive elements built with basic HTML tags to improve accessibility and keyboard navigation.
