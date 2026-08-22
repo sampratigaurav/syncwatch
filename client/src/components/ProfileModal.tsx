@@ -174,11 +174,16 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-white/5">
             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <UserIcon className="w-6 h-6 text-teal-400" />
+              <UserIcon className="w-6 h-6 text-teal-400" aria-hidden="true" />
               My Profile
             </h2>
-            <button onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors">
-              <X className="w-6 h-6" />
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close Profile"
+              className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+            >
+              <X className="w-6 h-6" aria-hidden="true" />
             </button>
           </div>
 
@@ -190,9 +195,10 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-zinc-400 mb-1">Display Name</label>
+                  <label htmlFor="edit-display-name" className="block text-sm font-medium text-zinc-400 mb-1">Display Name</label>
                   <div className="flex gap-2">
                     <input
+                      id="edit-display-name"
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
@@ -200,16 +206,17 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       placeholder="Your display name"
                     />
                     <button
+                      type="button"
                       onClick={() => handleSaveIdentity()}
                       disabled={isSavingIdentity || editName === nickname}
-                      className="px-6 bg-teal-500 hover:bg-teal-400 text-black font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="px-6 bg-teal-500 hover:bg-teal-400 text-black font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                     >
                       {isSavingIdentity ? 'Saving...' : 'Save'}
                     </button>
                   </div>
                 </div>
 
-                <div>
+                <div role="radiogroup" aria-label="Choose Avatar">
                   <label className="block text-sm font-medium text-zinc-400 mb-3">Choose Avatar</label>
                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                     {AVATAR_SEEDS.map((seed) => {
@@ -218,15 +225,19 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       return (
                         <button
                           key={seed}
+                          type="button"
+                          role="radio"
+                          aria-checked={isSelected}
+                          aria-label={`Avatar ${seed}`}
                           onClick={() => handleSaveIdentity(url)}
-                          className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group ${
+                          className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
                             isSelected ? 'border-teal-400 scale-105' : 'border-transparent bg-white/5 hover:bg-white/10'
                           }`}
                         >
-                          <img src={url} alt={seed} className="w-full h-full object-cover p-2" />
+                          <img src={url} alt="" aria-hidden="true" className="w-full h-full object-cover p-2" />
                           {isSelected && (
                             <div className="absolute inset-0 bg-teal-500/20 flex items-center justify-center">
-                              <Check className="w-6 h-6 text-teal-400" />
+                              <Check className="w-6 h-6 text-teal-400" aria-hidden="true" />
                             </div>
                           )}
                         </button>
@@ -262,25 +273,31 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         </div>
                         <div className="flex items-center gap-2">
                           <button
+                            type="button"
+                            aria-label="Copy Room Link"
                             onClick={() => copyLink(room.id)}
-                            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                             title="Copy Room Link"
                           >
-                            <Link2 className="w-4 h-4" />
+                            <Link2 className="w-4 h-4" aria-hidden="true" />
                           </button>
                           <button
+                            type="button"
+                            aria-label="Change PIN"
                             onClick={() => setShowPinEdit(showPinEdit === room.id ? null : room.id)}
-                            className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors"
+                            className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                             title="Change PIN"
                           >
-                            <Key className="w-4 h-4" />
+                            <Key className="w-4 h-4" aria-hidden="true" />
                           </button>
                           <button
+                            type="button"
+                            aria-label="Delete Room"
                             onClick={() => handleDeleteRoom(room.id)}
-                            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors"
+                            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                             title="Delete Room"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" aria-hidden="true" />
                           </button>
                         </div>
                       </div>
@@ -293,6 +310,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         >
                           <input
                             type="text"
+                            aria-label={room.password ? 'Enter new PIN' : 'Add a PIN'}
                             placeholder={room.password ? 'Enter new PIN...' : 'Add a PIN...'}
                             value={newPin}
                             onChange={(e) => setNewPin(e.target.value.replace(/[^a-zA-Z0-9]/g, ''))}
@@ -300,8 +318,9 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                             className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
                           />
                           <button
+                            type="button"
                             onClick={() => handleUpdatePin(room.id)}
-                            className="px-4 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 font-medium rounded-lg text-sm transition-colors"
+                            className="px-4 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 font-medium rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                           >
                             Save
                           </button>
