@@ -24,6 +24,9 @@ export default function ThemeToggle() {
   return (
     <>
       <button 
+        type="button"
+        role="switch"
+        aria-checked={theme === 'dark'}
         onClick={toggleTheme}
         aria-label={label}
         title={label}
