@@ -335,6 +335,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       <div 
         ref={containerRef} 
         className={cn("relative w-full aspect-video tablet:aspect-auto tablet:h-full bg-black group overflow-hidden", !showControls && "cursor-none")}
+        style={{ '--cue-offset': showControls || showSubtitleMenu ? '-100px' : '-20px' } as React.CSSProperties}
         onMouseMove={resetControlsTimeout}
         onMouseLeave={() => isPlaying ? setShowControls(false) : null}
         onClick={() => {
@@ -350,17 +351,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           }
         }}
       >
-        <style>
-          {`
-            video::cue {
-              transform: translateY(${showControls || showSubtitleMenu ? '-100px' : '-20px'});
-              background: rgba(0, 0, 0, 0.75);
-              border-radius: 4px;
-              padding: 4px 12px;
-            }
-          `}
-        </style>
-        
+        {/* Performance optimization: Avoid inline <style> tags for pseudo-elements to prevent layout thrashing */}
         <canvas
           ref={canvasRef}
           width={64}
