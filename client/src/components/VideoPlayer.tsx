@@ -335,6 +335,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       <div 
         ref={containerRef} 
         className={cn("relative w-full aspect-video tablet:aspect-auto tablet:h-full bg-black group overflow-hidden", !showControls && "cursor-none")}
+        style={{ '--cue-offset': showControls || showSubtitleMenu ? '-100px' : '-20px' } as React.CSSProperties}
         onMouseMove={resetControlsTimeout}
         onMouseLeave={() => isPlaying ? setShowControls(false) : null}
         onClick={() => {
@@ -350,17 +351,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           }
         }}
       >
-        <style>
-          {`
-            video::cue {
-              transform: translateY(${showControls || showSubtitleMenu ? '-100px' : '-20px'});
-              background: rgba(0, 0, 0, 0.75);
-              border-radius: 4px;
-              padding: 4px 12px;
-            }
-          `}
-        </style>
-        
+        {/* Performance optimization: Avoid inline <style> tags for pseudo-elements to prevent layout thrashing */}
         <canvas
           ref={canvasRef}
           width={64}
@@ -518,7 +509,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-white font-medium text-sm">Subtitles</h4>
                       {subtitleBlobUrl && (
-                        <button 
+                        <button type="button"
                           onClick={() => onSubtitleToggle()}
                           className={cn(
                             "w-10 h-5 rounded-full relative transition-colors",
@@ -545,7 +536,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                   </motion.div>
                 )}
                 </AnimatePresence>
-                <button 
+                <button type="button"
                   onClick={(e) => { 
                      e.stopPropagation(); 
                      setShowSubtitleMenu(!showSubtitleMenu);
@@ -564,7 +555,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 </button>
               </div>
 
-              <button
+              <button type="button"
                 onClick={(e) => { e.stopPropagation(); setShowStats(!showStats); }}
                 aria-label="Toggle Stats for Nerds"
                 title="Toggle Stats for Nerds"
@@ -581,7 +572,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               />
 
               {/* Fullscreen Toggle */}
-              <button
+              <button type="button"
                 onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
                 aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
                 title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
