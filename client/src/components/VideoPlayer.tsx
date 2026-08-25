@@ -1,6 +1,5 @@
 import { forwardRef, useState, useEffect, useRef, useCallback } from 'react';
 import { useRoomStore } from '../store/roomStore';
-import { useShallow } from 'zustand/react/shallow';
 import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Minimize, Subtitles, Activity } from 'lucide-react';
 import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
@@ -38,12 +37,10 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
   ({ src, isTorrent, magnetURI, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate, onEnded, subtitleBlobUrl, subtitleEnabled, onSubtitleToggle, onSubtitleLoaded, onSubtitleCleared }, externalRef) => {
-    const { participants, controlPolicy } = useRoomStore(useShallow(state => ({
-      participants: state.participants,
-      controlPolicy: state.controlPolicy,
-    })));
+    const controlPolicy = useRoomStore(state => state.controlPolicy);
     const hasControl = useRoomStore(state => state.canIControl());
-    const hostName = participants.find(p => p.role === 'host')?.nickname || 'Host';
+    // ⚡ Bolt: Extract only primitive hostName to prevent re-renders when other participant properties (like latencyMs) update
+    const hostName = useRoomStore(state => state.participants.find(p => p.role === 'host')?.nickname || 'Host');
     
     const containerRef = useRef<HTMLDivElement>(null);
     const internalVideoRef = useRef<HTMLVideoElement | null>(null);
