@@ -87,9 +87,11 @@ export const Header = () => {
               href="https://github.com/sampratigaurav/syncwatch" 
               target="_blank" 
               rel="noreferrer"
-              className="text-zinc-400 hover:text-white transition-colors"
+              aria-label="GitHub repository"
+              title="GitHub repository"
+              className="text-zinc-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded-md"
             >
-              <Github className="w-5 h-5" />
+              <Github className="w-5 h-5" aria-hidden="true" />
             </a>
 
             {isAuthLoading ? (
