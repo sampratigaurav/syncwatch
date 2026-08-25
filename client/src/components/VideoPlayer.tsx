@@ -1,6 +1,5 @@
 import { forwardRef, useState, useEffect, useRef, useCallback } from 'react';
 import { useRoomStore } from '../store/roomStore';
-import { useShallow } from 'zustand/react/shallow';
 import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Minimize, Subtitles, Activity } from 'lucide-react';
 import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
@@ -38,12 +37,10 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
   ({ src, isTorrent, magnetURI, onPlay, onPause, onSeeked, onWaiting, onCanPlay, onPlaying, onTimeUpdate, onEnded, subtitleBlobUrl, subtitleEnabled, onSubtitleToggle, onSubtitleLoaded, onSubtitleCleared }, externalRef) => {
-    const { participants, controlPolicy } = useRoomStore(useShallow(state => ({
-      participants: state.participants,
-      controlPolicy: state.controlPolicy,
-    })));
+    const controlPolicy = useRoomStore(state => state.controlPolicy);
     const hasControl = useRoomStore(state => state.canIControl());
-    const hostName = participants.find(p => p.role === 'host')?.nickname || 'Host';
+    // ⚡ Bolt: Extract only primitive hostName to prevent re-renders when other participant properties (like latencyMs) update
+    const hostName = useRoomStore(state => state.participants.find(p => p.role === 'host')?.nickname || 'Host');
     
     const containerRef = useRef<HTMLDivElement>(null);
     const internalVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -519,6 +516,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                       <h4 className="text-white font-medium text-sm">Subtitles</h4>
                       {subtitleBlobUrl && (
                         <button 
+                          type="button"
                           onClick={() => onSubtitleToggle()}
                           className={cn(
                             "w-10 h-5 rounded-full relative transition-colors",
@@ -546,6 +544,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 )}
                 </AnimatePresence>
                 <button 
+                  type="button"
                   onClick={(e) => { 
                      e.stopPropagation(); 
                      setShowSubtitleMenu(!showSubtitleMenu);
@@ -565,6 +564,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               </div>
 
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); setShowStats(!showStats); }}
                 aria-label="Toggle Stats for Nerds"
                 title="Toggle Stats for Nerds"
@@ -582,6 +582,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
 
               {/* Fullscreen Toggle */}
               <button
+                type="button"
                 onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
                 aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
                 title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
