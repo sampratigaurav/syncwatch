@@ -16,3 +16,7 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+## 2026-08-26 - Insecure Random Number Generation for Friend Codes
+**Vulnerability:** The `generateFriendCode` function in `server/src/routes/users.ts` used `Math.random()` to generate friend codes.
+**Learning:** `Math.random()` is a pseudo-random number generator (PRNG) and produces predictable values, which makes the generated friend codes insecure and potentially guessable by attackers.
+**Prevention:** Always use cryptographically secure random number generators (CSPRNG), such as `crypto.randomInt()`, for generating sensitive codes, tokens, or identifiers.
