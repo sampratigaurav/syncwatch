@@ -436,6 +436,10 @@ export const setupSocketHandlers = (io: Server) => {
       room.playback.lastActionBy = socket.id;
       room.playback.lastActionNickname = participant.nickname;
       if (payload.playbackRate !== undefined) {
+        if (typeof payload.playbackRate !== 'number' || !Number.isFinite(payload.playbackRate) || payload.playbackRate <= 0) {
+          socket.emit('error', { message: 'Invalid playback rate' });
+          return;
+        }
         room.playback.playbackRate = payload.playbackRate;
       }
 
@@ -707,6 +711,7 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(EVENTS.WEBRTC_OFFER, async (payload: { offer: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
+      if (typeof payload.offer !== 'object' || payload.offer === null) return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_OFFER, {
         offer: payload.offer,
@@ -716,6 +721,7 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(EVENTS.WEBRTC_ANSWER, async (payload: { answer: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
+      if (typeof payload.answer !== 'object' || payload.answer === null) return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ANSWER, {
         answer: payload.answer,
@@ -725,6 +731,7 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(EVENTS.WEBRTC_ICE_CANDIDATE, async (payload: { candidate: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
+      if (payload.candidate !== null && typeof payload.candidate !== 'object') return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ICE_CANDIDATE, {
         candidate: payload.candidate,
