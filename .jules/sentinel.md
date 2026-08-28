@@ -16,3 +16,8 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+
+## 2026-08-28 - Server/Client Crash via Unvalidated WebRTC Payloads
+**Vulnerability:** WebRTC signaling socket events (WEBRTC_OFFER, WEBRTC_ANSWER, WEBRTC_ICE_CANDIDATE) lacked explicit validation for their respective object properties (offer, answer, candidate). Since Socket.IO passes `null` and non-object types through, an attacker could send a maliciously crafted payload to cause errors or state corruption.
+**Learning:** When validating object properties in Socket.IO payloads, it is necessary to explicitly check that the property is not null (e.g., `typeof payload.offer === 'object' && payload.offer !== null`). However, `null` payloads for WebRTC `icecandidate` events are standard signals for the End-of-Candidates (EOC) gathering phase and must not be rejected.
+**Prevention:** Always implement explicit `typeof` and `!== null` validation for object properties in Socket.IO payloads, taking into account protocol-specific exceptions like EOC candidates.
