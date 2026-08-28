@@ -138,8 +138,8 @@ const SpotlightCard = ({ step, index }: { step: typeof STEPS[0], index: number }
 
 const FeatureBentoGrid = () => {
   return (
-    <section aria-label="Features" className="w-full max-w-[1200px] mx-auto mt-32 relative z-10 pb-24 px-4 tablet:px-8">
-      <div className="text-center mb-16 tablet:mb-24">
+    <section aria-label="Features" className="w-full max-w-[1200px] mx-auto mt-20 tablet:mt-32 relative z-10 pb-16 tablet:pb-24 px-4 sm:px-6 tablet:px-8">
+      <div className="text-center mb-12 tablet:mb-24">
         <h2 className="text-3xl tablet:text-5xl font-bold tracking-tight text-white mb-4">How it works</h2>
         <p className="text-base tablet:text-lg text-zinc-400">From your file to in sync — in under 30 seconds</p>
       </div>
@@ -180,8 +180,8 @@ const FAQAccordion = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section aria-label="FAQ" className="w-full max-w-[800px] mx-auto mt-32 mb-16 px-4 tablet:px-8 relative z-10">
-      <div className="text-center mb-16">
+    <section aria-label="FAQ" className="w-full max-w-[800px] mx-auto mt-20 tablet:mt-32 mb-12 tablet:mb-16 px-4 sm:px-6 tablet:px-8 relative z-10">
+      <div className="text-center mb-12 tablet:mb-16">
         <h2 className="text-3xl tablet:text-5xl font-bold tracking-tight text-white mb-4">Got questions?</h2>
         <p className="text-base tablet:text-lg text-zinc-400">Everything you need to know about SyncWatch</p>
       </div>
@@ -254,19 +254,19 @@ export default function Home() {
       <AmbientBackground />
       
       {/* Main Content Area */}
-      <main className="relative z-10 w-full max-w-[1200px] flex flex-col items-center px-4 tablet:px-8 pt-10 tablet:pt-16">
+      <main className="relative z-10 w-full max-w-[1200px] flex flex-col items-center px-4 sm:px-6 tablet:px-8 pt-8 tablet:pt-16">
           
         {/* Row 1: Full-Width Centered Typography */}
         <m.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="opacity-0 -translate-y-5 flex flex-col items-center w-full mb-12 tablet:mb-16"
+          className="opacity-0 -translate-y-5 flex flex-col items-center w-full mb-10 tablet:mb-16"
         >
-          <h2 className="text-5xl tablet:text-[4.5rem] font-bold text-white pb-4 tracking-tight leading-[1.1] text-center max-w-5xl drop-shadow-2xl">
+          <h2 className="text-4xl sm:text-5xl tablet:text-6xl lg:text-[4.5rem] font-bold text-white pb-4 tracking-tight leading-[1.1] text-center max-w-5xl drop-shadow-2xl">
             Watch together.<br className="hidden tablet:block" /> In perfect sync.
           </h2>
-          <p className="text-zinc-400 text-lg tablet:text-xl text-center max-w-none mb-8">
+          <p className="text-base sm:text-lg tablet:text-xl text-center max-w-none mb-8 px-2 sm:px-0">
             Experience movies and shows with your friends in real-time, no matter where they are.
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -281,13 +281,13 @@ export default function Home() {
         </m.div>
 
         {/* Row 2: Centered Large Video Mockup */}
-        <div className="w-full max-w-6xl mx-auto flex items-center justify-center relative cursor-pointer mt-4 tablet:mt-8 px-4 tablet:px-0">
+        <div className="w-full max-w-6xl mx-auto flex items-center justify-center relative cursor-pointer mt-4 tablet:mt-8 px-4 sm:px-6 tablet:px-0">
            <Link to="/dashboard" className="w-full h-full block">
              <m.div 
                initial={{ opacity: 0, scale: 0.95 }}
                animate={{ opacity: 1, scale: 1 }}
                transition={{ duration: 0.5, ease: "easeOut" }}
-               className="w-full h-full min-h-[300px] tablet:min-h-[500px] flex items-center justify-center relative opacity-0"
+               className="w-full h-full min-h-[250px] sm:min-h-[300px] tablet:min-h-[500px] flex items-center justify-center relative opacity-0"
              >
                {isMobile ? (
                  <CssOrb />
