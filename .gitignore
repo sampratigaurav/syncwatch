@@ -8,3 +8,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .DS_Store
+
+# Local Redis Build
+redis-stable/
+redis-stable.tar.gz
