@@ -431,10 +431,18 @@ export const setupSocketHandlers = (io: Server) => {
         return;
       }
 
+      if (payload.playbackRate !== undefined) {
+        if (typeof payload.playbackRate !== 'number' || !Number.isFinite(payload.playbackRate) || payload.playbackRate < 0.1 || payload.playbackRate > 5) {
+          socket.emit('error', { message: 'Invalid playback rate' });
+          return;
+        }
+      }
+
       room.playback.currentTime = payload.currentTime;
       room.playback.lastUpdatedAt = Date.now();
       room.playback.lastActionBy = socket.id;
       room.playback.lastActionNickname = participant.nickname;
+
       if (payload.playbackRate !== undefined) {
         room.playback.playbackRate = payload.playbackRate;
       }
