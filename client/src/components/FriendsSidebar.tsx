@@ -279,7 +279,19 @@ export const FriendsSidebar = () => {
               <div className="flex-1 overflow-y-auto px-6 pb-6 custom-scrollbar">
                 
                 {/* My Code Banner */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-teal-900/40 to-teal-950/40 border border-teal-500/30 rounded-2xl p-4 flex items-center justify-between mb-8 group cursor-pointer hover:border-teal-400/50 hover:shadow-[0_0_20px_rgba(20,184,166,0.15)] transition-all duration-300" onClick={copyMyCode}>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Copy my friend code"
+                  className="relative overflow-hidden bg-gradient-to-br from-teal-900/40 to-teal-950/40 border border-teal-500/30 rounded-2xl p-4 flex items-center justify-between mb-8 group cursor-pointer hover:border-teal-400/50 hover:shadow-[0_0_20px_rgba(20,184,166,0.15)] transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
+                  onClick={copyMyCode}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      copyMyCode();
+                    }
+                  }}
+                >
                   <div className="absolute inset-0 bg-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="relative z-10">
                     <div className="text-[10px] text-teal-300/70 font-semibold uppercase tracking-widest mb-1.5 flex items-center gap-2">
