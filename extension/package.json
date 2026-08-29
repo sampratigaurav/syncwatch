@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite build --watch",
-    "build": "node scripts/generate-icons.js && vite build",
+    "build": "vite build",
     "preview": "vite build"
   },
   "dependencies": {
