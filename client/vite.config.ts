@@ -22,19 +22,31 @@ export default defineConfig({
         name: 'SyncWatch',
         short_name: 'SyncWatch',
         description: 'A synchronized, premium video watch party experience with your friends.',
-        theme_color: '#000000',
-        background_color: '#000000',
+        theme_color: '#050505',
+        background_color: '#050505',
         display: 'standalone',
         icons: [
           {
-            src: '/logo.png',
+            src: '/icon-192.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/logo.png',
+            src: '/icon-512.png',
             sizes: '512x512',
             type: 'image/png'
+          },
+          {
+            src: '/maskable-192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
+          },
+          {
+            src: '/maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       }

@@ -228,11 +228,11 @@ function IdleView({
     <div style={S.container}>
       {/* Logo */}
       <div style={S.header}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ marginRight: 8 }}>
-          <circle cx="12" cy="12" r="10" stroke="#1D9E75" strokeWidth="2" />
-          <path d="M9 8l7 4-7 4V8z" fill="#1D9E75" />
+        <svg width="24" height="24" viewBox="0 0 100 100" fill="none" style={{ marginRight: 8 }}>
+          <polygon points="22,26 22,62 56,44" fill="#f7f8f7" />
+          <polygon points="38,38 38,74 78,56" fill="#34d399" />
         </svg>
-        <span style={S.logo}>SyncWatch</span>
+        <span style={S.logo}>Sync<span style={{ color: '#34d399' }}>Watch</span></span>
       </div>
 
       {/* YouTube detection status */}
@@ -326,11 +326,11 @@ function InRoomView({ state, copied, leaveArmed, onCopy, onLeave }: InRoomViewPr
     <div style={S.container}>
       {/* Logo small */}
       <div style={{ ...S.header, marginBottom: 12 }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ marginRight: 6 }}>
-          <circle cx="12" cy="12" r="10" stroke="#1D9E75" strokeWidth="2" />
-          <path d="M9 8l7 4-7 4V8z" fill="#1D9E75" />
+        <svg width="18" height="18" viewBox="0 0 100 100" fill="none" style={{ marginRight: 6 }}>
+          <polygon points="22,26 22,62 56,44" fill="#f7f8f7" />
+          <polygon points="38,38 38,74 78,56" fill="#34d399" />
         </svg>
-        <span style={{ ...S.logo, fontSize: 15 }}>SyncWatch</span>
+        <span style={{ ...S.logo, fontSize: 15 }}>Sync<span style={{ color: '#34d399' }}>Watch</span></span>
         <ConnectionDot status={state.connectionStatus} />
       </div>
 

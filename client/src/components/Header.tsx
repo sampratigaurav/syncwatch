@@ -60,8 +60,10 @@ export const Header = () => {
           
           {/* Left: Logo */}
           <Link to="/" className="flex items-center gap-2 group justify-self-start">
-            <span className="text-xl font-bold bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
-              SyncWatch
+            <img src="/icon-192.png" alt="" className="w-8 h-8 rounded-lg" />
+            <span className="text-xl font-bold tracking-tight">
+              <span className="text-white">Sync</span>
+              <span className="text-emerald-400">Watch</span>
             </span>
           </Link>
 

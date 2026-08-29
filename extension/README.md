@@ -18,7 +18,7 @@ cd extension
 # 2. Install dependencies
 npm install
 
-# 3. Build (also generates icons)
+# 3. Build
 npm run build
 ```
 
