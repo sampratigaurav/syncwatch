@@ -431,6 +431,14 @@ export const setupSocketHandlers = (io: Server) => {
         return;
       }
 
+      // Validate playbackRate if provided (must be finite number between 0.25 and 4.0)
+      if (payload.playbackRate !== undefined) {
+        if (typeof payload.playbackRate !== 'number' || !Number.isFinite(payload.playbackRate) || payload.playbackRate < 0.25 || payload.playbackRate > 4) {
+          socket.emit('error', { message: 'Invalid playback rate' });
+          return;
+        }
+      }
+
       room.playback.currentTime = payload.currentTime;
       room.playback.lastUpdatedAt = Date.now();
       room.playback.lastActionBy = socket.id;
