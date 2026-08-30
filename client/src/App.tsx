@@ -5,11 +5,11 @@ import WaitingRoom from './pages/WaitingRoom'
 import Room from './pages/Room'
 import Docs from './pages/Docs'
 import Dashboard from './pages/Dashboard'
-import { MarketingLayout } from './components/MarketingLayout'
-import { RoomLayout } from './components/RoomLayout'
+import { MarketingLayout } from './components/layout/MarketingLayout'
+import { RoomLayout } from './components/layout/RoomLayout'
 import { AnimatePresence } from 'framer-motion'
-import { AuthSync } from './components/AuthSync'
-import { FriendsSidebar } from './components/FriendsSidebar'
+import { AuthSync } from './components/layout/AuthSync'
+import { FriendsSidebar } from './components/room/FriendsSidebar'
 
 function App() {
   const location = useLocation()

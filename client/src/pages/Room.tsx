@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { SEO } from '../components/SEO';
+import { SEO } from '../components/layout/SEO';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useSocket, socket } from '../hooks/useSocket';
@@ -7,14 +7,14 @@ import { useVideoSync } from '../hooks/useVideoSync';
 import { useDriftCorrection } from '../hooks/useDriftCorrection';
 import { useBingeWatcher } from '../hooks/useBingeWatcher';
 import { useNavigate } from 'react-router-dom';
-import ParticipantList from '../components/ParticipantList';
-import { VideoPlayer } from '../components/VideoPlayer';
-import Chat from '../components/Chat';
-import SyncStatus from '../components/SyncStatus';
+import ParticipantList from '../components/room/ParticipantList';
+import { VideoPlayer } from '../components/player/VideoPlayer';
+import Chat from '../components/room/Chat';
+import SyncStatus from '../components/room/SyncStatus';
 
-import ControlPolicySelector from '../components/ControlPolicySelector';
-import { VoiceChat } from '../components/VoiceChat';
-import { ReactionOverlay } from '../components/ReactionOverlay';
+import ControlPolicySelector from '../components/room/ControlPolicySelector';
+import { VoiceChat } from '../components/room/VoiceChat';
+import { ReactionOverlay } from '../components/room/ReactionOverlay';
 import { EVENTS } from '../../../shared/socketEvents';
 import { Settings, Users, MessageSquare, Info, Loader2, WifiOff, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { clsx } from 'clsx';

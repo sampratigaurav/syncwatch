@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useRoomStore } from '../store/roomStore';
-import { socket } from '../hooks/useSocket';
-import { EVENTS } from '../../../shared/socketEvents';
-import type { ReactionPayload } from '../../../shared/types';
+import { useRoomStore } from '../../store/roomStore';
+import { socket } from '../../hooks/useSocket';
+import { EVENTS } from '../../../../shared/socketEvents';
+import type { ReactionPayload } from '../../../../shared/types';
 
 interface FloatingReaction extends ReactionPayload {
   xPos: number; // 0 to 100 representing percentage

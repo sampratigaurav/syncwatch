@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { useRoomStore } from '../store/roomStore';
+import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
-import { socket } from '../hooks/useSocket';
-import { EVENTS } from '../../../shared/socketEvents';
+import { socket } from '../../hooks/useSocket';
+import { EVENTS } from '../../../../shared/socketEvents';
 import { Send } from 'lucide-react';
 import { TypingIndicator } from './TypingIndicator';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn, getGradient } from '../lib/utils';
+import { cn, getGradient } from '../../lib/utils';
 
 const timeFormatter = new Intl.DateTimeFormat('en-US', {
   hour: 'numeric',

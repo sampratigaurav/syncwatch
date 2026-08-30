@@ -1,9 +1,9 @@
-import { useRoomStore } from '../store/roomStore';
+import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
-import { socket } from '../hooks/useSocket';
+import { socket } from '../../hooks/useSocket';
 import { Wifi, WifiOff, Gamepad2, Crown, MicOff, Check, Loader2, Share2 } from 'lucide-react';
-import { useWebRTC } from '../hooks/useWebRTC';
-import { cn, getGradient } from '../lib/utils';
+import { useWebRTC } from '../../hooks/useWebRTC';
+import { cn, getGradient } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ParticipantList({ variant = 'default' }: { variant?: 'default' | 'waiting-room' }) {

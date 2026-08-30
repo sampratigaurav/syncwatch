@@ -1,9 +1,9 @@
-import { useRoomStore } from '../store/roomStore';
+import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
-import { socket } from '../hooks/useSocket';
-import { EVENTS } from '../../../shared/socketEvents';
+import { socket } from '../../hooks/useSocket';
+import { EVENTS } from '../../../../shared/socketEvents';
 import { Crown, Users, UserPlus } from 'lucide-react';
-import type { ControlPolicy } from '../../../shared/types';
+import type { ControlPolicy } from '../../../../shared/types';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 

@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { X, Trash2, Key, Check, Link2, ShieldCheck, User as UserIcon } from 'lucide-react';
-import { useRoomStore } from '../store/roomStore';
+import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
-import { SERVER_URL } from '../lib/config';
+import { SERVER_URL } from '../../lib/config';
 import { toast } from 'sonner';
-import { app } from '../firebase';
+import { app } from '../../firebase';
 import { getFirestore, collection, query, where, getDocs, doc, setDoc } from 'firebase/firestore';
-import { socket } from '../hooks/useSocket';
+import { socket } from '../../hooks/useSocket';
 
 interface ProfileModalProps {
   isOpen: boolean;

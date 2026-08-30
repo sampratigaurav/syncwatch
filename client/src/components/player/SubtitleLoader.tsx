@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Subtitles, X, Upload, Wand2, Loader2, Minus, Plus } from 'lucide-react';
-import { useRoomStore } from '../store/roomStore';
-import { useSmartSubtitles } from '../hooks/useSmartSubtitles';
-import { parseSubtitles, blocksToVttWithOffset, type SubtitleBlock } from '../lib/subtitleUtils';
+import { useRoomStore } from '../../store/roomStore';
+import { useSmartSubtitles } from '../../hooks/useSmartSubtitles';
+import { parseSubtitles, blocksToVttWithOffset, type SubtitleBlock } from '../../lib/subtitleUtils';
 
 interface SubtitleLoaderProps {
   onSubtitleLoaded: (blobUrl: string) => void;

@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { User, Github } from 'lucide-react';
 import { m, AnimatePresence, LazyMotion, domAnimation } from 'framer-motion';
 import { toast } from 'sonner';
-import { useRoomStore } from '../store/roomStore';
+import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import ProfileModal from './ProfileModal';
 
@@ -52,7 +52,7 @@ export const Header = () => {
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      import('../firebase'),
+      import('../../firebase'),
       import('firebase/auth'),
     ]).then(([{ app }, { getAuth, signInWithPopup, signOut, GoogleAuthProvider }]) => {
       if (!cancelled) {

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
-import { useRoomStore } from '../store/roomStore';
+import { useRoomStore } from '../../store/roomStore';
 import { getAuth, onIdTokenChanged } from 'firebase/auth';
 import { getDatabase, ref, onDisconnect, onValue, set, serverTimestamp } from 'firebase/database';
-import { socket } from '../hooks/useSocket';
+import { socket } from '../../hooks/useSocket';
 import { toast } from 'sonner';
 
 export const AuthSync = () => {
@@ -17,8 +17,8 @@ export const AuthSync = () => {
     const initializeFirebase = async () => {
       try {
         // Dynamically import to prevent Firebase core engine from bloating the anonymous bundle
-        const { app } = await import('../firebase');
-        const { SERVER_URL } = await import('../lib/config');
+        const { app } = await import('../../firebase');
+        const { SERVER_URL } = await import('../../lib/config');
         const auth = getAuth(app);
         const rtdb = getDatabase(app);
 

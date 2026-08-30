@@ -2,13 +2,13 @@ import { Suspense, lazy, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Link2, FileVideo, ShieldCheck, Play, Github, ChevronDown, LayoutDashboard } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
-import { SEO } from '../components/SEO';
+import { SEO } from '../components/layout/SEO';
 
 import { m, LazyMotion, domAnimation, useMotionValue, useMotionTemplate, AnimatePresence } from 'framer-motion';
 import { useMediaQuery } from '../hooks/useMediaQuery';
-import CssOrb from '../components/CssOrb';
+import CssOrb from '../components/layout/CssOrb';
 
-const FloatingAppMockup = lazy(() => import('../components/FloatingAppMockup'));
+const FloatingAppMockup = lazy(() => import('../components/layout/FloatingAppMockup'));
 
 const AmbientBackground = () => (
   <div className="fixed inset-0 pointer-events-none z-0 bg-[#050505] overflow-hidden">

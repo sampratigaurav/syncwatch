@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { SEO } from '../components/SEO';
+import { SEO } from '../components/layout/SEO';
 import { 
   ArrowLeft, FileVideo, ShieldCheck, HelpCircle, 
   Keyboard, Play, ChevronDown, Monitor, CheckCircle2,

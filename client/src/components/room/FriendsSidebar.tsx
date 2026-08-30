@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
-import { useRoomStore } from '../store/roomStore';
+import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { getFirestore, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { getDatabase, ref, onValue } from 'firebase/database';
 import { Users, X, Copy, UserPlus, Inbox, Clock, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SERVER_URL } from '../lib/config';
-import { EmptyState } from './ui/EmptyState';
-import { SkeletonShimmer } from './ui/Skeleton';
+import { SERVER_URL } from '../../lib/config';
+import { EmptyState } from '../ui/EmptyState';
+import { SkeletonShimmer } from '../ui/Skeleton';
 
 interface FriendProfile {
   displayName: string;
@@ -49,7 +49,7 @@ export const FriendsSidebar = () => {
     }
 
     const loadFriends = async () => {
-      const { app } = await import('../firebase');
+      const { app } = await import('../../firebase');
       const db = getFirestore(app);
       const rtdb = getDatabase(app);
 

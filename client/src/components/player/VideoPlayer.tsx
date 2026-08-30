@@ -1,10 +1,10 @@
 import { forwardRef, useState, useEffect, useRef, useCallback } from 'react';
-import { useRoomStore } from '../store/roomStore';
+import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Minimize, Subtitles, Activity, Gauge } from 'lucide-react';
-import { socket } from '../hooks/useSocket';
-import { EVENTS } from '../../../shared/socketEvents';
-import { ReactionButton } from './ReactionButton';
+import { socket } from '../../hooks/useSocket';
+import { EVENTS } from '../../../../shared/socketEvents';
+import { ReactionButton } from '../room/ReactionButton';
 import { StatsForNerds } from './StatsForNerds';
 import SubtitleLoader from './SubtitleLoader';
 import { ProgressBar } from './ProgressBar';
@@ -115,7 +115,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
         internalVideoRef.current.src = '';
         internalVideoRef.current.load();
         
-        import('../lib/torrentManager').then(({ torrentManager }) => {
+        import('../../lib/torrentManager').then(({ torrentManager }) => {
           if (torrentManager.activeTorrent) {
             console.log('Torrent already active (seeding). Rendering directly.');
             torrentManager.renderTo(internalVideoRef.current!);

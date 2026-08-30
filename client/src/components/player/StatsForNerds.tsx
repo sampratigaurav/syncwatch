@@ -1,5 +1,5 @@
 import { Activity, Wifi, Clock, Server } from 'lucide-react';
-import { useRoomStore } from '../store/roomStore';
+import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 
 interface StatsForNerdsProps {

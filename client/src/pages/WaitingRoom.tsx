@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { SEO } from '../components/SEO';
+import { SEO } from '../components/layout/SEO';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useSocket } from '../hooks/useSocket';
 import { useFileVerify } from '../hooks/useFileVerify';
 import { useNavigate, useParams } from 'react-router-dom';
-import ParticipantList from '../components/ParticipantList';
-import ControlPolicySelector from '../components/ControlPolicySelector';
+import ParticipantList from '../components/room/ParticipantList';
+import ControlPolicySelector from '../components/room/ControlPolicySelector';
 import { Copy, Check, AlertTriangle, Loader2, WifiOff, Lock, Link2, UploadCloud, Ticket, Link as LinkIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { socket } from '../hooks/useSocket';

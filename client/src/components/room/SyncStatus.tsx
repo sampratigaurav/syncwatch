@@ -1,4 +1,4 @@
-import { useRoomStore } from '../store/roomStore';
+import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Activity, Clock } from 'lucide-react';
 import clsx from 'clsx';

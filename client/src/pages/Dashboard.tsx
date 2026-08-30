@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { SEO } from '../components/SEO';
+import { SEO } from '../components/layout/SEO';
 import { Link2, Lock, Unlock, Eye, EyeOff } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
