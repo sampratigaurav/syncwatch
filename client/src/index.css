@@ -3,6 +3,7 @@
 @theme {
   --breakpoint-tablet: 481px;
   --breakpoint-desktop: 1025px;
+  --font-serif: "Cormorant Garamond", "Playfair Display", Georgia, serif;
 }
 
 @layer base {

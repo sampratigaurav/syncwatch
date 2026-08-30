@@ -138,7 +138,7 @@ const SpotlightCard = ({ step, index }: { step: typeof STEPS[0], index: number }
 
 const FeatureBentoGrid = () => {
   return (
-    <section aria-label="Features" className="w-full max-w-[1200px] mx-auto mt-20 tablet:mt-32 relative z-10 pb-16 tablet:pb-24 px-4 sm:px-6 tablet:px-8">
+    <section id="how-it-works" aria-label="Features" className="w-full max-w-[1200px] mx-auto mt-20 tablet:mt-32 relative z-10 pb-16 tablet:pb-24 px-4 sm:px-6 tablet:px-8">
       <div className="text-center mb-12 tablet:mb-24">
         <h2 className="text-3xl tablet:text-5xl font-bold tracking-tight text-white mb-4">How it works</h2>
         <p className="text-base tablet:text-lg text-zinc-400">From your file to in sync — in under 30 seconds</p>
@@ -180,7 +180,7 @@ const FAQAccordion = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section aria-label="FAQ" className="w-full max-w-[800px] mx-auto mt-20 tablet:mt-32 mb-12 tablet:mb-16 px-4 sm:px-6 tablet:px-8 relative z-10">
+    <section id="faq" aria-label="FAQ" className="w-full max-w-[800px] mx-auto mt-20 tablet:mt-32 mb-12 tablet:mb-16 px-4 sm:px-6 tablet:px-8 relative z-10">
       <div className="text-center mb-12 tablet:mb-16">
         <h2 className="text-3xl tablet:text-5xl font-bold tracking-tight text-white mb-4">Got questions?</h2>
         <p className="text-base tablet:text-lg text-zinc-400">Everything you need to know about SyncWatch</p>
@@ -254,7 +254,7 @@ export default function Home() {
       <AmbientBackground />
       
       {/* Main Content Area */}
-      <main className="relative z-10 w-full max-w-[1200px] flex flex-col items-center px-4 sm:px-6 tablet:px-8 pt-8 tablet:pt-16">
+      <main id="features" className="relative z-10 w-full max-w-[1200px] flex flex-col items-center px-4 sm:px-6 tablet:px-8 pt-8 tablet:pt-16">
           
         {/* Row 1: Full-Width Centered Typography */}
         <m.div 
