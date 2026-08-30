@@ -84,13 +84,27 @@ export const Header = () => {
       .catch(() => toast.error('Failed to logout'));
   };
 
+  // Close profile dropdown on Escape key or outside click
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsProfileDropdownOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   return (
     <LazyMotion features={domAnimation}>
       <header className="sticky top-0 w-full z-50 bg-[#09100f] border-b border-white/[0.06] font-sans">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 sm:px-10 h-[60px]">
 
           {/* Left: Brand logomark + Wordmark */}
-          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
+          <Link 
+            to="/" 
+            className="flex items-center gap-2.5 group shrink-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] p-1 -m-1"
+          >
             <img
               src="/logo.png"
               alt="SyncWatch logo"
@@ -103,10 +117,11 @@ export const Header = () => {
             </span>
           </Link>
 
-          {/* Center: Navigation links with magic hover pill */}
+          {/* Center: Navigation links with magic hover/focus pill */}
           <nav
             className="hidden tablet:flex items-center gap-1"
             onMouseLeave={() => setHoveredNav(null)}
+            aria-label="Main navigation"
           >
             {([
               { id: 'features-btn',    label: 'Features',     action: () => scrollToSection('features') },
@@ -130,14 +145,16 @@ export const Header = () => {
                 )}
                 <button
                   onClick={action}
-                  className="relative z-10 px-3.5 py-1.5 text-[14px] font-normal transition-colors duration-150 text-[#9ca3af] hover:text-[#22d3a5]"
+                  onFocus={() => setHoveredNav(id)}
+                  onBlur={() => setHoveredNav(null)}
+                  className="relative z-10 px-3.5 py-1.5 text-[14px] font-normal transition-colors duration-150 text-[#9ca3af] hover:text-[#22d3a5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] rounded-lg"
                 >
                   {label}
                 </button>
               </div>
             ))}
 
-            {/* Docs — router link, same hover treatment */}
+            {/* Docs — router link, same hover/focus treatment */}
             <div
               className="relative"
               onMouseEnter={() => setHoveredNav('docs-btn')}
@@ -154,7 +171,9 @@ export const Header = () => {
               )}
               <Link
                 to="/docs"
-                className="relative z-10 block px-3.5 py-1.5 text-[14px] font-normal transition-colors duration-150 text-[#9ca3af] hover:text-[#22d3a5]"
+                onFocus={() => setHoveredNav('docs-btn')}
+                onBlur={() => setHoveredNav(null)}
+                className="relative z-10 block px-3.5 py-1.5 text-[14px] font-normal transition-colors duration-150 text-[#9ca3af] hover:text-[#22d3a5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] rounded-lg"
               >
                 Docs
               </Link>
@@ -168,26 +187,30 @@ export const Header = () => {
               href="https://github.com/sampratigaurav/syncwatch"
               target="_blank"
               rel="noreferrer"
-              aria-label="Star SyncWatch on GitHub"
-              className="group flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/10 hover:border-white/25 bg-white/[0.03] hover:bg-white/[0.07] transition-all duration-200 text-zinc-400 hover:text-white"
+              aria-label="Star SyncWatch repository on GitHub"
+              className="group flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/10 hover:border-white/25 bg-white/[0.03] hover:bg-white/[0.07] transition-all duration-200 text-zinc-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
             >
-              <Github className="w-4 h-4" />
+              <Github className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:block text-[13px] font-normal tracking-wide">Star</span>
             </a>
 
             {isAuthLoading ? (
-              <div className="w-36 h-9 bg-white/5 animate-pulse rounded-full" />
+              <div className="w-36 h-9 bg-white/5 animate-pulse rounded-full" aria-busy="true" aria-label="Loading authentication status" />
             ) : firebaseUid ? (
               <div className="relative">
                 <button
                   onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
-                  className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.07] transition-all duration-200 text-sm font-medium text-white"
+                  aria-expanded={isProfileDropdownOpen}
+                  aria-haspopup="menu"
+                  aria-controls="profile-menu"
+                  aria-label="User profile options menu"
+                  className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.07] transition-all duration-200 text-sm font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
                 >
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" className="w-5 h-5 rounded-full" />
+                    <img src={avatarUrl} alt="" className="w-5 h-5 rounded-full" aria-hidden="true" />
                   ) : (
-                    <div className="w-5 h-5 rounded-full bg-[#22d3a5]/20 flex items-center justify-center">
-                      <User className="w-3 h-3 text-[#22d3a5]" />
+                    <div className="w-5 h-5 rounded-full bg-[#22d3a5]/20 flex items-center justify-center" aria-hidden="true">
+                      <User className="w-3 h-3 text-[#22d3a5]" aria-hidden="true" />
                     </div>
                   )}
                   <span className="max-w-[100px] truncate">
@@ -198,6 +221,10 @@ export const Header = () => {
                 <AnimatePresence>
                   {isProfileDropdownOpen && (
                     <m.div
+                      id="profile-menu"
+                      role="menu"
+                      aria-orientation="vertical"
+                      aria-label="User profile options"
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 8 }}
@@ -205,14 +232,16 @@ export const Header = () => {
                       className="absolute right-0 mt-2 w-48 bg-[#111111] border border-white/10 rounded-xl shadow-2xl overflow-hidden py-1 z-50"
                     >
                       <button
+                        role="menuitem"
                         onClick={() => { setIsProfileDropdownOpen(false); setIsProfileOpen(true); }}
-                        className="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:text-white hover:bg-white/5 transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:text-white hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] focus-visible:ring-inset"
                       >
                         My Profile
                       </button>
                       <button
+                        role="menuitem"
                         onClick={() => { setIsProfileDropdownOpen(false); handleLogout(); }}
-                        className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors"
+                        className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] focus-visible:ring-inset"
                       >
                         Sign Out
                       </button>
@@ -223,12 +252,13 @@ export const Header = () => {
             ) : (
               <button
                 onClick={handleLogin}
-                className="group relative flex items-center gap-2.5 px-5 py-2 rounded-full border border-white/[0.12] hover:border-white/25 bg-white/[0.04] hover:bg-white/[0.08] text-white text-[13.5px] font-medium transition-all duration-200 active:scale-[0.97] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)]"
+                aria-label="Sign in with Google"
+                className="group relative flex items-center gap-2.5 px-5 py-2 rounded-full border border-white/[0.12] hover:border-white/25 bg-white/[0.04] hover:bg-white/[0.08] text-white text-[13.5px] font-medium transition-all duration-200 active:scale-[0.97] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
               >
                 {/* Subtle shimmer on hover */}
-                <span className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" />
+                <span className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" aria-hidden="true" />
                 {/* Google G logo */}
-                <svg className="relative w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg className="relative w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
