@@ -1,7 +1,7 @@
 import { forwardRef, useState, useEffect, useRef, useCallback } from 'react';
 import { useRoomStore } from '../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
-import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Minimize, Subtitles, Activity } from 'lucide-react';
+import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Minimize, Subtitles, Activity, Gauge } from 'lucide-react';
 import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import { ReactionButton } from './ReactionButton';
@@ -143,6 +143,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [showStats, setShowStats] = useState(false);
     const [showSubtitleMenu, setShowSubtitleMenu] = useState(false);
+    const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+    const [playbackRate, setPlaybackRate] = useState(1);
     
     // Controls visibility
     const [showControls, setShowControls] = useState(true);
@@ -152,9 +154,9 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       setShowControls(true);
       if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
       controlsTimeoutRef.current = setTimeout(() => {
-        if (isPlaying) setShowControls(false);
+        if (isPlaying && !showSubtitleMenu && !showSpeedMenu) setShowControls(false);
       }, 3000);
-    }, [isPlaying]);
+    }, [isPlaying, showSubtitleMenu, showSpeedMenu]);
 
     useEffect(() => {
       resetControlsTimeout();
@@ -218,15 +220,10 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     };
 
     const handleRateChange = () => {
+      if (internalVideoRef.current) {
+        setPlaybackRate(internalVideoRef.current.playbackRate);
+      }
       if (hasControl && internalVideoRef.current) {
-        // Prevent broadcasting automated drift correction adjustments
-        // We assume manual changes are significant (e.g. 1.0 -> 1.25)
-        // or we check if the user physically changed it... wait, it's safer to just emit if hasControl
-        // Actually, only hosts/controllers emit sync events. If a host changes rate, they broadcast it.
-        // Wait, if host is correcting their own drift? Hosts don't do drift correction. 
-        // Only viewers do drift correction. So if a viewer has control (policy = everyone) and changes rate, they emit.
-        // But if they are currently having their rate changed by drift correction... that's tricky.
-        // Let's just emit if we have control.
         socket.emit(EVENTS.PLAYBACK_EVENT, {
           action: 'playback_rate_change',
           currentTime: internalVideoRef.current.currentTime,
@@ -234,6 +231,15 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           playbackRate: internalVideoRef.current.playbackRate
         });
       }
+    };
+
+    const changePlaybackSpeed = (rate: number) => {
+      if (!hasControl) return;
+      if (internalVideoRef.current) {
+        internalVideoRef.current.playbackRate = rate;
+        setPlaybackRate(rate);
+      }
+      setShowSpeedMenu(false);
     };
 
     // UI Actions
@@ -412,15 +418,15 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           </div>
         )}
 
-        {/* Controls Overlay */}
+        {/* Controls Overlay (Floating over gradient scrim) */}
         <div 
           className={cn(
-            "absolute z-50 bottom-4 left-4 right-4 tablet:bottom-8 tablet:left-1/2 tablet:-translate-x-1/2 tablet:w-[90%] tablet:max-w-4xl px-4 py-3 tablet:px-6 tablet:py-4 bg-zinc-950/70 backdrop-blur-2xl border border-white/10 rounded-2xl tablet:rounded-3xl transition-all duration-500 flex flex-col gap-2 tablet:gap-3 shadow-[0_20px_50px_rgba(0,0,0,0.6)]",
-            showControls || showSubtitleMenu ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+            "absolute inset-x-0 bottom-0 z-50 pt-16 pb-4 tablet:pb-6 px-4 tablet:px-8 bg-gradient-to-t from-black/90 via-black/50 to-transparent transition-all duration-300 flex flex-col gap-2 tablet:gap-3 pointer-events-auto",
+            showControls || showSubtitleMenu || showSpeedMenu ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
           )}
         >
           
-          {/* Progress Bar (scrubber) and Mobile Time Display */}
+          {/* Progress Bar (scrubber) */}
           <ProgressBar 
             videoRef={internalVideoRef} 
             hasControl={hasControl} 
@@ -428,7 +434,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
           />
 
           <div className="flex items-center justify-between mt-1 tablet:mt-0 px-1 tablet:px-0">
-            <div className="flex items-center gap-1 tablet:gap-4">
+            <div className="flex items-center gap-1.5 tablet:gap-4">
               {/* Skip Back */}
               <motion.button 
                  whileTap={hasControl ? { scale: 0.85 } : {}}
@@ -437,26 +443,27 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                  aria-label="Skip back 10 seconds"
                  title="Skip back 10 seconds"
                  className={cn(
-                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
-                  !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
+                  "w-10 h-10 tablet:w-9 tablet:h-9 flex items-center justify-center text-white/90 hover:text-[#22d3a5] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]/70 rounded-full hover:bg-white/10",
+                  !hasControl && "opacity-50 hover:text-white cursor-not-allowed hover:bg-transparent"
                 )}
               >
-                 <RotateCcw className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />
+                 <RotateCcw className="w-5 h-5 tablet:w-4 tablet:h-4" aria-hidden="true" />
               </motion.button>
 
               {/* Playback Toggle */}
               <motion.button 
                 whileTap={hasControl ? { scale: 0.85 } : {}}
+                whileHover={hasControl ? { scale: 1.08 } : {}}
                 onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                 disabled={!hasControl}
                 aria-label={isPlaying ? 'Pause' : 'Play'}
                 title={isPlaying ? 'Pause' : 'Play'}
                 className={cn(
-                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
-                  !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
+                  "w-11 h-11 tablet:w-10 tablet:h-10 flex items-center justify-center text-white hover:text-[#22d3a5] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]/70 rounded-full bg-white/10 hover:bg-white/20 shadow-[0_0_15px_rgba(34,211,165,0.2)]",
+                  !hasControl && "opacity-50 hover:text-white cursor-not-allowed hover:bg-white/10"
                 )}
               >
-                {isPlaying ? <Pause className="w-8 h-8 tablet:w-6 tablet:h-6 fill-current" aria-hidden="true" /> : <Play className="w-8 h-8 tablet:w-6 tablet:h-6 fill-current pl-1 tablet:pl-0" aria-hidden="true" />}
+                {isPlaying ? <Pause className="w-6 h-6 tablet:w-5 tablet:h-5 fill-current" aria-hidden="true" /> : <Play className="w-6 h-6 tablet:w-5 tablet:h-5 fill-current pl-0.5" aria-hidden="true" />}
               </motion.button>
 
               {/* Skip Forward */}
@@ -467,11 +474,11 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                  aria-label="Skip forward 10 seconds"
                  title="Skip forward 10 seconds"
                  className={cn(
-                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
-                  !hasControl && "opacity-50 hover:text-white cursor-not-allowed"
+                  "w-10 h-10 tablet:w-9 tablet:h-9 flex items-center justify-center text-white/90 hover:text-[#22d3a5] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]/70 rounded-full hover:bg-white/10",
+                  !hasControl && "opacity-50 hover:text-white cursor-not-allowed hover:bg-transparent"
                 )}
               >
-                 <RotateCw className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />
+                 <RotateCw className="w-5 h-5 tablet:w-4 tablet:h-4" aria-hidden="true" />
               </motion.button>
 
               {/* Volume Slider - Unlocked for Viewer */}
@@ -481,9 +488,9 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                   onClick={(e) => { e.stopPropagation(); toggleMute(); }}
                   aria-label={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
                   title={isMuted || volume === 0 ? 'Unmute' : 'Mute'}
-                  className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded"
+                  className="w-10 h-10 tablet:w-9 tablet:h-9 flex items-center justify-center text-white/90 hover:text-[#22d3a5] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]/70 rounded-full hover:bg-white/10"
                 >
-                  {isMuted || volume === 0 ? <VolumeX className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" /> : <Volume2 className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />}
+                  {isMuted || volume === 0 ? <VolumeX className="w-5 h-5 tablet:w-4 tablet:h-4" aria-hidden="true" /> : <Volume2 className="w-5 h-5 tablet:w-4 tablet:h-4" aria-hidden="true" />}
                 </motion.button>
                 <input 
                   type="range"
@@ -493,7 +500,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                   value={isMuted ? 0 : volume}
                   onChange={handleVolume}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-0 opacity-0 group-hover/volume:w-20 group-hover/volume:opacity-100 transition-all duration-300 origin-left accent-teal-500 cursor-pointer hidden tablet:block"
+                  aria-label="Volume slider"
+                  className="w-0 opacity-0 group-hover/volume:w-20 group-hover/volume:opacity-100 transition-all duration-300 origin-left accent-[#22d3a5] cursor-pointer hidden tablet:block"
                 />
               </div>
 
@@ -501,7 +509,60 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
               <TimeDisplay videoRef={internalVideoRef} duration={duration} />
             </div>
 
-            <div className="flex items-center gap-1 tablet:gap-4">
+            <div className="flex items-center gap-1.5 tablet:gap-3">
+              {/* Playback Speed Menu */}
+              <div className="relative">
+                <AnimatePresence>
+                  {showSpeedMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="absolute bottom-full right-0 mb-3 w-36 bg-zinc-950/95 backdrop-blur-xl border border-zinc-800 rounded-xl shadow-2xl overflow-hidden p-1.5 origin-bottom-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 border-b border-zinc-800 mb-1">
+                        Speed
+                      </div>
+                      {[0.5, 0.75, 1, 1.25, 1.5, 2].map((spd) => (
+                        <button
+                          key={spd}
+                          onClick={() => changePlaybackSpeed(spd)}
+                          className={cn(
+                            "w-full text-left px-2.5 py-1.5 text-xs rounded-md transition-colors flex items-center justify-between font-sans",
+                            playbackRate === spd
+                              ? "bg-[#22d3a5]/15 text-[#22d3a5] font-semibold"
+                              : "text-zinc-300 hover:bg-white/10 hover:text-white"
+                          )}
+                        >
+                          <span>{spd === 1 ? 'Normal' : `${spd}x`}</span>
+                          {playbackRate === spd && <div className="w-1.5 h-1.5 rounded-full bg-[#22d3a5]" />}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowSubtitleMenu(false);
+                    setShowSpeedMenu(!showSpeedMenu);
+                  }}
+                  aria-label="Playback speed menu"
+                  title="Playback Speed"
+                  className={cn(
+                    "w-10 h-10 tablet:w-9 tablet:h-9 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]/70 rounded-full hover:bg-white/10 relative",
+                    playbackRate !== 1 ? "text-[#22d3a5] font-medium" : "text-white/80 hover:text-white"
+                  )}
+                >
+                  <Gauge className="w-5 h-5 tablet:w-4 tablet:h-4" aria-hidden="true" />
+                  {playbackRate !== 1 && (
+                    <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#22d3a5] rounded-full" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
+
               {/* Subtitles Menu Wrapper */}
               <div className="relative">
                 {/* The Popover */}
@@ -512,7 +573,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
                     transition={{ duration: 0.15, ease: "easeOut" }}
-                    className="absolute bottom-full right-0 mb-4 w-[280px] tablet:w-72 bg-zinc-950/95 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden p-4 origin-bottom-right"
+                    className="absolute bottom-full right-0 mb-3 w-[280px] tablet:w-72 bg-zinc-950/95 backdrop-blur-xl border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden p-4 origin-bottom-right"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <div className="flex items-center justify-between mb-4">
@@ -525,8 +586,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                           aria-label="Toggle subtitles"
                           title={subtitleEnabled ? "Disable subtitles" : "Enable subtitles"}
                           className={cn(
-                            "w-10 h-5 rounded-full relative transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
-                            subtitleEnabled ? "bg-teal-500" : "bg-zinc-700"
+                            "w-10 h-5 rounded-full relative transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
+                            subtitleEnabled ? "bg-[#22d3a5]" : "bg-zinc-700"
                           )}
                         >
                           <div className={cn(
@@ -551,19 +612,20 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 </AnimatePresence>
                 <button 
                   onClick={(e) => { 
-                     e.stopPropagation(); 
+                     e.stopPropagation();
+                     setShowSpeedMenu(false);
                      setShowSubtitleMenu(!showSubtitleMenu);
                   }}
                   aria-label="Subtitles menu"
                   title="Subtitles"
                   className={cn(
-                    "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded group relative",
-                    subtitleEnabled ? "text-teal-400" : "text-white/80 hover:text-white"
+                    "w-10 h-10 tablet:w-9 tablet:h-9 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]/70 rounded-full hover:bg-white/10 group relative",
+                    subtitleEnabled ? "text-[#22d3a5]" : "text-white/80 hover:text-white"
                   )}
                 >
-                  <Subtitles className="w-6 h-6 tablet:w-6 tablet:h-6 drop-shadow" aria-hidden="true" />
+                  <Subtitles className="w-5 h-5 tablet:w-4 tablet:h-4 drop-shadow" aria-hidden="true" />
                   {subtitleEnabled && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-teal-400 rounded-full" aria-hidden="true" />
+                    <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#22d3a5] rounded-full" aria-hidden="true" />
                   )}
                 </button>
               </div>
@@ -573,11 +635,11 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 aria-label="Toggle Stats for Nerds"
                 title="Toggle Stats for Nerds"
                 className={cn(
-                  "w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded",
-                  showStats ? "text-teal-400" : "text-white [.light_&]:text-zinc-600 hover:text-teal-400 [.light_&]:hover:text-teal-500"
+                  "w-10 h-10 tablet:w-9 tablet:h-9 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]/70 rounded-full hover:bg-white/10",
+                  showStats ? "text-[#22d3a5]" : "text-white/80 hover:text-[#22d3a5]"
                 )}
               >
-                <Activity className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />
+                <Activity className="w-5 h-5 tablet:w-4 tablet:h-4" aria-hidden="true" />
               </button>
 
               <ReactionButton 
@@ -589,9 +651,9 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
                 aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
                 title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-                className="w-11 h-11 tablet:w-auto tablet:h-auto flex items-center justify-center text-white hover:text-teal-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70 rounded pr-2 tablet:pr-0"
+                className="w-10 h-10 tablet:w-9 tablet:h-9 flex items-center justify-center text-white/80 hover:text-[#22d3a5] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]/70 rounded-full hover:bg-white/10"
               >
-                {isFullscreen ? <Minimize className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" /> : <Maximize className="w-6 h-6 tablet:w-5 tablet:h-5" aria-hidden="true" />}
+                {isFullscreen ? <Minimize className="w-5 h-5 tablet:w-4 tablet:h-4" aria-hidden="true" /> : <Maximize className="w-5 h-5 tablet:w-4 tablet:h-4" aria-hidden="true" />}
               </button>
             </div>
           </div>

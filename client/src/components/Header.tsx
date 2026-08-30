@@ -86,16 +86,19 @@ export const Header = () => {
 
   return (
     <LazyMotion features={domAnimation}>
-      <header className="sticky top-0 w-full z-50 bg-[#09100f] border-b border-white/[0.06]">
+      <header className="sticky top-0 w-full z-50 bg-[#09100f] border-b border-white/[0.06] font-sans">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 sm:px-10 h-[60px]">
 
-          {/* Left: Play icon + Wordmark */}
+          {/* Left: Brand logomark + Wordmark */}
           <Link to="/" className="flex items-center gap-2.5 group shrink-0">
-            {/* Teal play triangle */}
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-              <path d="M4 3L15 9L4 15V3Z" fill="#22d3a5" />
-            </svg>
-            <span className="text-[15px] font-medium text-white tracking-[-0.01em] leading-none">
+            <img
+              src="/logo.png"
+              alt="SyncWatch logo"
+              width={34}
+              height={34}
+              className="shrink-0 rounded-[6px]"
+            />
+            <span className="text-[16px] font-semibold text-white tracking-[0.01em] leading-none">
               SyncWatch
             </span>
           </Link>

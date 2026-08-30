@@ -234,6 +234,63 @@ const FAQAccordion = () => {
   );
 };
 
+
+// ─── Hero CTA: magnetic button with cursor-tracking spotlight ───────────────
+const HeroCTA = ({ firebaseUid }: { firebaseUid: boolean }) => {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const spotlight = useMotionTemplate`radial-gradient(120px circle at ${mouseX}px ${mouseY}px, rgba(34,211,165,0.18) 0%, transparent 80%)`;
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
+  };
+
+  return (
+    <m.a
+      href="/dashboard"
+      onMouseMove={handleMouseMove}
+      whileHover={{ scale: 1.04 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      className="group relative flex items-center gap-2.5 px-8 py-3.5 bg-white text-zinc-950 rounded-full font-semibold overflow-hidden shadow-[0_0_0_1px_rgba(255,255,255,0.15),0_8px_40px_-8px_rgba(255,255,255,0.25)] cursor-pointer select-none"
+    >
+      {/* Cursor-tracking teal spotlight */}
+      <m.span
+        className="pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{ background: spotlight }}
+      />
+
+      {/* Shimmer sweep on hover */}
+      <span className="pointer-events-none absolute inset-0 rounded-full overflow-hidden">
+        <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      </span>
+
+      {/* Hover glow ring */}
+      <span className="pointer-events-none absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-[0_0_28px_6px_rgba(34,211,165,0.35)]" />
+
+      {/* Content */}
+      <span className="relative z-10 flex items-center gap-2.5">
+        <m.span
+          className="flex items-center"
+          animate={{ rotate: 0 }}
+          whileHover={{ rotate: 15 }}
+          transition={{ type: 'spring', stiffness: 300 }}
+        >
+          {firebaseUid
+            ? <LayoutDashboard size={17} className="text-zinc-900" />
+            : <Play size={17} className="fill-zinc-900 text-zinc-900" />}
+        </m.span>
+        <span className="text-zinc-900">
+          {firebaseUid ? 'Go to Dashboard' : 'Start Watching'}
+        </span>
+      </span>
+    </m.a>
+  );
+};
+
 export default function Home() {
   const firebaseUid = useRoomStore(state => state.firebaseUid);
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -263,20 +320,14 @@ export default function Home() {
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="opacity-0 -translate-y-5 flex flex-col items-center w-full mb-10 tablet:mb-16"
         >
-          <h2 className="text-4xl sm:text-5xl tablet:text-6xl lg:text-[4.5rem] font-bold text-white pb-4 tracking-tight leading-[1.1] text-center max-w-5xl drop-shadow-2xl">
+          <h2 className="font-sans text-4xl sm:text-5xl tablet:text-6xl lg:text-[4.5rem] font-bold text-white pb-4 tracking-tight leading-[1.1] text-center max-w-5xl drop-shadow-2xl">
             Watch together.<br className="hidden tablet:block" /> In perfect sync.
           </h2>
-          <p className="text-base sm:text-lg tablet:text-xl text-center max-w-none mb-8 px-2 sm:px-0">
+          <p className="text-base sm:text-lg tablet:text-xl text-center max-w-none mb-8 px-2 sm:px-0 text-zinc-500">
             Experience movies and shows with your friends in real-time, no matter where they are.
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-4">
-            <Link 
-              to="/dashboard"
-              className="group relative flex items-center gap-2 px-8 py-3.5 bg-white text-zinc-950 hover:bg-zinc-100 rounded-full font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)]"
-            >
-              {firebaseUid ? <LayoutDashboard size={18} className="text-zinc-950" /> : <Play size={18} className="fill-current" />}
-              <span>{firebaseUid ? "Go to Dashboard" : "Start Watching"}</span>
-            </Link>
+            <HeroCTA firebaseUid={!!firebaseUid} />
           </div>
         </m.div>
 

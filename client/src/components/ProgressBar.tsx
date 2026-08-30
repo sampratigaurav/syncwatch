@@ -69,7 +69,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ videoRef, hasControl, 
       </div>
 
       {/* Progress Bar (scrubber) */}
-      <div className="relative group/scrubber flex items-center w-full h-10 tablet:h-4 cursor-pointer">
+      <div className="relative group/scrubber flex items-center w-full h-8 tablet:h-6 cursor-pointer">
         <input 
           type="range"
           min={0}
@@ -78,20 +78,23 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ videoRef, hasControl, 
           value={time}
           onChange={handleSeek}
           disabled={!hasControl}
-          className="absolute inset-0 w-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+          aria-label="Seek slider"
+          className="absolute inset-0 w-full opacity-0 cursor-pointer z-20 disabled:cursor-not-allowed"
         />
         {/* Base track */}
-        <div className="absolute w-full h-[6px] tablet:h-[4px] bg-white/20 rounded-full group-hover/scrubber:h-[12px] tablet:group-hover/scrubber:h-[8px] transition-all duration-200" />
+        <div className="absolute w-full h-[4px] bg-white/20 rounded-full group-hover/scrubber:h-[6px] transition-all duration-200" />
+        
         {/* Fill track */}
         <div 
           ref={fillRef}
-          className="absolute h-[6px] tablet:h-[4px] bg-teal-500 rounded-full group-hover/scrubber:h-[12px] tablet:group-hover/scrubber:h-[8px] transition-all duration-200 shadow-[0_0_15px_rgba(20,184,166,0.8)]" 
+          className="absolute h-[4px] bg-[#22d3a5] rounded-full group-hover/scrubber:h-[6px] transition-all duration-200 shadow-[0_0_12px_rgba(34,211,165,0.7)]" 
           style={{ width: '0%' }}
         />
-        {/* Scrubber dot */}
+        
+        {/* Glowing Scrubber thumb */}
         <div 
           ref={dotRef}
-          className="absolute h-5 w-5 tablet:h-4 tablet:w-4 bg-white rounded-full tablet:scale-0 group-hover/scrubber:scale-100 transition-transform -ml-2.5 tablet:-ml-2 z-0 shadow-lg" 
+          className="absolute h-4 w-4 bg-white border-2 border-[#22d3a5] rounded-full scale-75 group-hover/scrubber:scale-125 transition-transform duration-200 -ml-2 z-10 shadow-[0_0_14px_rgba(34,211,165,0.9)]" 
           style={{ left: '0%' }}
         />
       </div>
