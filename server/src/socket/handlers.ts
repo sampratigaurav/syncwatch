@@ -432,11 +432,13 @@ export const setupSocketHandlers = (io: Server) => {
       }
 
       // Validate playbackRate if provided (must be finite number between 0.25 and 4.0)
-      if (payload.playbackRate !== undefined) {
+      if (payload.playbackRate !== undefined && payload.playbackRate !== null) {
         if (typeof payload.playbackRate !== 'number' || !Number.isFinite(payload.playbackRate) || payload.playbackRate < 0.25 || payload.playbackRate > 4) {
           socket.emit('error', { message: 'Invalid playback rate' });
           return;
         }
+      } else {
+        delete (payload as any).playbackRate;
       }
 
       room.playback.currentTime = payload.currentTime;
@@ -735,7 +737,7 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(EVENTS.WEBRTC_ICE_CANDIDATE, async (payload: { candidate: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
-      if (typeof payload.candidate !== 'object') return;
+      if (payload.candidate !== null && typeof payload.candidate !== 'object') return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ICE_CANDIDATE, {
         candidate: payload.candidate,
