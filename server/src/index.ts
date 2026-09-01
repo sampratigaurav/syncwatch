@@ -184,15 +184,23 @@ let pubClient: ReturnType<typeof createClient>;
 let subClient: ReturnType<typeof createClient>;
 
 (async () => {
-  pubClient = createClient({ url: process.env.REDIS_URL });
-  subClient = pubClient.duplicate();
+  if (process.env.REDIS_URL) {
+    try {
+      pubClient = createClient({ url: process.env.REDIS_URL });
+      subClient = pubClient.duplicate();
 
-  pubClient.on('error', (err) => logger.error('Redis pub error:', err));
-  subClient.on('error', (err) => logger.error('Redis sub error:', err));
+      pubClient.on('error', (err) => logger.error('Redis pub error:', err));
+      subClient.on('error', (err) => logger.error('Redis sub error:', err));
 
-  await Promise.all([pubClient.connect(), subClient.connect()]);
-
-  io.adapter(createAdapter(pubClient, subClient));
+      await Promise.all([pubClient.connect(), subClient.connect()]);
+      io.adapter(createAdapter(pubClient, subClient));
+      logger.info('Connected to Redis and initialized Redis adapter.');
+    } catch (err) {
+      logger.warn('Failed to connect to Redis. Falling back to default in-memory Socket.io adapter.', err);
+    }
+  } else {
+    logger.info('REDIS_URL not configured. Operating with default in-memory Socket.io adapter.');
+  }
 
   setupSocketHandlers(io);
 

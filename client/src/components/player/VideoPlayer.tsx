@@ -52,16 +52,14 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     const rafRef = useRef<number | null>(null);
 
     // Theater Mode Loop
-    useEffect(() => {
-      if (!internalVideoRef.current || !canvasRef.current) return;
+    const startTheaterLoop = useCallback(() => {
+      if (rafRef.current !== null || !internalVideoRef.current || !canvasRef.current) return;
       const video = internalVideoRef.current;
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d', { alpha: false });
+      const ctx = canvasRef.current.getContext('2d', { alpha: false });
       if (!ctx) return;
 
       let lastDrawTime = 0;
-      const fps = 15;
-      const frameInterval = 1000 / fps;
+      const frameInterval = 1000 / 15;
 
       const drawFrame = (time: number) => {
         if (document.visibilityState === 'hidden' || video.paused || video.ended) {
@@ -80,15 +78,20 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
         rafRef.current = requestAnimationFrame(drawFrame);
       };
 
-      // Only start if playing initially
-      if (!video.paused) {
-        rafRef.current = requestAnimationFrame(drawFrame);
-      }
-
-      return () => {
-        if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-      };
+      rafRef.current = requestAnimationFrame(drawFrame);
     }, []);
+
+    useEffect(() => {
+      if (internalVideoRef.current && !internalVideoRef.current.paused) {
+        startTheaterLoop();
+      }
+      return () => {
+        if (rafRef.current !== null) {
+          cancelAnimationFrame(rafRef.current);
+          rafRef.current = null;
+        }
+      };
+    }, [startTheaterLoop]);
     
     // Sync external ref
     const setRefs = useCallback(
@@ -181,30 +184,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
       setIsPlaying(true);
       onPlay();
       resetControlsTimeout();
-
-      // Restart theater mode canvas loop
-      if (rafRef.current === null && internalVideoRef.current && canvasRef.current) {
-        const video = internalVideoRef.current;
-        const ctx = canvasRef.current.getContext('2d', { alpha: false });
-        if (ctx) {
-           let lastDrawTime = 0;
-           const frameInterval = 1000 / 15;
-           const drawFrame = (time: number) => {
-              if (document.visibilityState === 'hidden' || video.paused || video.ended) {
-                rafRef.current = null;
-                return;
-              }
-              if (time - lastDrawTime >= frameInterval) {
-                try {
-                  ctx.drawImage(video, 0, 0, 64, 36);
-                  lastDrawTime = time;
-                } catch (e) {}
-              }
-              rafRef.current = requestAnimationFrame(drawFrame);
-           };
-           rafRef.current = requestAnimationFrame(drawFrame);
-        }
-      }
+      startTheaterLoop();
     };
 
     const handleNativePause = () => {
