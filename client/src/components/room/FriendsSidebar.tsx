@@ -3,7 +3,7 @@ import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { getFirestore, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { getDatabase, ref, onValue } from 'firebase/database';
-import { Users, X, Copy, UserPlus, Inbox, Clock, Check } from 'lucide-react';
+import { Users, X, Copy, UserPlus, Inbox, Clock, Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SERVER_URL } from '../../lib/config';
@@ -246,11 +246,16 @@ export const FriendsSidebar = () => {
                   />
                   <button 
                     aria-label="Send Friend Request"
+                    aria-busy={isSubmitting}
                     onClick={handleSendRequest}
                     disabled={isSubmitting || !addFriendCode}
                     className="relative px-4 bg-teal-600 hover:bg-teal-500 text-white rounded-xl transition-all disabled:opacity-50 disabled:hover:bg-teal-600 shadow-lg active:scale-95 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
                   >
-                    <UserPlus size={20} aria-hidden="true" />
+                    {isSubmitting ? (
+                      <Loader2 size={20} className="animate-spin" aria-hidden="true" />
+                    ) : (
+                      <UserPlus size={20} aria-hidden="true" />
+                    )}
                   </button>
                 </div>
 
