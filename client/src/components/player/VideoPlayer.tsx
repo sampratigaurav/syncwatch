@@ -495,6 +495,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 <AnimatePresence>
                   {showSpeedMenu && (
                     <motion.div
+                    id="playback-speed-menu"
                       initial={{ opacity: 0, scale: 0.95, y: 10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -529,6 +530,9 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                     setShowSubtitleMenu(false);
                     setShowSpeedMenu(!showSpeedMenu);
                   }}
+                  aria-expanded={showSpeedMenu}
+                  aria-haspopup="menu"
+                  aria-controls="playback-speed-menu"
                   aria-label="Playback speed menu"
                   title="Playback Speed"
                   className={cn(
@@ -549,6 +553,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 <AnimatePresence>
                 {showSubtitleMenu && (
                   <motion.div 
+                    id="subtitles-menu"
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -596,6 +601,9 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                      setShowSpeedMenu(false);
                      setShowSubtitleMenu(!showSubtitleMenu);
                   }}
+                  aria-expanded={showSubtitleMenu}
+                  aria-haspopup="menu"
+                  aria-controls="subtitles-menu"
                   aria-label="Subtitles menu"
                   title="Subtitles"
                   className={cn(
