@@ -8,3 +8,6 @@
 ## 2026-08-28 - Conditional Rendering and High-Frequency Store Subscriptions
 **Learning:** Components that subscribe to high-frequency state updates (like `useRoomStore` listening to 10s websocket pings for latency) via hooks will continue to execute and re-render in the background even if they early return `null` internally (e.g., `if (!isVisible) return null;`). This wastes CPU cycles on React tree traversal and hook execution.
 **Action:** Always conditionally render components that subscribe to high-frequency store updates at the parent level (`{isVisible && <Component />}`) rather than internally handling visibility state. This ensures the component is completely unmounted and its hooks are not executed when hidden.
+## 2024-05-18 - Zustand Array Selector Avoidance
+**Learning:** Selecting entire arrays (like participants) from Zustand stores causes global re-renders on every child property update (like latency pings), even when wrapped in useShallow.
+**Action:** Always write explicit selectors that return only the specific primitive values required (like participantCount or a specific string) to prevent unnecessary React tree traversal.
