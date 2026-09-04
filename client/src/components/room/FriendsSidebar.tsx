@@ -259,17 +259,25 @@ export const FriendsSidebar = () => {
                   </button>
                 </div>
 
-                <div className="flex gap-6 border-b border-white/5 mb-6">
+                <div role="tablist" aria-label="Friends and Requests Tabs" className="flex gap-6 border-b border-white/5 mb-6">
                   <button 
+                    role="tab"
+                    aria-selected={activeTab === 'friends'}
+                    aria-controls="friends-panel"
+                    id="friends-tab"
                     onClick={() => setActiveTab('friends')}
-                    className={`pb-3 text-sm font-semibold transition-colors relative ${activeTab === 'friends' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    className={`pb-3 text-sm font-semibold transition-colors relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:rounded-md ${activeTab === 'friends' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                   >
                     Friends <span className="ml-1.5 text-xs font-mono text-zinc-500">({friends.length})</span>
                     {activeTab === 'friends' && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-t-full shadow-[0_-2px_10px_rgba(20,184,166,0.5)]" />}
                   </button>
                   <button 
+                    role="tab"
+                    aria-selected={activeTab === 'requests'}
+                    aria-controls="requests-panel"
+                    id="requests-tab"
                     onClick={() => setActiveTab('requests')}
-                    className={`pb-3 text-sm font-semibold transition-colors relative flex items-center gap-2 ${activeTab === 'requests' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+                    className={`pb-3 text-sm font-semibold transition-colors relative flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:rounded-md ${activeTab === 'requests' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                   >
                     Requests
                     {incomingReqs.length > 0 && (
@@ -317,7 +325,7 @@ export const FriendsSidebar = () => {
 
                 {/* Friends Tab */}
                 {activeTab === 'friends' && (
-                  <div className="flex flex-col gap-2">
+                  <div id="friends-panel" role="tabpanel" aria-labelledby="friends-tab" tabIndex={0} className="flex flex-col gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:rounded-md">
                     {friends.length === 0 ? (
                       <EmptyState 
                         icon={<Users size={32} className="opacity-80" />}
@@ -365,7 +373,7 @@ export const FriendsSidebar = () => {
 
                 {/* Requests Tab */}
                 {activeTab === 'requests' && (
-                  <div className="flex flex-col gap-6">
+                  <div id="requests-panel" role="tabpanel" aria-labelledby="requests-tab" tabIndex={0} className="flex flex-col gap-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:rounded-md">
                     
                     {/* Incoming */}
                     <div>
