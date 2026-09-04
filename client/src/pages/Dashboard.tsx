@@ -362,8 +362,13 @@ export default function Dashboard() {
                     <span className="text-sm font-medium text-zinc-300">Lock with PIN</span>
                   </div>
                   <button 
+                    type="button"
+                    role="switch"
+                    aria-checked={lockRoom}
+                    aria-label="Lock with PIN"
+                    title="Lock with PIN"
                     onClick={() => { setLockRoom(!lockRoom); setError(''); }}
-                    className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", lockRoom ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
+                    className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500", lockRoom ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
                   >
                     <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", lockRoom ? "translate-x-[22px]" : "translate-x-0.5")} />
                   </button>
@@ -408,8 +413,13 @@ export default function Dashboard() {
                         <span className="text-sm font-medium text-zinc-300">Custom Permanent Link</span>
                       </div>
                       <button 
+                        type="button"
+                        role="switch"
+                        aria-checked={isPersistent}
+                        aria-label="Custom Permanent Link"
+                        title="Custom Permanent Link"
                         onClick={() => { setIsPersistent(!isPersistent); setError(''); }}
-                        className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner", isPersistent ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
+                        className={cn("w-10 h-5 rounded-full relative transition-colors shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500", isPersistent ? "bg-teal-500" : "bg-zinc-800 border border-white/5")}
                       >
                         <div className={cn("w-4 h-4 rounded-full bg-white absolute top-[1px] transition-transform shadow-sm", isPersistent ? "translate-x-[22px]" : "translate-x-0.5")} />
                       </button>
