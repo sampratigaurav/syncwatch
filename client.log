@@ -1,0 +1,13 @@
+
+> client@0.0.0 dev /app/client
+> vite
+
+
+  VITE v8.2.2  ready in 562 ms
+
+  ➜  Local:   http://localhost:5174/
+  ➜  Network: use --host to expose
+Killed
+/app/client:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  client@0.0.0 dev: `vite`
+Exit status 137
