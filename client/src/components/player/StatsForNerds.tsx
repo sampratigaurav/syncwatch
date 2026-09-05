@@ -7,10 +7,10 @@ interface StatsForNerdsProps {
 }
 
 export function StatsForNerds({ videoRef }: StatsForNerdsProps) {
-  const { latency, connectionStatus, participants } = useRoomStore(useShallow(state => ({
+  const { latency, connectionStatus, participantCount } = useRoomStore(useShallow(state => ({
     latency: state.latencyMs,
     connectionStatus: state.connectionStatus,
-    participants: state.participants,
+    participantCount: state.participants.length,
   })));
 
   const getLatencyColor = (ms: number) => {
@@ -73,7 +73,7 @@ export function StatsForNerds({ videoRef }: StatsForNerdsProps) {
             <Activity className="w-3.5 h-3.5" />
             <span>Total Peers</span>
           </div>
-          <span>{participants.length}</span>
+          <span>{participantCount}</span>
         </div>
       </div>
     </div>
