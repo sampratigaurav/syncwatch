@@ -177,7 +177,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               <UserIcon className="w-6 h-6 text-teal-400" />
               My Profile
             </h2>
-            <button onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors">
+            <button onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
               <X className="w-6 h-6" />
             </button>
           </div>
@@ -196,13 +196,13 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
-                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all"
+                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 transition-all"
                       placeholder="Your display name"
                     />
                     <button
                       onClick={() => handleSaveIdentity()}
                       disabled={isSavingIdentity || editName === nickname}
-                      className="px-6 bg-teal-500 hover:bg-teal-400 text-black font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      className="px-6 bg-teal-500 hover:bg-teal-400 text-black font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                     >
                       {isSavingIdentity ? 'Saving...' : 'Save'}
                     </button>
@@ -219,7 +219,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         <button
                           key={seed}
                           onClick={() => handleSaveIdentity(url)}
-                          className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group ${
+                          className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
                             isSelected ? 'border-teal-400 scale-105' : 'border-transparent bg-white/5 hover:bg-white/10'
                           }`}
                         >
@@ -263,21 +263,21 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => copyLink(room.id)}
-                            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                             title="Copy Room Link"
                           >
                             <Link2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => setShowPinEdit(showPinEdit === room.id ? null : room.id)}
-                            className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors"
+                            className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                             title="Change PIN"
                           >
                             <Key className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDeleteRoom(room.id)}
-                            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors"
+                            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                             title="Delete Room"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -297,11 +297,11 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                             value={newPin}
                             onChange={(e) => setNewPin(e.target.value.replace(/[^a-zA-Z0-9]/g, ''))}
                             maxLength={8}
-                            className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                            className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                           />
                           <button
                             onClick={() => handleUpdatePin(room.id)}
-                            className="px-4 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 font-medium rounded-lg text-sm transition-colors"
+                            className="px-4 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 font-medium rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                           >
                             Save
                           </button>
