@@ -177,8 +177,8 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               <UserIcon className="w-6 h-6 text-teal-400" />
               My Profile
             </h2>
-            <button onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
-              <X className="w-6 h-6" />
+            <button aria-label="Close profile modal" onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
+              <X className="w-6 h-6" aria-hidden="true" />
             </button>
           </div>
 
@@ -218,15 +218,17 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       return (
                         <button
                           key={seed}
+                          aria-label={`Select avatar ${seed}`}
+                          aria-pressed={isSelected}
                           onClick={() => handleSaveIdentity(url)}
                           className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
                             isSelected ? 'border-teal-400 scale-105' : 'border-transparent bg-white/5 hover:bg-white/10'
                           }`}
                         >
-                          <img src={url} alt={seed} className="w-full h-full object-cover p-2" />
+                          <img src={url} alt="" className="w-full h-full object-cover p-2" aria-hidden="true" />
                           {isSelected && (
                             <div className="absolute inset-0 bg-teal-500/20 flex items-center justify-center">
-                              <Check className="w-6 h-6 text-teal-400" />
+                              <Check className="w-6 h-6 text-teal-400" aria-hidden="true" />
                             </div>
                           )}
                         </button>
@@ -262,25 +264,28 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         </div>
                         <div className="flex items-center gap-2">
                           <button
+                            aria-label={`Copy link for room ${room.id}`}
                             onClick={() => copyLink(room.id)}
                             className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                             title="Copy Room Link"
                           >
-                            <Link2 className="w-4 h-4" />
+                            <Link2 className="w-4 h-4" aria-hidden="true" />
                           </button>
                           <button
+                            aria-label={`Change PIN for room ${room.id}`}
                             onClick={() => setShowPinEdit(showPinEdit === room.id ? null : room.id)}
                             className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                             title="Change PIN"
                           >
-                            <Key className="w-4 h-4" />
+                            <Key className="w-4 h-4" aria-hidden="true" />
                           </button>
                           <button
+                            aria-label={`Delete room ${room.id}`}
                             onClick={() => handleDeleteRoom(room.id)}
                             className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                             title="Delete Room"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" aria-hidden="true" />
                           </button>
                         </div>
                       </div>
