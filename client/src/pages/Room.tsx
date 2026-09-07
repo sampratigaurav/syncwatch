@@ -27,7 +27,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 export default function Room() {
   const { 
-    roomId, nickname, localFileUrl, role, participants, 
+    roomId, nickname, localFileUrl, role, bufferingParticipant,
     connectionStatus, reconnectAttempt, clearRoomState,
     subtitleBlobUrl, setSubtitleBlobUrl,
     subtitleEnabled, setSubtitleEnabled,
@@ -39,7 +39,7 @@ export default function Room() {
     nickname: state.nickname,
     localFileUrl: state.localFileUrl,
     role: state.role,
-    participants: state.participants,
+    bufferingParticipant: state.participants.find(p => p.status === 'buffering'),
     connectionStatus: state.connectionStatus,
     reconnectAttempt: state.reconnectAttempt,
     clearRoomState: state.clearRoomState,
@@ -150,7 +150,6 @@ export default function Room() {
     };
   }, [role]);
 
-  const bufferingParticipant = participants.find(p => p.status === 'buffering');
   const showBuffering = !!bufferingParticipant;
 
   const handleGoHome = () => {

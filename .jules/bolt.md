@@ -13,3 +13,6 @@
 **Learning:** Selecting an entire array object (e.g., `state.participants`) in a Zustand store selector causes subscribed components to re-render whenever any property within any array element updates (such as peer `latencyMs` from 10s websocket pings), even when wrapped in `useShallow`.
 **Action:** Extract specific primitive properties (such as `hostName` via `.find()` or `participantCount` via `.length`) directly inside the Zustand selector instead of selecting the full array and computing primitives locally in component code.
 
+## 2026-09-06 - Component Optimizations for High-Frequency State
+**Learning:** Components should not subscribe to full arrays like `participants` when they only need to check for a specific condition (e.g. `bufferingParticipant`). Doing so causes unnecessary re-renders when other array properties update (like `latencyMs` or `status` of other peers).
+**Action:** Use specific, primitive selectors like `.find(p => p.status === "buffering")` inside `useRoomStore` to prevent re-renders when irrelevant array properties change.
