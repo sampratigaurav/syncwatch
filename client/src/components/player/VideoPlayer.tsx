@@ -1,4 +1,4 @@
-import { forwardRef, useState, useEffect, useRef, useCallback } from 'react';
+import { forwardRef, useState, useEffect, useRef, useCallback, useId } from 'react';
 import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Maximize, Minimize, Subtitles, Activity, Gauge } from 'lucide-react';
@@ -44,6 +44,9 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
     })));
     const hasControl = useRoomStore(state => state.canIControl());
     
+    const speedMenuId = useId();
+    const subtitleMenuId = useId();
+
     const containerRef = useRef<HTMLDivElement>(null);
     const internalVideoRef = useRef<HTMLVideoElement | null>(null);
     const trackRef = useRef<HTMLTrackElement>(null);
@@ -494,6 +497,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 <AnimatePresence>
                   {showSpeedMenu && (
                     <motion.div
+                      id={speedMenuId}
+                      role="menu"
                       initial={{ opacity: 0, scale: 0.95, y: 10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -501,12 +506,14 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                       className="absolute bottom-full right-0 mb-3 w-36 bg-zinc-950/95 backdrop-blur-xl border border-zinc-800 rounded-xl shadow-2xl overflow-hidden p-1.5 origin-bottom-right"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 border-b border-zinc-800 mb-1">
+                      <div className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 border-b border-zinc-800 mb-1" role="presentation">
                         Speed
                       </div>
                       {[0.5, 0.75, 1, 1.25, 1.5, 2].map((spd) => (
                         <button
                           key={spd}
+                          role="menuitemradio"
+                          aria-checked={playbackRate === spd}
                           onClick={() => changePlaybackSpeed(spd)}
                           className={cn(
                             "w-full text-left px-2.5 py-1.5 text-xs rounded-md transition-colors flex items-center justify-between font-sans",
@@ -516,7 +523,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                           )}
                         >
                           <span>{spd === 1 ? 'Normal' : `${spd}x`}</span>
-                          {playbackRate === spd && <div className="w-1.5 h-1.5 rounded-full bg-[#22d3a5]" />}
+                          {playbackRate === spd && <div className="w-1.5 h-1.5 rounded-full bg-[#22d3a5]" aria-hidden="true" />}
                         </button>
                       ))}
                     </motion.div>
@@ -529,6 +536,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                     setShowSpeedMenu(!showSpeedMenu);
                   }}
                   aria-label="Playback speed menu"
+                  aria-expanded={showSpeedMenu}
+                  aria-controls={speedMenuId}
                   title="Playback Speed"
                   className={cn(
                     "w-10 h-10 tablet:w-9 tablet:h-9 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]/70 rounded-full hover:bg-white/10 relative",
@@ -548,6 +557,9 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                 <AnimatePresence>
                 {showSubtitleMenu && (
                   <motion.div 
+                    id={subtitleMenuId}
+                    role="dialog"
+                    aria-label="Subtitles menu"
                     initial={{ opacity: 0, scale: 0.95, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -596,6 +608,8 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                      setShowSubtitleMenu(!showSubtitleMenu);
                   }}
                   aria-label="Subtitles menu"
+                  aria-expanded={showSubtitleMenu}
+                  aria-controls={subtitleMenuId}
                   title="Subtitles"
                   className={cn(
                     "w-10 h-10 tablet:w-9 tablet:h-9 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]/70 rounded-full hover:bg-white/10 group relative",
