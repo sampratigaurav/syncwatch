@@ -174,11 +174,15 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-white/5">
             <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <UserIcon className="w-6 h-6 text-teal-400" />
+              <UserIcon className="w-6 h-6 text-teal-400" aria-hidden="true" />
               My Profile
             </h2>
-            <button onClick={onClose} className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500">
-              <X className="w-6 h-6" />
+            <button 
+              onClick={onClose} 
+              aria-label="Close profile modal"
+              className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+            >
+              <X className="w-6 h-6" aria-hidden="true" />
             </button>
           </div>
 
@@ -219,14 +223,16 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         <button
                           key={seed}
                           onClick={() => handleSaveIdentity(url)}
+                          aria-label={`Select avatar ${seed}`}
+                          aria-pressed={isSelected}
                           className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
                             isSelected ? 'border-teal-400 scale-105' : 'border-transparent bg-white/5 hover:bg-white/10'
                           }`}
                         >
-                          <img src={url} alt={seed} className="w-full h-full object-cover p-2" />
+                          <img src={url} alt="" aria-hidden="true" className="w-full h-full object-cover p-2" />
                           {isSelected && (
                             <div className="absolute inset-0 bg-teal-500/20 flex items-center justify-center">
-                              <Check className="w-6 h-6 text-teal-400" />
+                              <Check className="w-6 h-6 text-teal-400" aria-hidden="true" />
                             </div>
                           )}
                         </button>
@@ -241,7 +247,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
             {/* Right Column: Room Hub */}
             <div className="flex-1 space-y-6">
               <h3 className="text-lg font-semibold text-white/90 mb-4 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-indigo-400" />
+                <ShieldCheck className="w-5 h-5 text-indigo-400" aria-hidden="true" />
                 Permanent Rooms
               </h3>
               
@@ -263,24 +269,28 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => copyLink(room.id)}
+                            aria-label={`Copy link for room ${room.id}`}
                             className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
                             title="Copy Room Link"
                           >
-                            <Link2 className="w-4 h-4" />
+                            <Link2 className="w-4 h-4" aria-hidden="true" />
                           </button>
                           <button
                             onClick={() => setShowPinEdit(showPinEdit === room.id ? null : room.id)}
+                            aria-label={`Change PIN for room ${room.id}`}
+                            aria-expanded={showPinEdit === room.id}
                             className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                             title="Change PIN"
                           >
-                            <Key className="w-4 h-4" />
+                            <Key className="w-4 h-4" aria-hidden="true" />
                           </button>
                           <button
                             onClick={() => handleDeleteRoom(room.id)}
+                            aria-label={`Delete room ${room.id}`}
                             className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                             title="Delete Room"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4" aria-hidden="true" />
                           </button>
                         </div>
                       </div>
