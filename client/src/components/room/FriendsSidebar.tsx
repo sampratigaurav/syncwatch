@@ -259,8 +259,12 @@ export const FriendsSidebar = () => {
                   </button>
                 </div>
 
-                <div className="flex gap-6 border-b border-white/5 mb-6">
+                <div role="tablist" aria-label="Friends tabs" className="flex gap-6 border-b border-white/5 mb-6">
                   <button 
+                    id="tab-friends"
+                    role="tab"
+                    aria-selected={activeTab === 'friends'}
+                    aria-controls="panel-friends"
                     onClick={() => setActiveTab('friends')}
                     className={`pb-3 text-sm font-semibold transition-colors relative ${activeTab === 'friends' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                   >
@@ -268,6 +272,10 @@ export const FriendsSidebar = () => {
                     {activeTab === 'friends' && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-t-full shadow-[0_-2px_10px_rgba(20,184,166,0.5)]" />}
                   </button>
                   <button 
+                    id="tab-requests"
+                    role="tab"
+                    aria-selected={activeTab === 'requests'}
+                    aria-controls="panel-requests"
                     onClick={() => setActiveTab('requests')}
                     className={`pb-3 text-sm font-semibold transition-colors relative flex items-center gap-2 ${activeTab === 'requests' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
                   >
@@ -317,7 +325,7 @@ export const FriendsSidebar = () => {
 
                 {/* Friends Tab */}
                 {activeTab === 'friends' && (
-                  <div className="flex flex-col gap-2">
+                  <div id="panel-friends" role="tabpanel" aria-labelledby="tab-friends" className="flex flex-col gap-2">
                     {friends.length === 0 ? (
                       <EmptyState 
                         icon={<Users size={32} className="opacity-80" />}
@@ -365,7 +373,7 @@ export const FriendsSidebar = () => {
 
                 {/* Requests Tab */}
                 {activeTab === 'requests' && (
-                  <div className="flex flex-col gap-6">
+                  <div id="panel-requests" role="tabpanel" aria-labelledby="tab-requests" className="flex flex-col gap-6">
                     
                     {/* Incoming */}
                     <div>
