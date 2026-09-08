@@ -329,11 +329,14 @@ export default function Docs() {
                     >
                       <button
                         onClick={() => setOpenFaq(isOpen ? null : index)}
-                        className="flex items-center justify-between w-full p-5 tablet:p-6 text-left focus:outline-none focus:ring-2 focus:ring-teal-500/50 rounded-2xl"
+                        aria-expanded={isOpen}
+                        aria-controls={`docs-faq-answer-${index}`}
+                        className="flex items-center justify-between w-full p-5 tablet:p-6 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded-2xl"
                       >
                         <span className="text-zinc-200 font-medium pr-8">{faq.q}</span>
                         <ChevronDown 
                           size={20} 
+                          aria-hidden="true"
                           className={cn(
                             "text-zinc-500 transition-transform duration-300 shrink-0",
                             isOpen ? "rotate-180 text-zinc-300" : ""
@@ -341,6 +344,7 @@ export default function Docs() {
                         />
                       </button>
                       <div 
+                        id={`docs-faq-answer-${index}`}
                         className={cn(
                           "overflow-hidden transition-all duration-300 ease-in-out",
                           isOpen ? "max-h-[300px] opacity-100" : "max-h-0 opacity-0"
