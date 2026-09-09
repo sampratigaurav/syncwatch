@@ -279,6 +279,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                             onClick={() => setShowPinEdit(showPinEdit === room.id ? null : room.id)}
                             aria-label={`Change PIN for room ${room.id}`}
                             aria-expanded={showPinEdit === room.id}
+                            aria-controls={`pin-edit-${room.id}`}
                             className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                             title="Change PIN"
                           >
@@ -297,6 +298,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
                       {showPinEdit === room.id && (
                         <m.div
+                          id={`pin-edit-${room.id}`}
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           className="pt-3 border-t border-white/5 flex gap-2"
