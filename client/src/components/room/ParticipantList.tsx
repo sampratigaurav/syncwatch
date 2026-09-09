@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { socket } from '../../hooks/useSocket';
@@ -17,6 +18,13 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
   // ⚡ Bolt: Use specific selector to prevent re-rendering when other WebRTC state (e.g. localStream) changes
   const voiceParticipants = useWebRTC(state => state.voiceParticipants);
 
+  // ⚡ Bolt: Memoize voice participants into a Map to reduce O(N^2) lookup inside the mapping loop to O(N)
+  const voiceParticipantsMap = useMemo(() => {
+    const map = new Map();
+    voiceParticipants.forEach(vp => map.set(vp.id, vp));
+    return map;
+  }, [voiceParticipants]);
+
   const isWaitingRoom = variant === 'waiting-room';
 
   const emptyState = participants.length === 0 && (
@@ -33,7 +41,7 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
          if (controlPolicy === 'everyone') hasControl = true;
          if (controlPolicy === 'selected') hasControl = isHost || controllerIds.includes(p.id);
          if (controlPolicy === 'host_only') hasControl = isHost;
-         const vp = voiceParticipants.find(v => v.id === p.id);
+         const vp = voiceParticipantsMap.get(p.id);
 
          return (
            <motion.div 
@@ -119,7 +127,7 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
           if (controlPolicy === 'selected') hasControl = isHost || controllerIds.includes(p.id);
           if (controlPolicy === 'host_only') hasControl = isHost;
 
-          const vp = voiceParticipants.find(v => v.id === p.id);
+          const vp = voiceParticipantsMap.get(p.id);
 
           return (
             <motion.div 
