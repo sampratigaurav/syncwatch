@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { socket } from '../../hooks/useSocket';
@@ -16,6 +17,7 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
   })));
   // ⚡ Bolt: Use specific selector to prevent re-rendering when other WebRTC state (e.g. localStream) changes
   const voiceParticipants = useWebRTC(state => state.voiceParticipants);
+  const voiceParticipantsMap = useMemo(() => new Map(voiceParticipants.map(v => [v.id, v])), [voiceParticipants]);
 
   const isWaitingRoom = variant === 'waiting-room';
 
@@ -33,7 +35,7 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
          if (controlPolicy === 'everyone') hasControl = true;
          if (controlPolicy === 'selected') hasControl = isHost || controllerIds.includes(p.id);
          if (controlPolicy === 'host_only') hasControl = isHost;
-         const vp = voiceParticipants.find(v => v.id === p.id);
+         const vp = voiceParticipantsMap.get(p.id);
 
          return (
            <motion.div 
@@ -119,7 +121,7 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
           if (controlPolicy === 'selected') hasControl = isHost || controllerIds.includes(p.id);
           if (controlPolicy === 'host_only') hasControl = isHost;
 
-          const vp = voiceParticipants.find(v => v.id === p.id);
+          const vp = voiceParticipantsMap.get(p.id);
 
           return (
             <motion.div 
