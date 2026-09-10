@@ -540,7 +540,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                   title="Playback Speed"
                   aria-expanded={showSpeedMenu}
                   aria-controls={speedMenuId}
-                  aria-haspopup="true"
+                  aria-haspopup="menu"
                   className={cn(
                     "w-10 h-10 tablet:w-9 tablet:h-9 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]/70 rounded-full hover:bg-white/10 relative",
                     playbackRate !== 1 ? "text-[#22d3a5] font-medium" : "text-white/80 hover:text-white"
@@ -613,7 +613,7 @@ export const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
                   title="Subtitles"
                   aria-expanded={showSubtitleMenu}
                   aria-controls={subtitleMenuId}
-                  aria-haspopup="true"
+                  aria-haspopup="menu"
                   className={cn(
                     "w-10 h-10 tablet:w-9 tablet:h-9 flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]/70 rounded-full hover:bg-white/10 group relative",
                     subtitleEnabled ? "text-[#22d3a5]" : "text-white/80 hover:text-white"
