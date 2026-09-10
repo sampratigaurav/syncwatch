@@ -210,7 +210,7 @@ export const FriendsSidebar = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-end"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex justify-end"
           >
             <motion.div
               initial={{ x: '100%' }}
