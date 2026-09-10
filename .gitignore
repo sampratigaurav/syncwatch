@@ -12,3 +12,11 @@ yarn-error.log*
 # Local Redis Build
 redis-stable/
 redis-stable.tar.gz
+
+# Test & Build Logs
+*_output.txt
+test_err.txt
+testOutput.txt
+runner.js
+serverTest.js
+

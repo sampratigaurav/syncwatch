@@ -17,17 +17,6 @@
     "build": "npm run build:server && npm run build:client",
     "start:server": "npm start -w server"
   },
-  "dependencies": {
-    "autoprefixer": "^10.4.27",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.577.0",
-    "postcss": "^8.5.8",
-    "react-router-dom": "^7.13.1",
-    "socket.io-client": "^4.8.3",
-    "tailwind-merge": "^3.5.0",
-    "tailwindcss": "^4.2.1",
-    "zustand": "^5.0.12"
-  },
   "devDependencies": {
     "concurrently": "^9.2.3"
   }
