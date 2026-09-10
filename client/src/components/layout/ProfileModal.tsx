@@ -5,8 +5,6 @@ import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../../lib/config';
 import { toast } from 'sonner';
-import { app } from '../../firebase';
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { socket } from '../../hooks/useSocket';
 
 interface ProfileModalProps {
@@ -86,11 +84,19 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
       const targetName = editName.trim() || profileName || nickname;
       const targetAvatar = newAvatarUrl !== undefined ? newAvatarUrl : avatarUrl;
       
-      const db = getFirestore(app);
-      await setDoc(doc(db, 'users', firebaseUid), {
-        displayName: targetName,
-        avatarUrl: targetAvatar
-      }, { merge: true });
+      const res = await fetch(`${SERVER_URL}/api/users/profile`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          displayName: targetName,
+          avatarUrl: targetAvatar
+        })
+      });
+
+      if (!res.ok) throw new Error('Failed to update profile');
 
       setProfileName(targetName);
       setAvatarUrl(targetAvatar);
@@ -105,6 +111,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
         toast.success('Profile updated');
       }
     } catch (err) {
+      console.error('Failed to update profile', err);
       toast.error('Failed to update profile');
     } finally {
       setIsSavingIdentity(false);

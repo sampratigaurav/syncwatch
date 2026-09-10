@@ -40,10 +40,16 @@ userRouter.post('/initialize', requireAuth, async (req, res) => {
     if (docSnap.exists) {
       // User already exists
       const data = docSnap.data()!;
-      if (data.friendCode) {
-        return res.json({ success: true, friendCode: data.friendCode });
+      if (!data.friendCode) {
+        // Fall through to generate a friendCode for legacy user
+      } else {
+        return res.json({
+          success: true,
+          friendCode: data.friendCode,
+          displayName: data.displayName || displayName || `User_${user.uid.slice(0, 4)}`,
+          avatarUrl: data.avatarUrl || photoURL || null
+        });
       }
-      // If legacy user without a friendCode, fall through to generate one
     }
 
     // New user: Generate a unique friend code
@@ -68,19 +74,52 @@ userRouter.post('/initialize', requireAuth, async (req, res) => {
 
     // Initialize the document
     const fallbackName = displayName || `User_${user.uid.slice(0, 4)}`;
+    const finalAvatar = photoURL || null;
     
     await userRef.set({
       displayName: fallbackName,
-      avatarUrl: photoURL || null,
+      avatarUrl: finalAvatar,
       email: email || null,
       friendCode: friendCode,
       createdAt: new Date().getTime(),
       lastSeen: new Date().getTime(),
     }, { merge: true });
 
-    return res.json({ success: true, friendCode });
+    return res.json({
+      success: true,
+      friendCode,
+      displayName: fallbackName,
+      avatarUrl: finalAvatar
+    });
   } catch (err) {
     console.error('Failed to initialize user:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+userRouter.patch('/profile', requireAuth, async (req: Request, res: Response) => {
+  const user = (req as any).user;
+  const { displayName, avatarUrl } = req.body;
+
+  try {
+    const userRef = db!.collection('users').doc(user.uid);
+    const updateFields: Record<string, any> = {
+      lastSeen: new Date().getTime()
+    };
+
+    if (displayName !== undefined) updateFields.displayName = displayName;
+    if (avatarUrl !== undefined) updateFields.avatarUrl = avatarUrl;
+
+    await userRef.set(updateFields, { merge: true });
+
+    return res.json({
+      success: true,
+      displayName: updateFields.displayName,
+      avatarUrl: updateFields.avatarUrl
+    });
+  } catch (err) {
+    console.error('Failed to update user profile:', err);
+    return res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+

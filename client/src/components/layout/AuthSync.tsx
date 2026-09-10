@@ -22,8 +22,7 @@ export const AuthSync = () => {
         const auth = getAuth(app);
         const rtdb = getDatabase(app);
 
-        const { getFirestore, doc, getDoc } = await import('firebase/firestore');
-        const db = getFirestore(app);
+
 
         // Listen to token changes (including silent refreshes every hour)
         unsubscribeAuth = onIdTokenChanged(auth, async (user) => {
@@ -65,15 +64,8 @@ export const AuthSync = () => {
               console.log("Init request data:", data);
               
               useRoomStore.getState().setFriendCode(data.friendCode);
-
-              // Fetch latest doc to populate zustand
-              const userRef = doc(db, 'users', user.uid);
-              const docSnap = await getDoc(userRef);
-              if (docSnap.exists()) {
-                const docData = docSnap.data();
-                useRoomStore.getState().setProfileName(docData.displayName || googleName);
-                useRoomStore.getState().setAvatarUrl(docData.avatarUrl || googlePhoto);
-              }
+              useRoomStore.getState().setProfileName(data.displayName || googleName);
+              useRoomStore.getState().setAvatarUrl(data.avatarUrl || googlePhoto);
             } catch (err: any) {
               console.error("Failed to sync user profile", err);
               toast.error("Failed to connect to SyncWatch backend. Please check your backend deployment.", { id: 'backend-init-error' });
