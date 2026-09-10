@@ -194,8 +194,8 @@ export default function Chat() {
             type="submit" 
             disabled={!text.trim()}
             aria-label="Send message"
-            title="Send message"
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-teal-500 hover:text-teal-400 hover:bg-white/5 rounded-lg transition-colors disabled:opacity-50 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70"
+            title={!text.trim() ? "Type a message to send" : "Send message"}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-teal-500 hover:text-teal-400 hover:bg-white/5 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500/70"
           >
             <Send className="w-4 h-4" aria-hidden="true" />
           </button>
