@@ -86,6 +86,18 @@ const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
+roomRouter.get('/my-rooms', requireAuth, async (req, res) => {
+  const user = (req as any).user;
+  try {
+    const snapshot = await db!.collection('roomTemplates').where('hostId', '==', user.uid).get();
+    const rooms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json({ rooms });
+  } catch (err) {
+    console.error('Failed to fetch my-rooms:', err);
+    res.status(500).json({ error: 'Failed to fetch rooms' });
+  }
+});
+
 roomRouter.delete('/:id', requireAuth, async (req, res) => {
   const id = req.params.id as string;
   const user = (req as any).user;

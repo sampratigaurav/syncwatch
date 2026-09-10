@@ -6,7 +6,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../../lib/config';
 import { toast } from 'sonner';
 import { app } from '../../firebase';
-import { getFirestore, collection, query, where, getDocs, doc, setDoc } from 'firebase/firestore';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
 import { socket } from '../../hooks/useSocket';
 
 interface ProfileModalProps {
@@ -58,13 +58,16 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     if (!firebaseUid) return;
     setIsLoadingRooms(true);
     try {
-      const db = getFirestore(app);
-      const q = query(collection(db, 'roomTemplates'), where('hostId', '==', firebaseUid));
-      const querySnapshot = await getDocs(q);
-      const fetchedRooms: RoomTemplate[] = [];
-      querySnapshot.forEach((doc) => {
-        fetchedRooms.push({ id: doc.id, ...doc.data() } as RoomTemplate);
+      const res = await fetch(`${SERVER_URL}/api/rooms/my-rooms`, {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
       });
+      if (!res.ok) throw new Error('Failed to fetch rooms');
+      
+      const data = await res.json();
+      const fetchedRooms: RoomTemplate[] = data.rooms;
+      
       // Sort by newest first
       fetchedRooms.sort((a, b) => b.createdAt - a.createdAt);
       setRooms(fetchedRooms);
