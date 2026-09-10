@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Github, Sun, Moon } from 'lucide-react';
+import { User, Github, Sun, Moon, Star } from 'lucide-react';
 import { m, AnimatePresence, LazyMotion, domAnimation } from 'framer-motion';
 import { toast } from 'sonner';
 import { useRoomStore } from '../../store/roomStore';
@@ -247,21 +247,27 @@ export const Header = () => {
             {/* Cinematic theme toggle */}
             <ThemeToggle />
 
-            {/* GitHub link */}
+            {/* GitHub Star link — animated icon swap on hover */}
             <a
               href="https://github.com/sampratigaurav/syncwatch"
               target="_blank"
               rel="noreferrer"
               aria-label="Star SyncWatch repository on GitHub"
-              className="group flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-colors duration-150 cursor-pointer hover:border-[var(--sw-border-hover)] hover:bg-[var(--sw-surface-hover)] hover:text-[var(--sw-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
+              className="github-star-btn group flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-colors duration-150 cursor-pointer hover:border-[var(--sw-border-hover)] hover:bg-[var(--sw-surface-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
               style={{
                 borderColor: 'var(--sw-border)',
                 background: 'var(--sw-surface)',
                 color: 'var(--sw-text-secondary)',
               }}
             >
-              <Github className="w-4 h-4 text-inherit transition-opacity duration-150" aria-hidden="true" />
-              <span className="hidden sm:block text-[13px] font-medium tracking-wide text-inherit">Star</span>
+              {/* Icon: Github → Star on hover, housed in a fixed-size box so layout never shifts */}
+              <span className="relative w-4 h-4 shrink-0" aria-hidden="true">
+                {/* Github icon — fades/scales out on hover */}
+                <Github className="github-star-btn__github absolute inset-0 w-4 h-4" />
+                {/* Star icon — fades/scales in on hover, amber gold */}
+                <Star className="github-star-btn__star absolute inset-0 w-4 h-4 fill-current" style={{ color: '#f59e0b' }} />
+              </span>
+              <span className="hidden sm:block text-[13px] font-medium tracking-wide" style={{ color: 'inherit' }}>Star</span>
             </a>
 
             {isAuthLoading ? (
