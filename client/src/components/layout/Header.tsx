@@ -32,7 +32,7 @@ const ThemeToggle = () => {
       onClick={handleClick}
       aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
       title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
-      className="theme-toggle-btn"
+      className="theme-toggle-btn group"
     >
       <AnimatePresence mode="wait" initial={false}>
         {isLight ? (
@@ -44,7 +44,7 @@ const ThemeToggle = () => {
             transition={{ duration: 0.22, ease: 'easeOut' }}
             className="flex items-center justify-center"
           >
-            <Moon size={16} className="text-[#0d9488]" aria-hidden="true" />
+            <Moon size={16} className="text-[#0d9488] transition-transform duration-700 ease-in-out group-hover:rotate-180" aria-hidden="true" />
           </m.span>
         ) : (
           <m.span
@@ -55,7 +55,7 @@ const ThemeToggle = () => {
             transition={{ duration: 0.22, ease: 'easeOut' }}
             className="flex items-center justify-center"
           >
-            <Sun size={16} className="text-amber-400" aria-hidden="true" />
+            <Sun size={16} className="text-amber-400 transition-transform duration-700 ease-in-out group-hover:rotate-180" aria-hidden="true" />
           </m.span>
         )}
       </AnimatePresence>
