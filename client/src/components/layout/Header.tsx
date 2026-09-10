@@ -1,12 +1,67 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Github } from 'lucide-react';
+import { User, Github, Sun, Moon } from 'lucide-react';
 import { m, AnimatePresence, LazyMotion, domAnimation } from 'framer-motion';
 import { toast } from 'sonner';
 import { useRoomStore } from '../../store/roomStore';
+import { useThemeStore } from '../../store/themeStore';
 import { useShallow } from 'zustand/react/shallow';
 import ProfileModal from './ProfileModal';
 
+// ─── Cinematic theme toggle ───────────────────────────────────────────────────
+const ThemeToggle = () => {
+  const { theme, toggleTheme } = useThemeStore();
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  const handleClick = () => {
+    if (!btnRef.current) {
+      toggleTheme();
+      return;
+    }
+    const rect = btnRef.current.getBoundingClientRect();
+    const x = Math.round(rect.left + rect.width / 2);
+    const y = Math.round(rect.top + rect.height / 2);
+    toggleTheme(x, y);
+  };
+
+  const isLight = theme === 'light';
+
+  return (
+    <button
+      ref={btnRef}
+      onClick={handleClick}
+      aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
+      title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
+      className="theme-toggle-btn"
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        {isLight ? (
+          <m.span
+            key="moon"
+            initial={{ opacity: 0, rotate: -90, scale: 0.4 }}
+            animate={{ opacity: 1, rotate: 0, scale: 1 }}
+            exit={{ opacity: 0, rotate: 90, scale: 0.4 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className="flex items-center justify-center"
+          >
+            <Moon size={16} className="text-[#0d9488]" aria-hidden="true" />
+          </m.span>
+        ) : (
+          <m.span
+            key="sun"
+            initial={{ opacity: 0, rotate: 90, scale: 0.4 }}
+            animate={{ opacity: 1, rotate: 0, scale: 1 }}
+            exit={{ opacity: 0, rotate: -90, scale: 0.4 }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className="flex items-center justify-center"
+          >
+            <Sun size={16} className="text-amber-400" aria-hidden="true" />
+          </m.span>
+        )}
+      </AnimatePresence>
+    </button>
+  );
+};
 
 export const Header = () => {
   const navigate = useNavigate();
@@ -97,12 +152,15 @@ export const Header = () => {
 
   return (
     <LazyMotion features={domAnimation}>
-      <header className="sticky top-0 w-full z-50 bg-[#09100f] border-b border-white/[0.06] font-sans">
+      <header
+        className="sticky top-0 w-full z-50 font-sans border-b"
+        style={{ backgroundColor: 'var(--sw-bg-header)', borderColor: 'var(--sw-border)' }}
+      >
         <div className="max-w-7xl mx-auto flex items-center justify-between px-6 sm:px-10 h-[60px]">
 
           {/* Left: Brand logomark + Wordmark */}
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex items-center gap-2.5 group shrink-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] p-1 -m-1"
           >
             <img
@@ -112,7 +170,7 @@ export const Header = () => {
               height={34}
               className="shrink-0 rounded-[6px]"
             />
-            <span className="text-[16px] font-semibold text-white tracking-[0.01em] leading-none">
+            <span className="text-[16px] font-semibold tracking-[0.01em] leading-none" style={{ color: 'var(--sw-text-primary)' }}>
               SyncWatch
             </span>
           </Link>
@@ -139,7 +197,8 @@ export const Header = () => {
                     initial={{ opacity: 0, scale: 0.85 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.85 }}
-                    className="absolute inset-0 rounded-lg bg-[#22d3a5]/10 border border-[#22d3a5]/25 shadow-[0_0_14px_rgba(34,211,165,0.12)]"
+                    className="absolute inset-0 rounded-lg border shadow-[0_0_14px_rgba(34,211,165,0.12)]"
+                    style={{ background: 'rgba(34,211,165,0.08)', borderColor: 'rgba(34,211,165,0.22)' }}
                     transition={{ type: 'spring', stiffness: 500, damping: 28 }}
                   />
                 )}
@@ -147,7 +206,8 @@ export const Header = () => {
                   onClick={action}
                   onFocus={() => setHoveredNav(id)}
                   onBlur={() => setHoveredNav(null)}
-                  className="relative z-10 px-3.5 py-1.5 text-[14px] font-normal transition-colors duration-150 text-[#9ca3af] hover:text-[#22d3a5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] rounded-lg"
+                  className="relative z-10 px-3.5 py-1.5 text-[14px] font-normal transition-colors duration-150 hover:text-[#22d3a5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] rounded-lg"
+                  style={{ color: 'var(--sw-nav-text)' }}
                 >
                   {label}
                 </button>
@@ -165,7 +225,8 @@ export const Header = () => {
                   initial={{ opacity: 0, scale: 0.85 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.85 }}
-                  className="absolute inset-0 rounded-lg bg-[#22d3a5]/10 border border-[#22d3a5]/25 shadow-[0_0_14px_rgba(34,211,165,0.12)]"
+                  className="absolute inset-0 rounded-lg border shadow-[0_0_14px_rgba(34,211,165,0.12)]"
+                  style={{ background: 'rgba(34,211,165,0.08)', borderColor: 'rgba(34,211,165,0.22)' }}
                   transition={{ type: 'spring', stiffness: 500, damping: 28 }}
                 />
               )}
@@ -173,29 +234,38 @@ export const Header = () => {
                 to="/docs"
                 onFocus={() => setHoveredNav('docs-btn')}
                 onBlur={() => setHoveredNav(null)}
-                className="relative z-10 block px-3.5 py-1.5 text-[14px] font-normal transition-colors duration-150 text-[#9ca3af] hover:text-[#22d3a5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] rounded-lg"
+                className="relative z-10 block px-3.5 py-1.5 text-[14px] font-normal transition-colors duration-150 hover:text-[#22d3a5] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] rounded-lg"
+                style={{ color: 'var(--sw-nav-text)' }}
               >
                 Docs
               </Link>
             </div>
           </nav>
 
-          {/* Right: GitHub + Sign in */}
+          {/* Right: Theme toggle + GitHub + Sign in */}
           <div className="flex items-center gap-3 shrink-0">
+            {/* Cinematic theme toggle */}
+            <ThemeToggle />
+
             {/* GitHub link */}
             <a
               href="https://github.com/sampratigaurav/syncwatch"
               target="_blank"
               rel="noreferrer"
               aria-label="Star SyncWatch repository on GitHub"
-              className="group flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-white/10 hover:border-white/25 bg-white/[0.03] hover:bg-white/[0.07] transition-all duration-200 text-zinc-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
+              className="group flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
+              style={{
+                borderColor: 'var(--sw-border)',
+                background: 'var(--sw-surface)',
+                color: 'var(--sw-text-muted)',
+              }}
             >
               <Github className="w-4 h-4" aria-hidden="true" />
               <span className="hidden sm:block text-[13px] font-normal tracking-wide">Star</span>
             </a>
 
             {isAuthLoading ? (
-              <div className="w-36 h-9 bg-white/5 animate-pulse rounded-full" aria-busy="true" aria-label="Loading authentication status" />
+              <div className="w-36 h-9 animate-pulse rounded-full" style={{ background: 'var(--sw-surface)' }} aria-busy="true" aria-label="Loading authentication status" />
             ) : firebaseUid ? (
               <div className="relative">
                 <button
@@ -204,7 +274,12 @@ export const Header = () => {
                   aria-haspopup="menu"
                   aria-controls="profile-menu"
                   aria-label="User profile options menu"
-                  className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 hover:border-white/20 bg-white/[0.04] hover:bg-white/[0.07] transition-all duration-200 text-sm font-medium text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
+                  className="flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
+                  style={{
+                    borderColor: 'var(--sw-border)',
+                    background: 'var(--sw-surface)',
+                    color: 'var(--sw-text-primary)',
+                  }}
                 >
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="" className="w-5 h-5 rounded-full" aria-hidden="true" />
@@ -229,19 +304,24 @@ export const Header = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 8 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute right-0 mt-2 w-48 bg-[#111111] border border-white/10 rounded-xl shadow-2xl overflow-hidden py-1 z-50"
+                      className="absolute right-0 mt-2 w-48 rounded-xl shadow-2xl overflow-hidden py-1 z-50 border"
+                      style={{
+                        background: 'var(--sw-bg-header)',
+                        borderColor: 'var(--sw-border)',
+                      }}
                     >
                       <button
                         role="menuitem"
                         onClick={() => { setIsProfileDropdownOpen(false); setIsProfileOpen(true); }}
-                        className="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:text-white hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] focus-visible:ring-inset"
+                        className="w-full text-left px-4 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] focus-visible:ring-inset"
+                        style={{ color: 'var(--sw-text-secondary)' }}
                       >
                         My Profile
                       </button>
                       <button
                         role="menuitem"
                         onClick={() => { setIsProfileDropdownOpen(false); handleLogout(); }}
-                        className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] focus-visible:ring-inset"
+                        className="w-full text-left px-4 py-2.5 text-sm text-red-400 hover:text-red-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] focus-visible:ring-inset"
                       >
                         Sign Out
                       </button>
@@ -253,7 +333,12 @@ export const Header = () => {
               <button
                 onClick={handleLogin}
                 aria-label="Sign in with Google"
-                className="group relative flex items-center gap-2.5 px-5 py-2 rounded-full border border-white/[0.12] hover:border-white/25 bg-white/[0.04] hover:bg-white/[0.08] text-white text-[13.5px] font-medium transition-all duration-200 active:scale-[0.97] overflow-hidden shadow-[0_1px_2px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
+                className="group relative flex items-center gap-2.5 px-5 py-2 rounded-full border text-[13.5px] font-medium transition-all duration-200 active:scale-[0.97] overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
+                style={{
+                  borderColor: 'var(--sw-border)',
+                  background: 'var(--sw-surface)',
+                  color: 'var(--sw-text-primary)',
+                }}
               >
                 {/* Subtle shimmer on hover */}
                 <span className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent" aria-hidden="true" />
@@ -275,4 +360,5 @@ export const Header = () => {
     </LazyMotion>
   );
 };
+
 
