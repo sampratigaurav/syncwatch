@@ -26,9 +26,14 @@ const buildAllowedOrigins = (): Set<string> => {
     'http://127.0.0.1:5173',
     'http://127.0.0.1:5174',
     'https://syncwatch-eosin.vercel.app',
+    'https://syncwatch.samprati.dev',
   ]);
   const envOrigin = process.env.CLIENT_ORIGIN;
-  if (envOrigin) origins.add(envOrigin);
+  if (envOrigin) {
+    envOrigin.split(',').map(o => o.trim()).forEach(o => {
+      if (o) origins.add(o);
+    });
+  }
   return origins;
 };
 
