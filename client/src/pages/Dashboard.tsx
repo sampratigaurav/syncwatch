@@ -383,6 +383,7 @@ export default function Dashboard() {
                     <input
                       id="nickname"
                       type="text"
+                      aria-label="Nickname"
                       value={nickname}
                       onChange={e => {
                         setNicknameInput(e.target.value);
@@ -460,8 +461,9 @@ export default function Dashboard() {
                             onClick={() => setShowPin(!showPin)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 p-1 transition-colors"
                             style={{ color: 'var(--sw-text-muted)' }}
+                            aria-label={showPin ? "Hide PIN" : "Show PIN"}
                           >
-                            {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                            {showPin ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                           </button>
                         </div>
                       </m.div>
@@ -606,8 +608,9 @@ export default function Dashboard() {
                           onClick={() => setShowPin(!showPin)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 p-1 transition-colors"
                           style={{ color: 'var(--sw-text-muted)' }}
+                          aria-label={showPin ? "Hide PIN" : "Show PIN"}
                         >
-                          {showPin ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showPin ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
                         </button>
                       </div>
                     </m.div>
