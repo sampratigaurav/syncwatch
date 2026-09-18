@@ -19,8 +19,7 @@ const formatTime = (timestamp: number) => {
 };
 
 export default function Chat() {
-  const chatMessages = useRoomStore(useShallow(state => state.chatMessages));
-  const [chatParticipants, setChatParticipants] = useState<{id: string, nickname: string}[]>([]);
+  const chatMessages = useRoomStore(state => state.chatMessages);
   const [text, setText] = useState('');
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -39,7 +38,6 @@ export default function Chat() {
         next.add(userId);
         return next;
       });
-      setChatParticipants(useRoomStore.getState().participants);
     };
 
     const handleTypingStop = ({ userId }: { userId: string }) => {
@@ -61,10 +59,10 @@ export default function Chat() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setText(e.target.value);
-    
+
     socket.emit(EVENTS.TYPING_START);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-    
+
     typingTimeoutRef.current = setTimeout(() => {
       socket.emit(EVENTS.TYPING_STOP);
     }, 2000);
@@ -73,10 +71,10 @@ export default function Chat() {
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
-    
+
     socket.emit(EVENTS.CHAT_MESSAGE, { text });
     setText('');
-    
+
     socket.emit(EVENTS.TYPING_STOP);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
   };
@@ -92,33 +90,33 @@ export default function Chat() {
         <AnimatePresence initial={false}>
         {chatMessages.map((msg, index) => {
           const isSystem = msg.senderId === 'system';
-          
+
           const prevMsg = index > 0 ? chatMessages[index - 1] : null;
-          const isGrouped = prevMsg 
-            && !isSystem 
-            && prevMsg.senderId === msg.senderId 
+          const isGrouped = prevMsg
+            && !isSystem
+            && prevMsg.senderId === msg.senderId
             && (msg.timestamp - prevMsg.timestamp) <= 300000; // 5 minutes
-          
+
           if (isSystem) {
             return (
-              <motion.div 
+              <motion.div
                 layout
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                key={msg.id} 
+                key={msg.id}
                 className="text-center text-xs text-zinc-500 italic py-2 my-2 border-y border-white/5"
               >
                 {msg.text}
               </motion.div>
             );
           }
-          
+
           return (
-            <motion.div 
+            <motion.div
               layout
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              key={msg.id} 
+              key={msg.id}
               className={cn(
                 "flex items-start px-2 py-0.5 hover:bg-white/[0.02] transition-colors rounded-lg",
                 !isGrouped && "mt-3"
@@ -139,7 +137,7 @@ export default function Chat() {
                    {formatTime(msg.timestamp)}
                 </div>
               )}
-              
+
               <div className="flex flex-col min-w-0 flex-1">
                 {!isGrouped && (
                   <div className="flex items-baseline gap-2 mb-0.5">
@@ -155,7 +153,7 @@ export default function Chat() {
           );
         })}
         {typingUsers.size > 0 && (
-          <motion.div 
+          <motion.div
             key="typing-indicator"
             layout
             initial={{ opacity: 0, y: 10, scale: 0.95, originX: 0 }}
@@ -170,7 +168,7 @@ export default function Chat() {
             </div>
             <span className="text-[11px] font-medium text-zinc-500">
                {Array.from(typingUsers)
-                  .map(id => chatParticipants.find(p => p.id === id)?.nickname)
+                  .map(id => useRoomStore.getState().participants.find(p => p.id === id)?.nickname)
                   .filter(Boolean)
                   .join(', ')}{' '}
                {typingUsers.size > 1 ? 'are' : 'is'} typing...
@@ -189,8 +187,8 @@ export default function Chat() {
             placeholder="Message room..."
             className="w-full bg-[#141414] border border-white/10 rounded-xl pl-4 pr-12 py-3 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/50 transition-all shadow-inner"
           />
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={!text.trim()}
             aria-label="Send message"
             title={!text.trim() ? "Type a message to send" : "Send message"}
