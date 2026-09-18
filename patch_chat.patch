@@ -1,0 +1,28 @@
+--- client/src/components/room/Chat.tsx
++++ client/src/components/room/Chat.tsx
+@@ -20,6 +20,7 @@
+
+ export default function Chat() {
+-  const chatMessages = useRoomStore(state => state.chatMessages);
++  const chatMessages = useRoomStore(useShallow(state => state.chatMessages));
++  const [chatParticipants, setChatParticipants] = useState<any[]>([]);
+   const [text, setText] = useState('');
+   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+   const scrollRef = useRef<HTMLDivElement>(null);
+@@ -37,6 +38,7 @@
+         next.add(userId);
+         return next;
+       });
++      setChatParticipants(useRoomStore.getState().participants);
+     };
+
+     const handleTypingStop = ({ userId }: { userId: string }) => {
+@@ -166,7 +168,7 @@
+             </div>
+             <span className="text-[11px] font-medium text-zinc-500">
+                {Array.from(typingUsers)
+-                  .map(id => useRoomStore.getState().participants.find(p => p.id === id)?.nickname)
++                  .map(id => chatParticipants.find(p => p.id === id)?.nickname)
+                   .filter(Boolean)
+                   .join(', ')}{' '}
+                {typingUsers.size > 1 ? 'are' : 'is'} typing...

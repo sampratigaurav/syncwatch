@@ -1,0 +1,11 @@
+--- client/src/components/room/Chat.tsx
++++ client/src/components/room/Chat.tsx
+@@ -20,7 +20,7 @@
+
+ export default function Chat() {
+   const chatMessages = useRoomStore(useShallow(state => state.chatMessages));
+-  const [chatParticipants, setChatParticipants] = useState<any[]>([]);
++  const [chatParticipants, setChatParticipants] = useState<{id: string, nickname: string}[]>([]);
+   const [text, setText] = useState('');
+   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+   const scrollRef = useRef<HTMLDivElement>(null);
