@@ -19,12 +19,16 @@ const formatTime = (timestamp: number) => {
 };
 
 export default function Chat() {
-  const { chatMessages, participants } = useRoomStore(useShallow(state => ({
-    chatMessages: state.chatMessages,
-    participants: state.participants
-  })));
-  const [text, setText] = useState('');
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+
+  const { chatMessages, typingUserNicknames } = useRoomStore(useShallow(state => ({
+    chatMessages: state.chatMessages,
+    typingUserNicknames: Array.from(typingUsers)
+      .map(id => state.participants.find(p => p.id === id)?.nickname)
+      .filter(Boolean) as string[]
+  })));
+
+  const [text, setText] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -170,10 +174,7 @@ export default function Chat() {
               </div>
             </div>
             <span className="text-[11px] font-medium text-zinc-500">
-               {Array.from(typingUsers)
-                  .map(id => participants.find(p => p.id === id)?.nickname)
-                  .filter(Boolean)
-                  .join(', ')}{' '}
+               {typingUserNicknames.join(', ')}{' '}
                {typingUsers.size > 1 ? 'are' : 'is'} typing...
             </span>
           </motion.div>
