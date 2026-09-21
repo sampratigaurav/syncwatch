@@ -13,3 +13,6 @@
 **Learning:** Selecting an entire array object (e.g., `state.participants`) in a Zustand store selector causes subscribed components to re-render whenever any property within any array element updates (such as peer `latencyMs` from 10s websocket pings), even when wrapped in `useShallow`.
 **Action:** Extract specific primitive properties (such as `hostName` via `.find()` or `participantCount` via `.length`) directly inside the Zustand selector instead of selecting the full array and computing primitives locally in component code.
 
+## 2026-10-24 - Subcomponent Extraction for Transient UI State
+**Learning:** Reading `getState()` directly in render phase is an anti-pattern. However, subscribing to frequently updated arrays (like `state.participants`) in heavy components (like `Chat.tsx`) causes the entire component and its heavy history to re-render on every background update (e.g., 10s latency pings).
+**Action:** Extract transient or localized UI (like a typing indicator text) into its own small subcomponent that independently subscribes to the store. This isolates the high-frequency re-renders to just that small subcomponent, saving CPU cycles.
