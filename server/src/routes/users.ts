@@ -33,6 +33,18 @@ userRouter.post('/initialize', requireAuth, async (req, res) => {
   const user = (req as any).user;
   const { displayName, photoURL, email } = req.body;
 
+  if (displayName && (typeof displayName !== 'string' || displayName.length > 50)) {
+    return res.status(400).json({ error: 'Display name must be between 1 and 50 characters' });
+  }
+
+  if (photoURL && (typeof photoURL !== 'string' || photoURL.length > 2000)) {
+    return res.status(400).json({ error: 'Photo URL is too long' });
+  }
+
+  if (email && (typeof email !== 'string' || email.length > 255)) {
+    return res.status(400).json({ error: 'Email is too long' });
+  }
+
   try {
     const userRef = db!.collection('users').doc(user.uid);
     const docSnap = await userRef.get();
@@ -100,6 +112,14 @@ userRouter.post('/initialize', requireAuth, async (req, res) => {
 userRouter.patch('/profile', requireAuth, async (req: Request, res: Response) => {
   const user = (req as any).user;
   const { displayName, avatarUrl } = req.body;
+
+  if (displayName && (typeof displayName !== 'string' || displayName.length > 50)) {
+    return res.status(400).json({ error: 'Display name must be between 1 and 50 characters' });
+  }
+
+  if (avatarUrl && (typeof avatarUrl !== 'string' || avatarUrl.length > 2000)) {
+    return res.status(400).json({ error: 'Avatar URL is too long' });
+  }
 
   try {
     const userRef = db!.collection('users').doc(user.uid);
