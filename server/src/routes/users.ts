@@ -33,6 +33,16 @@ userRouter.post('/initialize', requireAuth, async (req, res) => {
   const user = (req as any).user;
   const { displayName, photoURL, email } = req.body;
 
+  if (displayName !== undefined && (typeof displayName !== 'string' || displayName.length > 50)) {
+    return res.status(400).json({ error: 'Display name must be a string up to 50 characters' });
+  }
+  if (photoURL !== undefined && (typeof photoURL !== 'string' || photoURL.length > 2000)) {
+    return res.status(400).json({ error: 'Avatar URL must be a string up to 2000 characters' });
+  }
+  if (email !== undefined && (typeof email !== 'string' || email.length > 254)) {
+    return res.status(400).json({ error: 'Email must be a string up to 254 characters' });
+  }
+
   try {
     const userRef = db!.collection('users').doc(user.uid);
     const docSnap = await userRef.get();
@@ -100,6 +110,13 @@ userRouter.post('/initialize', requireAuth, async (req, res) => {
 userRouter.patch('/profile', requireAuth, async (req: Request, res: Response) => {
   const user = (req as any).user;
   const { displayName, avatarUrl } = req.body;
+
+  if (displayName !== undefined && (typeof displayName !== 'string' || displayName.length > 50)) {
+    return res.status(400).json({ error: 'Display name must be a string up to 50 characters' });
+  }
+  if (avatarUrl !== undefined && (typeof avatarUrl !== 'string' || avatarUrl.length > 2000)) {
+    return res.status(400).json({ error: 'Avatar URL must be a string up to 2000 characters' });
+  }
 
   try {
     const userRef = db!.collection('users').doc(user.uid);
