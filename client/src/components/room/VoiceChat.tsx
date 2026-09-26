@@ -4,7 +4,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useEffect, useRef, useState } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { useRoomStore } from '../../store/roomStore';
+
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -115,9 +115,8 @@ export function VoiceChat() {
               ];
               const gradientColor = colors[bgHash % colors.length];
               
-              // Get avatarUrl from the main participant state
-              const mainParticipant = useRoomStore.getState().participants.find(mp => mp.id === p.id);
-              const avatarUrl = mainParticipant?.avatarUrl;
+              // Use avatarUrl directly from the voice participant to prevent getState() during render
+              const avatarUrl = p.avatarUrl;
 
               return (
                 <div key={p.id} className="flex items-center gap-3">

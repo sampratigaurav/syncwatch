@@ -647,7 +647,8 @@ export const setupSocketHandlers = (io: Server) => {
         id: socket.id,
         nickname: participant.nickname,
         isMuted: false,
-        isSpeaking: false
+        isSpeaking: false,
+        avatarUrl: participant.avatarUrl
       };
 
       room.voiceParticipants.push(vp);
