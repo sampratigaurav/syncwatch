@@ -13,3 +13,7 @@
 **Learning:** Selecting an entire array object (e.g., `state.participants`) in a Zustand store selector causes subscribed components to re-render whenever any property within any array element updates (such as peer `latencyMs` from 10s websocket pings), even when wrapped in `useShallow`.
 **Action:** Extract specific primitive properties (such as `hostName` via `.find()` or `participantCount` via `.length`) directly inside the Zustand selector instead of selecting the full array and computing primitives locally in component code.
 
+
+## 2026-10-10 - Zustand getState Anti-Pattern in React Render Loop
+**Learning:** Calling `useRoomStore.getState()` directly inside a React component's render function (like in a map loop) breaks React's reactivity model. The component will fail to re-render when the underlying state (e.g. `avatarUrl`) changes because it hasn't established a proper Zustand subscription.
+**Action:** When a mapped list item needs data from the store, extract the item into a standalone `React.memo` component that independently calls `useRoomStore(state => state...)` with a localized primitive selector to maintain reactivity and isolate re-renders.
