@@ -1,7 +1,8 @@
 import { Mic, MicOff, PhoneOff, AlertCircle } from 'lucide-react';
 import { useWebRTC } from '../../hooks/useWebRTC';
+import type { VoiceParticipant } from '../../../../shared/types';
 import { useShallow } from 'zustand/react/shallow';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useRoomStore } from '../../store/roomStore';
@@ -9,6 +10,68 @@ import { useRoomStore } from '../../store/roomStore';
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
+
+// ⚡ Bolt Optimization: Extracted VoiceParticipantItem and wrapped in React.memo
+// Why: Prevents O(N) array mapping and re-rendering of all voice participants when only one speaks.
+// Impact: Reduces React render cycles for the voice chat list by ~O(N) during active talking.
+const VoiceParticipantItem = memo(({ p }: { p: VoiceParticipant }) => {
+  // ⚡ Bolt Optimization: Replaced direct getState() anti-pattern in render loop with localized primitive selector.
+  // Why: Isolates re-renders to only occur when this specific participant's avatarUrl changes.
+  const avatarUrl = useRoomStore(state => state.participants.find(mp => mp.id === p.id)?.avatarUrl);
+
+  const bgHash = p.nickname.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+  const colors = [
+    'bg-blue-500/20 text-blue-400',
+    'bg-purple-500/20 text-purple-400',
+    'bg-green-500/20 text-green-400',
+    'bg-amber-500/20 text-amber-400',
+    'bg-rose-500/20 text-rose-400'
+  ];
+  const gradientColor = colors[bgHash % colors.length];
+
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative">
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt={p.nickname}
+            className={cn(
+              "w-8 h-8 rounded-full object-cover relative z-10",
+              p.isSpeaking && !p.isMuted && "ring-2 ring-teal-500 ring-offset-2 ring-offset-zinc-950 transition-all duration-300"
+            )}
+          />
+        ) : (
+          <div
+            className={cn(
+               "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold uppercase relative z-10",
+               gradientColor,
+               p.isSpeaking && !p.isMuted && "ring-2 ring-teal-500 ring-offset-2 ring-offset-zinc-950 transition-all duration-300"
+            )}
+          >
+            {p.nickname.slice(0, 2)}
+          </div>
+        )}
+        {/* Muted overlay icon on avatar */}
+        {p.isMuted && (
+          <div className="absolute -bottom-1 -right-1 bg-zinc-900 rounded-full p-[2px] z-20">
+            <MicOff className="w-[10px] h-[10px] text-red-400" />
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col flex-1 min-w-0">
+        <span className="text-sm font-medium text-zinc-200 truncate">
+          {p.nickname}
+        </span>
+        {p.isMuted && (
+          <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">
+            Muted
+          </span>
+        )}
+      </div>
+    </div>
+  );
+});
 
 export function VoiceChat() {
   // ⚡ Bolt: Use useShallow with specific selectors to prevent VoiceChat from
@@ -104,64 +167,9 @@ export function VoiceChat() {
       ) : (
         <div className="flex flex-col px-3">
           <div className="space-y-3 mb-4 max-h-[140px] overflow-y-auto shrink-0 pr-1">
-            {voiceParticipants.map((p) => {
-              const bgHash = p.nickname.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-              const colors = [
-                'bg-blue-500/20 text-blue-400', 
-                'bg-purple-500/20 text-purple-400', 
-                'bg-green-500/20 text-green-400', 
-                'bg-amber-500/20 text-amber-400', 
-                'bg-rose-500/20 text-rose-400'
-              ];
-              const gradientColor = colors[bgHash % colors.length];
-              
-              // Get avatarUrl from the main participant state
-              const mainParticipant = useRoomStore.getState().participants.find(mp => mp.id === p.id);
-              const avatarUrl = mainParticipant?.avatarUrl;
-
-              return (
-                <div key={p.id} className="flex items-center gap-3">
-                  <div className="relative">
-                    {avatarUrl ? (
-                      <img 
-                        src={avatarUrl} 
-                        alt={p.nickname} 
-                        className={cn(
-                          "w-8 h-8 rounded-full object-cover relative z-10",
-                          p.isSpeaking && !p.isMuted && "ring-2 ring-teal-500 ring-offset-2 ring-offset-zinc-950 transition-all duration-300"
-                        )} 
-                      />
-                    ) : (
-                      <div 
-                        className={cn(
-                           "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold uppercase relative z-10",
-                           gradientColor,
-                           p.isSpeaking && !p.isMuted && "ring-2 ring-teal-500 ring-offset-2 ring-offset-zinc-950 transition-all duration-300"
-                        )}
-                      >
-                        {p.nickname.slice(0, 2)}
-                      </div>
-                    )}
-                    {/* Muted overlay icon on avatar */}
-                    {p.isMuted && (
-                      <div className="absolute -bottom-1 -right-1 bg-zinc-900 rounded-full p-[2px] z-20">
-                        <MicOff className="w-[10px] h-[10px] text-red-400" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <span className="text-sm font-medium text-zinc-200 truncate">
-                      {p.nickname}
-                    </span>
-                    {p.isMuted && (
-                      <span className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold">
-                        Muted
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {voiceParticipants.map((p) => (
+              <VoiceParticipantItem key={p.id} p={p} />
+            ))}
           </div>
 
           {/* Controls Bar */}
