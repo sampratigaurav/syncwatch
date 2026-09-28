@@ -16,3 +16,8 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+
+## 2024-05-27 - Unvalidated Endpoint Inputs
+**Vulnerability:** Several Express routes (`POST /friends/accept`, `POST /users/initialize`, `PATCH /users/profile`) accepted request body parameters without explicit type checking or length validation. Since the Firebase Admin SDK does not strictly validate input types before saving to Firestore, a malicious client could send non-string values (objects, arrays) causing NoSQL injection, or excessively large strings leading to Denial of Service and database exhaustion.
+**Learning:** Checking truthiness (`!targetUid`) or simple existence is insufficient for payload properties. The absence of type validation before database operations exposes the system to injection and type-confusion bugs.
+**Prevention:** Always implement strict `typeof === 'string'` checks and enforce reasonable maximum length limits on all client-provided properties before routing them into backend services or databases.
