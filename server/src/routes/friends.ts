@@ -108,7 +108,9 @@ friendRouter.post('/accept', requireAuth, async (req, res) => {
   const user = (req as any).user;
   const { targetUid } = req.body;
 
-  if (!targetUid) return res.status(400).json({ error: 'Target UID is required' });
+  if (!targetUid || typeof targetUid !== 'string' || targetUid.length > 100) {
+    return res.status(400).json({ error: 'Target UID is required and must be a valid string' });
+  }
 
   try {
     const edgeId = getEdgeId(user.uid, targetUid);
