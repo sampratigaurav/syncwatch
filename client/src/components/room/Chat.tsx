@@ -19,12 +19,11 @@ const formatTime = (timestamp: number) => {
 };
 
 export default function Chat() {
-  const { chatMessages, participants } = useRoomStore(useShallow(state => ({
-    chatMessages: state.chatMessages,
-    participants: state.participants
+  const { chatMessages } = useRoomStore(useShallow(state => ({
+    chatMessages: state.chatMessages
   })));
   const [text, setText] = useState('');
-  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+  const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
   const scrollRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -36,16 +35,21 @@ export default function Chat() {
 
   useEffect(() => {
     const handleTypingStart = ({ userId }: { userId: string }) => {
-      setTypingUsers(prev => {
-        const next = new Set(prev);
-        next.add(userId);
-        return next;
-      });
+      const state = useRoomStore.getState();
+      const nickname = state.participants.find(p => p.id === userId)?.nickname;
+
+      if (nickname) {
+        setTypingUsers(prev => {
+          const next = new Map(prev);
+          next.set(userId, nickname);
+          return next;
+        });
+      }
     };
 
     const handleTypingStop = ({ userId }: { userId: string }) => {
       setTypingUsers(prev => {
-        const next = new Set(prev);
+        const next = new Map(prev);
         next.delete(userId);
         return next;
       });
@@ -170,10 +174,7 @@ export default function Chat() {
               </div>
             </div>
             <span className="text-[11px] font-medium text-zinc-500">
-               {Array.from(typingUsers)
-                  .map(id => participants.find(p => p.id === id)?.nickname)
-                  .filter(Boolean)
-                  .join(', ')}{' '}
+               {Array.from(typingUsers.values()).join(', ')}{' '}
                {typingUsers.size > 1 ? 'are' : 'is'} typing...
             </span>
           </motion.div>
