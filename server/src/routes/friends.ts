@@ -27,8 +27,8 @@ friendRouter.post('/request', requireAuth, async (req, res) => {
   const user = (req as any).user;
   const { friendCode } = req.body;
 
-  if (!friendCode || typeof friendCode !== 'string') {
-    return res.status(400).json({ error: 'Friend code is required' });
+  if (!friendCode || typeof friendCode !== 'string' || friendCode.length !== 9) {
+    return res.status(400).json({ error: 'Valid friend code is required' });
   }
 
   try {
@@ -108,7 +108,9 @@ friendRouter.post('/accept', requireAuth, async (req, res) => {
   const user = (req as any).user;
   const { targetUid } = req.body;
 
-  if (!targetUid) return res.status(400).json({ error: 'Target UID is required' });
+  if (!targetUid || typeof targetUid !== 'string' || targetUid.length > 128) {
+    return res.status(400).json({ error: 'Valid Target UID is required' });
+  }
 
   try {
     const edgeId = getEdgeId(user.uid, targetUid);
@@ -160,6 +162,10 @@ friendRouter.post('/accept', requireAuth, async (req, res) => {
 friendRouter.delete('/:targetUid', requireAuth, async (req, res) => {
   const user = (req as any).user;
   const targetUid = req.params.targetUid as string;
+
+  if (!targetUid || typeof targetUid !== 'string' || targetUid.length > 128) {
+    return res.status(400).json({ error: 'Valid Target UID is required' });
+  }
 
   try {
     const edgeId = getEdgeId(user.uid, targetUid);
