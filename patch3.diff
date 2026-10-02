@@ -1,0 +1,40 @@
+--- client/src/pages/WaitingRoom.tsx
++++ client/src/pages/WaitingRoom.tsx
+@@ -90,7 +90,7 @@
+     if (file) {
+       if (role === 'host') {
+         setIsSeeding(true);
+-        import('../lib/torrentManager').then(({ torrentManager }) => {
++        void import('../lib/torrentManager').then(({ torrentManager }) => {
+           // Verify host instantly so they can enter the room if they want
+           const url = URL.createObjectURL(file);
+           useRoomStore.getState().setLocalFileUrl(url);
+@@ -107,7 +107,7 @@
+           void verifyFile(file, true);
+
+           // Let the torrent generation happen completely in the background
+-          torrentManager.seed(file, (uri) => {
++          void torrentManager.seed(file, (uri) => {
+             useRoomStore.getState().setMagnetURI(uri);
+             useRoomStore.getState().setIsTorrent(true);
+             socket.emit(EVENTS.SET_MAGNET_LINK, { magnetURI: uri });
+@@ -118,7 +118,7 @@
+             console.error('Failed to seed', err);
+           });
+-        });
++        }).catch(err => console.error(err));
+       } else {
+-        verifyFile(file);
++        void verifyFile(file);
+       }
+     }
+   };
+@@ -356,7 +356,7 @@
+
+                         // Auto-load the first episode
+                         const firstFile = await handles[0].getFile();
+-                        verifyFile(firstFile);
++                        void verifyFile(firstFile);
+
+                       } catch (err: any) {
+                         if (err.name !== 'AbortError') {
