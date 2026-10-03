@@ -13,3 +13,6 @@
 **Learning:** Selecting an entire array object (e.g., `state.participants`) in a Zustand store selector causes subscribed components to re-render whenever any property within any array element updates (such as peer `latencyMs` from 10s websocket pings), even when wrapped in `useShallow`.
 **Action:** Extract specific primitive properties (such as `hostName` via `.find()` or `participantCount` via `.length`) directly inside the Zustand selector instead of selecting the full array and computing primitives locally in component code.
 
+## 2026-10-02 - Direct Selector Primitive Extraction vs Array Selection
+**Learning:** Selecting an entire array object (e.g., `state.participants`) in a Zustand store selector causes subscribed components to re-render whenever any property within any array element updates (such as peer `latencyMs` from 10s websocket pings), even when wrapped in `useShallow`.
+**Action:** Extract specific primitive properties (such as boolean `allVerified` via `.every()`) directly inside the Zustand selector instead of selecting the full array and computing primitives locally in component code. For dependent UI that requires array mapping (like `TypingIndicator`), isolate the UI into a separate component that subscribes only to the required array data.

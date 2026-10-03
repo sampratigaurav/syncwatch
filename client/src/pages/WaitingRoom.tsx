@@ -14,9 +14,9 @@ import { EVENTS } from '../../../shared/socketEvents';
 import { useSoundEffects } from '../hooks/useSoundEffects';
 
 export default function WaitingRoom() {
-  const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast, magnetURI, setMagnetURI, setIsTorrent } = useRoomStore(useShallow(state => ({
+  const { roomId, allVerified, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast, magnetURI, setMagnetURI, setIsTorrent } = useRoomStore(useShallow(state => ({
     roomId: state.roomId,
-    participants: state.participants,
+    allVerified: state.participants.length > 0 && state.participants.every(p => p.status === 'ready'),
     role: state.role,
     fileVerifyStatus: state.fileVerifyStatus,
     connectionStatus: state.connectionStatus,
@@ -100,7 +100,7 @@ export default function WaitingRoom() {
           setIsSeeding(false);
 
           // Run fingerprint generation in the background so viewers can verify local files
-          verifyFile(file, true);
+          verifyFile(file, true).catch(err => console.error("Verify file failed in background:", err));
 
           // Let the torrent generation happen completely in the background
           torrentManager.seed(file, (uri) => {
@@ -113,9 +113,9 @@ export default function WaitingRoom() {
           }).catch(err => {
             console.error('Failed to seed', err);
           });
-        });
+        }).catch(err => console.error('Failed to load torrentManager:', err));
       } else {
-        verifyFile(file);
+        verifyFile(file).catch(err => console.error("Verify file failed:", err));
       }
     }
   };
@@ -128,7 +128,6 @@ export default function WaitingRoom() {
     socket.emit(EVENTS.SET_MAGNET_LINK, { magnetURI: magnetInput });
   };
 
-  const allVerified = participants.length > 0 && participants.every(p => p.status === 'ready');
   const canStart = role === 'host' ? allVerified : fileVerifyStatus === 'verified';
 
   const handleGoHome = () => {
@@ -352,7 +351,7 @@ export default function WaitingRoom() {
                         
                         // Auto-load the first episode
                         const firstFile = await handles[0].getFile();
-                        verifyFile(firstFile);
+                        verifyFile(firstFile).catch(err => console.error("Verify file failed for first episode:", err));
                         
                       } catch (err: any) {
                         if (err.name !== 'AbortError') {
