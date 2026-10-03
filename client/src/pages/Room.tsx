@@ -27,33 +27,37 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 export default function Room() {
   const { 
-    roomId, nickname, localFileUrl, role, bufferingParticipant, 
+    roomId, nickname, localFileUrl, role, bufferingParticipantId, bufferingParticipantName,
     connectionStatus, reconnectAttempt, clearRoomState,
     subtitleBlobUrl, setSubtitleBlobUrl,
     subtitleEnabled, setSubtitleEnabled,
     errorToast, setErrorToast,
     fileVerifyStatus,
     isTorrent, magnetURI, isDetached
-  } = useRoomStore(useShallow(state => ({
-    roomId: state.roomId,
-    nickname: state.nickname,
-    localFileUrl: state.localFileUrl,
-    role: state.role,
-    bufferingParticipant: state.participants.find(p => p.status === 'buffering'),
-    connectionStatus: state.connectionStatus,
-    reconnectAttempt: state.reconnectAttempt,
-    clearRoomState: state.clearRoomState,
-    subtitleBlobUrl: state.subtitleBlobUrl,
-    setSubtitleBlobUrl: state.setSubtitleBlobUrl,
-    subtitleEnabled: state.subtitleEnabled,
-    setSubtitleEnabled: state.setSubtitleEnabled,
-    errorToast: state.errorToast,
-    setErrorToast: state.setErrorToast,
-    fileVerifyStatus: state.fileVerifyStatus,
-    isTorrent: state.isTorrent,
-    magnetURI: state.magnetURI,
-    isDetached: state.isDetached,
-  })));
+  } = useRoomStore(useShallow(state => {
+    const buffering = state.participants.find(p => p.status === 'buffering');
+    return {
+      roomId: state.roomId,
+      nickname: state.nickname,
+      localFileUrl: state.localFileUrl,
+      role: state.role,
+      bufferingParticipantId: buffering?.id,
+      bufferingParticipantName: buffering?.nickname,
+      connectionStatus: state.connectionStatus,
+      reconnectAttempt: state.reconnectAttempt,
+      clearRoomState: state.clearRoomState,
+      subtitleBlobUrl: state.subtitleBlobUrl,
+      setSubtitleBlobUrl: state.setSubtitleBlobUrl,
+      subtitleEnabled: state.subtitleEnabled,
+      setSubtitleEnabled: state.setSubtitleEnabled,
+      errorToast: state.errorToast,
+      setErrorToast: state.setErrorToast,
+      fileVerifyStatus: state.fileVerifyStatus,
+      isTorrent: state.isTorrent,
+      magnetURI: state.magnetURI,
+      isDetached: state.isDetached,
+    };
+  }));
   const navigate = useNavigate();
   useSocket(navigate); 
   
@@ -150,7 +154,7 @@ export default function Room() {
     };
   }, [role]);
 
-  const showBuffering = !!bufferingParticipant;
+  const showBuffering = !!bufferingParticipantId;
 
   const handleGoHome = () => {
     clearRoomState();
@@ -341,7 +345,7 @@ export default function Room() {
                 <div className="absolute inset-x-0 bottom-[-3rem] z-40 mx-auto w-max max-w-[90%] bg-amber-950/80 backdrop-blur-md border border-amber-500/40 text-amber-500 px-4 py-2 rounded-xl flex items-center shadow-xl animate-in fade-in slide-in-from-top-2">
                   <div className="w-3.5 h-3.5 tablet:w-4 tablet:h-4 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mr-2.5 tablet:mr-3 flex-shrink-0"></div>
                   <span className="text-xs tablet:text-sm font-medium tracking-wide">
-                    {bufferingParticipant.id === socket.id ? "Catching up to host..." : `Waiting for ${bufferingParticipant.nickname}...`}
+                    {bufferingParticipantId === socket.id ? "Catching up to host..." : `Waiting for ${bufferingParticipantName}...`}
                   </span>
                 </div>
               )}

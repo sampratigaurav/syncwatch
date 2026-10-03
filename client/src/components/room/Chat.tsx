@@ -18,10 +18,38 @@ const formatTime = (timestamp: number) => {
   return timeFormatter.format(new Date(timestamp));
 };
 
+const TypingStatus = ({ typingUsers }: { typingUsers: Set<string> }) => {
+  const typingNicknames = useRoomStore(
+    state => Array.from(typingUsers)
+      .map(id => state.participants.find(p => p.id === id)?.nickname)
+      .filter(Boolean)
+      .join(', ')
+  );
+
+  return (
+    <motion.div
+      key="typing-indicator"
+      layout
+      initial={{ opacity: 0, y: 10, scale: 0.95, originX: 0 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
+      className="flex items-center gap-3 px-2 py-2 mt-2"
+    >
+      <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center">
+        <div className="bg-zinc-800 text-zinc-200 rounded-2xl px-3 py-2 flex items-center gap-2">
+           <TypingIndicator />
+        </div>
+      </div>
+      <span className="text-[11px] font-medium text-zinc-500">
+         {typingNicknames} {typingUsers.size > 1 ? 'are' : 'is'} typing...
+      </span>
+    </motion.div>
+  );
+};
+
 export default function Chat() {
-  const { chatMessages, participants } = useRoomStore(useShallow(state => ({
-    chatMessages: state.chatMessages,
-    participants: state.participants
+  const { chatMessages } = useRoomStore(useShallow(state => ({
+    chatMessages: state.chatMessages
   })));
   const [text, setText] = useState('');
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
@@ -155,29 +183,7 @@ export default function Chat() {
             </motion.div>
           );
         })}
-        {typingUsers.size > 0 && (
-          <motion.div 
-            key="typing-indicator"
-            layout
-            initial={{ opacity: 0, y: 10, scale: 0.95, originX: 0 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
-            className="flex items-center gap-3 px-2 py-2 mt-2"
-          >
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center">
-              <div className="bg-zinc-800 text-zinc-200 rounded-2xl px-3 py-2 flex items-center gap-2">
-                 <TypingIndicator />
-              </div>
-            </div>
-            <span className="text-[11px] font-medium text-zinc-500">
-               {Array.from(typingUsers)
-                  .map(id => participants.find(p => p.id === id)?.nickname)
-                  .filter(Boolean)
-                  .join(', ')}{' '}
-               {typingUsers.size > 1 ? 'are' : 'is'} typing...
-            </span>
-          </motion.div>
-        )}
+        {typingUsers.size > 0 && <TypingStatus typingUsers={typingUsers} />}
         </AnimatePresence>
       </div>
 
