@@ -116,7 +116,7 @@ export default function WaitingRoom() {
           });
         }).catch(console.error);
       } else {
-        verifyFile(file);
+        verifyFile(file).catch(console.error);
       }
     }
   };
@@ -355,13 +355,12 @@ export default function WaitingRoom() {
                         verifyFile(firstFile).catch(console.error);
                         
                       } catch (err: unknown) {
-                        if (err instanceof Error && err.name !== 'AbortError') {
-                           console.error('Folder selection failed:', err);
-                           setErrorToast("Failed to read folder contents. Please try again.");
-                        } else if (!(err instanceof Error)) {
-                           console.error('Folder selection failed:', err);
-                           setErrorToast("Failed to read folder contents. Please try again.");
+                        if (err instanceof Error && err.name === 'AbortError') {
+                           // User aborted folder selection, do nothing
+                           return;
                         }
+                        console.error('Folder selection failed:', err);
+                        setErrorToast("Failed to read folder contents. Please try again.");
                       }
                     }}
                     className="w-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800 text-zinc-300 font-medium rounded-xl py-4 transition-all flex flex-col items-center justify-center gap-1 active:scale-[0.98]"
