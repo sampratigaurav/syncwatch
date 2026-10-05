@@ -330,7 +330,7 @@ export default function WaitingRoom() {
                         // @ts-expect-error Types for showDirectoryPicker are not completely standard
                         const dirHandle = await window.showDirectoryPicker();
                         const handles: FileSystemFileHandle[] = [];
-                        // @ts-expect-error Types for dirHandle.values() are not completely standard
+                        // @ts-ignore
                         for await (const entry of dirHandle.values()) {
                           if (entry.kind === 'file') {
                             const name = entry.name.toLowerCase();
