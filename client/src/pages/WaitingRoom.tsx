@@ -14,9 +14,10 @@ import { EVENTS } from '../../../shared/socketEvents';
 import { useSoundEffects } from '../hooks/useSoundEffects';
 
 export default function WaitingRoom() {
-  const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast, magnetURI, setMagnetURI, setIsTorrent } = useRoomStore(useShallow(state => ({
+  const { roomId, allVerified, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast, magnetURI, setMagnetURI, setIsTorrent } = useRoomStore(useShallow(state => ({
     roomId: state.roomId,
-    participants: state.participants,
+    // ⚡ Bolt: Extract allVerified primitive directly in selector to prevent unnecessary re-renders when other participant properties (like latencyMs) update
+    allVerified: state.participants.length > 0 && state.participants.every(p => p.status === 'ready'),
     role: state.role,
     fileVerifyStatus: state.fileVerifyStatus,
     connectionStatus: state.connectionStatus,
@@ -100,10 +101,10 @@ export default function WaitingRoom() {
           setIsSeeding(false);
 
           // Run fingerprint generation in the background so viewers can verify local files
-          verifyFile(file, true);
+          verifyFile(file, true).catch(console.error);
 
           // Let the torrent generation happen completely in the background
-          torrentManager.seed(file, (uri) => {
+          void torrentManager.seed(file, (uri) => {
             useRoomStore.getState().setMagnetURI(uri);
             useRoomStore.getState().setIsTorrent(true);
             socket.emit(EVENTS.SET_MAGNET_LINK, { magnetURI: uri });
@@ -113,9 +114,9 @@ export default function WaitingRoom() {
           }).catch(err => {
             console.error('Failed to seed', err);
           });
-        });
+        }).catch(console.error);
       } else {
-        verifyFile(file);
+        verifyFile(file).catch(console.error);
       }
     }
   };
@@ -128,7 +129,6 @@ export default function WaitingRoom() {
     socket.emit(EVENTS.SET_MAGNET_LINK, { magnetURI: magnetInput });
   };
 
-  const allVerified = participants.length > 0 && participants.every(p => p.status === 'ready');
   const canStart = role === 'host' ? allVerified : fileVerifyStatus === 'verified';
 
   const handleGoHome = () => {
@@ -327,9 +327,9 @@ export default function WaitingRoom() {
                   <button 
                     onClick={async () => {
                       try {
-                        // @ts-ignore
+                        // @ts-expect-error Types for showDirectoryPicker are not completely standard
                         const dirHandle = await window.showDirectoryPicker();
-                        const handles: any[] = [];
+                        const handles: FileSystemFileHandle[] = [];
                         // @ts-ignore
                         for await (const entry of dirHandle.values()) {
                           if (entry.kind === 'file') {
@@ -352,13 +352,15 @@ export default function WaitingRoom() {
                         
                         // Auto-load the first episode
                         const firstFile = await handles[0].getFile();
-                        verifyFile(firstFile);
+                        verifyFile(firstFile).catch(console.error);
                         
-                      } catch (err: any) {
-                        if (err.name !== 'AbortError') {
-                           console.error('Folder selection failed:', err);
-                           setErrorToast("Failed to read folder contents. Please try again.");
+                      } catch (err: unknown) {
+                        if (err instanceof Error && err.name === 'AbortError') {
+                           // User aborted folder selection, do nothing
+                           return;
                         }
+                        console.error('Folder selection failed:', err);
+                        setErrorToast("Failed to read folder contents. Please try again.");
                       }
                     }}
                     className="w-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800 text-zinc-300 font-medium rounded-xl py-4 transition-all flex flex-col items-center justify-center gap-1 active:scale-[0.98]"
