@@ -101,10 +101,10 @@ export default function WaitingRoom() {
           setIsSeeding(false);
 
           // Run fingerprint generation in the background so viewers can verify local files
-          verifyFile(file, true);
+          verifyFile(file, true).catch(console.error);
 
           // Let the torrent generation happen completely in the background
-          torrentManager.seed(file, (uri) => {
+          void torrentManager.seed(file, (uri) => {
             useRoomStore.getState().setMagnetURI(uri);
             useRoomStore.getState().setIsTorrent(true);
             socket.emit(EVENTS.SET_MAGNET_LINK, { magnetURI: uri });
@@ -114,7 +114,7 @@ export default function WaitingRoom() {
           }).catch(err => {
             console.error('Failed to seed', err);
           });
-        });
+        }).catch(console.error);
       } else {
         verifyFile(file);
       }
@@ -327,10 +327,10 @@ export default function WaitingRoom() {
                   <button 
                     onClick={async () => {
                       try {
-                        // @ts-ignore
+                        // @ts-expect-error Types for showDirectoryPicker are not completely standard
                         const dirHandle = await window.showDirectoryPicker();
-                        const handles: any[] = [];
-                        // @ts-ignore
+                        const handles: FileSystemFileHandle[] = [];
+                        // @ts-expect-error Types for dirHandle.values() are not completely standard
                         for await (const entry of dirHandle.values()) {
                           if (entry.kind === 'file') {
                             const name = entry.name.toLowerCase();
@@ -352,10 +352,13 @@ export default function WaitingRoom() {
                         
                         // Auto-load the first episode
                         const firstFile = await handles[0].getFile();
-                        verifyFile(firstFile);
+                        verifyFile(firstFile).catch(console.error);
                         
-                      } catch (err: any) {
-                        if (err.name !== 'AbortError') {
+                      } catch (err: unknown) {
+                        if (err instanceof Error && err.name !== 'AbortError') {
+                           console.error('Folder selection failed:', err);
+                           setErrorToast("Failed to read folder contents. Please try again.");
+                        } else if (!(err instanceof Error)) {
                            console.error('Folder selection failed:', err);
                            setErrorToast("Failed to read folder contents. Please try again.");
                         }
