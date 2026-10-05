@@ -13,3 +13,7 @@
 **Learning:** Selecting an entire array object (e.g., `state.participants`) in a Zustand store selector causes subscribed components to re-render whenever any property within any array element updates (such as peer `latencyMs` from 10s websocket pings), even when wrapped in `useShallow`.
 **Action:** Extract specific primitive properties (such as `hostName` via `.find()` or `participantCount` via `.length`) directly inside the Zustand selector instead of selecting the full array and computing primitives locally in component code.
 
+
+## 2026-10-05 - Avoid OOM with Vitest in Monorepos
+**Learning:** Running `npx vitest run --globals` from the absolute root directory (`/`) instead of the project root directory (`/app`) can cause a `JavaScript heap out of memory` FATAL ERROR due to scanning unrelated system files.
+**Action:** Always ensure you are within the correct project working directory (e.g., `cd /app`) before running global testing or building commands in a monorepo setup to avoid Out-Of-Memory exceptions.
