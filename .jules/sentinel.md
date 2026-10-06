@@ -16,3 +16,7 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+## 2024-10-06 - [Missing Input Validation on Express API Endpoints]
+**Vulnerability:** The Express endpoints `/api/users/initialize`, `/api/users/profile`, and `/api/friends/accept` lacked input validation and length limits for properties extracted from `req.body`.
+**Learning:** Firestore via the Firebase Admin SDK does not enforce schema validation on incoming data. This architectural gap means Express routes must explicitly enforce data types (e.g., `typeof field === 'string'`) and length limits to prevent NoSQL injection, type-confusion bugs, and payload-based DoS attacks.
+**Prevention:** Always implement explicit input validation logic (type and length checks) at the top of Express route handlers before passing data to Firestore or Redis.
