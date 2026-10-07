@@ -33,6 +33,17 @@ userRouter.post('/initialize', requireAuth, async (req, res) => {
   const user = (req as any).user;
   const { displayName, photoURL, email } = req.body;
 
+  // Security: Input validation to prevent NoSQL injection and DoS
+  if (displayName !== undefined && (typeof displayName !== 'string' || displayName.length > 50)) {
+    return res.status(400).json({ error: 'Invalid displayName' });
+  }
+  if (photoURL !== undefined && (typeof photoURL !== 'string' || photoURL.length > 2000)) {
+    return res.status(400).json({ error: 'Invalid photoURL' });
+  }
+  if (email !== undefined && (typeof email !== 'string' || email.length > 254)) {
+    return res.status(400).json({ error: 'Invalid email' });
+  }
+
   try {
     const userRef = db!.collection('users').doc(user.uid);
     const docSnap = await userRef.get();
@@ -100,6 +111,14 @@ userRouter.post('/initialize', requireAuth, async (req, res) => {
 userRouter.patch('/profile', requireAuth, async (req: Request, res: Response) => {
   const user = (req as any).user;
   const { displayName, avatarUrl } = req.body;
+
+  // Security: Input validation to prevent NoSQL injection and DoS
+  if (displayName !== undefined && (typeof displayName !== 'string' || displayName.length > 50)) {
+    return res.status(400).json({ error: 'Invalid displayName' });
+  }
+  if (avatarUrl !== undefined && (typeof avatarUrl !== 'string' || avatarUrl.length > 2000)) {
+    return res.status(400).json({ error: 'Invalid avatarUrl' });
+  }
 
   try {
     const userRef = db!.collection('users').doc(user.uid);
