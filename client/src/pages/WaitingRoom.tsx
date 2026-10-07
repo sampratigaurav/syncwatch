@@ -103,7 +103,7 @@ export default function WaitingRoom() {
           void verifyFile(file, true);
 
           // Let the torrent generation happen completely in the background
-          torrentManager.seed(file, (uri) => {
+          void torrentManager.seed(file, (uri) => {
             useRoomStore.getState().setMagnetURI(uri);
             useRoomStore.getState().setIsTorrent(true);
             socket.emit(EVENTS.SET_MAGNET_LINK, { magnetURI: uri });
