@@ -21,3 +21,7 @@
 1. Always hoist boolean derivation (like `allVerified = state.participants.every(...)`) into the `useShallow` selector itself.
 2. Extract primitives directly (e.g., `isBuffering = !!state.participants.find(...)`) instead of returning object references.
 3. Isolate UI components that require mapping over heavy collections (like `TypingUserList`) into their own separate components so their frequent re-renders don't thrash parent layouts.
+## 2026-10-07 - Floating Promises
+
+**Learning:** Unawaited asynchronous functions (like `verifyFile`) will cause SonarCloud CI checks to fail the quality gate on 'floating promises'.
+**Action:** When a function is intentionally left unawaited (e.g. background operations), explicitly prefix the call with the `void` operator to appease strict linters.
