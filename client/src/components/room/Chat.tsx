@@ -18,10 +18,25 @@ const formatTime = (timestamp: number) => {
   return timeFormatter.format(new Date(timestamp));
 };
 
+function TypingUserList({ typingUserIds }: { typingUserIds: Set<string> }) {
+  const participants = useRoomStore(state => state.participants);
+
+  if (typingUserIds.size === 0) return null;
+
+  return (
+    <span className="text-[11px] font-medium text-zinc-500">
+      {Array.from(typingUserIds)
+        .map(id => participants.find(p => p.id === id)?.nickname)
+        .filter(Boolean)
+        .join(', ')}{' '}
+      {typingUserIds.size > 1 ? 'are' : 'is'} typing...
+    </span>
+  );
+}
+
 export default function Chat() {
-  const { chatMessages, participants } = useRoomStore(useShallow(state => ({
-    chatMessages: state.chatMessages,
-    participants: state.participants
+  const { chatMessages } = useRoomStore(useShallow(state => ({
+    chatMessages: state.chatMessages
   })));
   const [text, setText] = useState('');
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
@@ -169,13 +184,7 @@ export default function Chat() {
                  <TypingIndicator />
               </div>
             </div>
-            <span className="text-[11px] font-medium text-zinc-500">
-               {Array.from(typingUsers)
-                  .map(id => participants.find(p => p.id === id)?.nickname)
-                  .filter(Boolean)
-                  .join(', ')}{' '}
-               {typingUsers.size > 1 ? 'are' : 'is'} typing...
-            </span>
+            <TypingUserList typingUserIds={typingUsers} />
           </motion.div>
         )}
         </AnimatePresence>

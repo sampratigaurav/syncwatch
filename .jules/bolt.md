@@ -13,3 +13,11 @@
 **Learning:** Selecting an entire array object (e.g., `state.participants`) in a Zustand store selector causes subscribed components to re-render whenever any property within any array element updates (such as peer `latencyMs` from 10s websocket pings), even when wrapped in `useShallow`.
 **Action:** Extract specific primitive properties (such as `hostName` via `.find()` or `participantCount` via `.length`) directly inside the Zustand selector instead of selecting the full array and computing primitives locally in component code.
 
+## 2026-10-07 - Isolate Heavy Subscriptions
+
+**Learning:** Component subscriptions to Zustand state that updates frequently (like `participants` receiving latency pings every 10s) causes full component re-renders. Passing full array references or derived object references in `useShallow` selectors defeats memoization if any underlying item property changes.
+
+**Action:**
+1. Always hoist boolean derivation (like `allVerified = state.participants.every(...)`) into the `useShallow` selector itself.
+2. Extract primitives directly (e.g., `isBuffering = !!state.participants.find(...)`) instead of returning object references.
+3. Isolate UI components that require mapping over heavy collections (like `TypingUserList`) into their own separate components so their frequent re-renders don't thrash parent layouts.
