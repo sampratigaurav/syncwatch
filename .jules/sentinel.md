@@ -16,3 +16,10 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+
+## 2024-05-26 - Missing Input Validation in Express Routes and Middleware
+**Vulnerability:** The application was lacking payload size limits in its global `express.json()` middleware, creating a risk for Denial-of-Service attacks through large JSON payloads. Additionally, routes like `/initialize` and `/profile` in `userRouter` and `/accept` in `friendRouter` didn't validate the data types or lengths of fields like `displayName`, `email`, and `targetUid`, passing them directly to Firebase Admin SDK or string methods. This lack of type safety allows NoSQL injections, data corruption, and potentially crashing the Node.js server.
+**Learning:** Firebase Admin SDK does not validate data types natively, and Express doesn't inherently limit JSON sizes unless configured to. Since the framework trusts the structure of objects in `req.body` directly, unvalidated parameters can trigger unexpected behavior or unhandled exceptions deeper down.
+**Prevention:**
+1. Always configure a limit parameter on `express.json()` (e.g., `express.json({ limit: '100kb' })`).
+2. Always validate `typeof req.body.field === 'string'` (or the expected type) before interacting with Firebase or passing the variables into database functions. Ensure proper length constraints are strictly enforced before storage.

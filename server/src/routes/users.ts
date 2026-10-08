@@ -29,9 +29,19 @@ const generateFriendCode = () => {
   return code;
 };
 
-userRouter.post('/initialize', requireAuth, async (req, res) => {
+userRouter.post('/initialize', requireAuth, (req, res, next) => { void (async () => {
   const user = (req as any).user;
   const { displayName, photoURL, email } = req.body;
+
+  if (displayName && (typeof displayName !== 'string' || displayName.length > 50)) {
+    return res.status(400).json({ error: 'Invalid displayName' });
+  }
+  if (photoURL && (typeof photoURL !== 'string' || photoURL.length > 2000)) {
+    return res.status(400).json({ error: 'Invalid photoURL' });
+  }
+  if (email && (typeof email !== 'string' || email.length > 255)) {
+    return res.status(400).json({ error: 'Invalid email' });
+  }
 
   try {
     const userRef = db!.collection('users').doc(user.uid);
@@ -95,11 +105,18 @@ userRouter.post('/initialize', requireAuth, async (req, res) => {
     console.error('Failed to initialize user:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
-});
+})().catch(next); });
 
-userRouter.patch('/profile', requireAuth, async (req: Request, res: Response) => {
+userRouter.patch('/profile', requireAuth, (req: Request, res: Response, next: NextFunction) => { void (async () => {
   const user = (req as any).user;
   const { displayName, avatarUrl } = req.body;
+
+  if (displayName !== undefined && (typeof displayName !== 'string' || displayName.length > 50)) {
+    return res.status(400).json({ error: 'Invalid displayName' });
+  }
+  if (avatarUrl !== undefined && (typeof avatarUrl !== 'string' || avatarUrl.length > 2000)) {
+    return res.status(400).json({ error: 'Invalid avatarUrl' });
+  }
 
   try {
     const userRef = db!.collection('users').doc(user.uid);
@@ -121,5 +138,5 @@ userRouter.patch('/profile', requireAuth, async (req: Request, res: Response) =>
     console.error('Failed to update user profile:', err);
     return res.status(500).json({ error: 'Failed to update profile' });
   }
-});
+})().catch(next); });
 
