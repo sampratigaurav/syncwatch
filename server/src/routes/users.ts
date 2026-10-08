@@ -29,7 +29,7 @@ const generateFriendCode = () => {
   return code;
 };
 
-userRouter.post('/initialize', requireAuth, async (req, res) => {
+userRouter.post('/initialize', requireAuth, (req, res, next) => { void (async () => {
   const user = (req as any).user;
   const { displayName, photoURL, email } = req.body;
 
@@ -105,9 +105,9 @@ userRouter.post('/initialize', requireAuth, async (req, res) => {
     console.error('Failed to initialize user:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
-});
+})().catch(next); });
 
-userRouter.patch('/profile', requireAuth, async (req: Request, res: Response) => {
+userRouter.patch('/profile', requireAuth, (req: Request, res: Response, next: NextFunction) => { void (async () => {
   const user = (req as any).user;
   const { displayName, avatarUrl } = req.body;
 
@@ -138,5 +138,5 @@ userRouter.patch('/profile', requireAuth, async (req: Request, res: Response) =>
     console.error('Failed to update user profile:', err);
     return res.status(500).json({ error: 'Failed to update profile' });
   }
-});
+})().catch(next); });
 
