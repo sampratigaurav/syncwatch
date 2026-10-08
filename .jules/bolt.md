@@ -13,3 +13,6 @@
 **Learning:** Selecting an entire array object (e.g., `state.participants`) in a Zustand store selector causes subscribed components to re-render whenever any property within any array element updates (such as peer `latencyMs` from 10s websocket pings), even when wrapped in `useShallow`.
 **Action:** Extract specific primitive properties (such as `hostName` via `.find()` or `participantCount` via `.length`) directly inside the Zustand selector instead of selecting the full array and computing primitives locally in component code.
 
+## 2024-05-18 - Zustand useShallow Arrays Pattern
+**Learning:** Returning large, frequently-updating arrays (like `participants` which receives ping updates every second) via `useShallow` triggers widespread, unnecessary component re-renders across the app, degrading performance heavily for long lists (e.g. `Chat.tsx`).
+**Action:** Isolate dependent sub-sections of UI into smaller components (e.g., `TypingUserText`) that subscribe *only* to the specific derived primitives they need, passing the mapped primitives through `useShallow` so re-renders only occur when the derived strings/booleans change, rather than on every tick.
