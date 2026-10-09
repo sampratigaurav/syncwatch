@@ -101,7 +101,7 @@ export default function WaitingRoom() {
           setIsSeeding(false);
 
           // Run fingerprint generation in the background so viewers can verify local files
-          verifyFile(file, true);
+          verifyFile(file, true).catch(err => console.error('Failed to verify file', err));
 
           // Let the torrent generation happen completely in the background
           torrentManager.seed(file, (uri) => {
@@ -116,7 +116,7 @@ export default function WaitingRoom() {
           });
         });
       } else {
-        verifyFile(file);
+        verifyFile(file).catch(err => console.error('Failed to verify file', err));
       }
     }
   };
@@ -352,7 +352,7 @@ export default function WaitingRoom() {
                         
                         // Auto-load the first episode
                         const firstFile = await handles[0].getFile();
-                        verifyFile(firstFile);
+                        verifyFile(firstFile).catch(err => console.error('Failed to verify file', err));
                         
                       } catch (err: any) {
                         if (err.name !== 'AbortError') {
