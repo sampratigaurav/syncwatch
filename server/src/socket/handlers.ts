@@ -718,6 +718,10 @@ export const setupSocketHandlers = (io: Server) => {
     socket.on(EVENTS.WEBRTC_OFFER, async (payload: { offer: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
       if (typeof payload.offer !== 'object' || payload.offer === null) return;
+
+      // Limit SDP size directly if possible, else prevent excessive keys
+      if (payload.offer.sdp && typeof payload.offer.sdp === 'string' && payload.offer.sdp.length > 20000) return;
+
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_OFFER, {
         offer: payload.offer,
@@ -728,6 +732,10 @@ export const setupSocketHandlers = (io: Server) => {
     socket.on(EVENTS.WEBRTC_ANSWER, async (payload: { answer: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
       if (typeof payload.answer !== 'object' || payload.answer === null) return;
+
+      // Limit SDP size directly if possible
+      if (payload.answer.sdp && typeof payload.answer.sdp === 'string' && payload.answer.sdp.length > 20000) return;
+
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ANSWER, {
         answer: payload.answer,
@@ -738,6 +746,10 @@ export const setupSocketHandlers = (io: Server) => {
     socket.on(EVENTS.WEBRTC_ICE_CANDIDATE, async (payload: { candidate: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
       if (payload.candidate !== null && typeof payload.candidate !== 'object') return;
+
+      // Limit ICE Candidate size directly if possible
+      if (payload.candidate && payload.candidate.candidate && typeof payload.candidate.candidate === 'string' && payload.candidate.candidate.length > 5000) return;
+
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ICE_CANDIDATE, {
         candidate: payload.candidate,
