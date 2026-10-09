@@ -149,7 +149,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '100kb' }));
+app.use(express.json());
 
 // DEBUG LOGGING
 app.use((req, res, next) => {
@@ -188,7 +188,7 @@ app.get('/health', (req, res) => {
 let pubClient: ReturnType<typeof createClient>;
 let subClient: ReturnType<typeof createClient>;
 
-(async () => {
+void (async () => {
   if (process.env.REDIS_URL) {
     try {
       pubClient = createClient({ url: process.env.REDIS_URL });
