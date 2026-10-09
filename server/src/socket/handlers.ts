@@ -718,9 +718,13 @@ export const setupSocketHandlers = (io: Server) => {
     socket.on(EVENTS.WEBRTC_OFFER, async (payload: { offer: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
       if (typeof payload.offer !== 'object' || payload.offer === null) return;
+
+      if (typeof payload.offer.type !== 'string' || payload.offer.type.length > 50) return;
+      if (typeof payload.offer.sdp !== 'string' || payload.offer.sdp.length > 20000) return;
+
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_OFFER, {
-        offer: payload.offer,
+        offer: { type: payload.offer.type, sdp: payload.offer.sdp },
         fromId: socket.id
       });
     });
@@ -728,9 +732,13 @@ export const setupSocketHandlers = (io: Server) => {
     socket.on(EVENTS.WEBRTC_ANSWER, async (payload: { answer: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
       if (typeof payload.answer !== 'object' || payload.answer === null) return;
+
+      if (typeof payload.answer.type !== 'string' || payload.answer.type.length > 50) return;
+      if (typeof payload.answer.sdp !== 'string' || payload.answer.sdp.length > 20000) return;
+
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ANSWER, {
-        answer: payload.answer,
+        answer: { type: payload.answer.type, sdp: payload.answer.sdp },
         fromId: socket.id
       });
     });
@@ -738,9 +746,24 @@ export const setupSocketHandlers = (io: Server) => {
     socket.on(EVENTS.WEBRTC_ICE_CANDIDATE, async (payload: { candidate: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
       if (payload.candidate !== null && typeof payload.candidate !== 'object') return;
+
+      let safeCandidate: any = null;
+      if (payload.candidate !== null) {
+        if (typeof payload.candidate.candidate !== 'string' || payload.candidate.candidate.length > 5000) return;
+
+        // Explicitly reconstruct the candidate object containing only the candidate string.
+        safeCandidate = { candidate: payload.candidate.candidate };
+        if (typeof payload.candidate.sdpMid === 'string' && payload.candidate.sdpMid.length < 255) {
+          safeCandidate.sdpMid = payload.candidate.sdpMid;
+        }
+        if (typeof payload.candidate.sdpMLineIndex === 'number') {
+          safeCandidate.sdpMLineIndex = payload.candidate.sdpMLineIndex;
+        }
+      }
+
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ICE_CANDIDATE, {
-        candidate: payload.candidate,
+        candidate: safeCandidate,
         fromId: socket.id
       });
     });
