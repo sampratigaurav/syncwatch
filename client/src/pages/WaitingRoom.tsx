@@ -114,7 +114,7 @@ export default function WaitingRoom() {
           }).catch(err => {
             console.error('Failed to seed', err);
           });
-        });
+        }).catch(err => console.error('Failed to load torrent manager', err));
       } else {
         verifyFile(file).catch(err => console.error('Failed to verify file', err));
       }
