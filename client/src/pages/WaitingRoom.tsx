@@ -327,10 +327,10 @@ export default function WaitingRoom() {
                   <button 
                     onClick={async () => {
                       try {
-                        // @ts-ignore
+                        // @ts-expect-error File System Access API
                         const dirHandle = await window.showDirectoryPicker();
                         const handles: any[] = [];
-                        // @ts-ignore
+                        // @ts-expect-error File System Access API
                         for await (const entry of dirHandle.values()) {
                           if (entry.kind === 'file') {
                             const name = entry.name.toLowerCase();
