@@ -149,7 +149,8 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.use(cors(corsOptions));
-app.use(express.json());
+// Limit JSON payload size to mitigate DoS (Denial of Service) attacks
+app.use(express.json({ limit: '100kb' }));
 
 // DEBUG LOGGING
 app.use((req, res, next) => {
@@ -212,7 +213,10 @@ let subClient: ReturnType<typeof createClient>;
   server.listen(Number(PORT), '0.0.0.0', () => {
     logger.info(`Server listening on ${PORT} (0.0.0.0)`);
   });
-})();
+})().catch(err => {
+  logger.error('Failed to start server:', err);
+  process.exit(1);
+});
 
 // Graceful Shutdown implementation
 const gracefulShutdown = async (signal: string) => {
