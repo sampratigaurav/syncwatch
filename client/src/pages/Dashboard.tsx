@@ -530,7 +530,7 @@ export default function Dashboard() {
                     <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{error}</div>
                   )}
                   <button
-                    onClick={() => { handleCreateRoom(); }}
+                    onClick={() => { void handleCreateRoom(); }}
                     disabled={isLoading}
                     className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98] flex items-center justify-center text-base disabled:opacity-50"
                     style={{
@@ -623,7 +623,7 @@ export default function Dashboard() {
                   <div className="text-red-400 text-xs font-medium text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">This room has expired or does not exist.</div>
                 )}
                 <button
-                  onClick={() => { handleJoinRoom(); }}
+                  onClick={() => { void handleJoinRoom(); }}
                   disabled={isLoading}
                   className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98] flex items-center justify-center text-base disabled:opacity-50 border"
                   style={{
