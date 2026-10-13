@@ -212,7 +212,7 @@ let subClient: ReturnType<typeof createClient>;
   server.listen(Number(PORT), '0.0.0.0', () => {
     logger.info(`Server listening on ${PORT} (0.0.0.0)`);
   });
-})();
+})().catch((err) => logger.error('Server startup error:', err));
 
 // Graceful Shutdown implementation
 const gracefulShutdown = async (signal: string) => {

@@ -749,7 +749,13 @@ export const setupSocketHandlers = (io: Server) => {
       if (!payload || typeof payload.targetId !== 'string') return;
       if (payload.candidate !== null && typeof payload.candidate !== 'object') return;
 
-      let safeCandidate: any = null;
+      let safeCandidate: {
+        candidate: string;
+        sdpMid: string | null;
+        sdpMLineIndex: number | null;
+        usernameFragment?: string;
+      } | null = null;
+
       if (payload.candidate !== null) {
         if (typeof payload.candidate.candidate !== 'string' || payload.candidate.candidate.length > 5000) return;
         safeCandidate = {
