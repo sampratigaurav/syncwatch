@@ -22,7 +22,7 @@ function TypingUserText({ typingUsers }: { typingUsers: Set<string> }) {
   const typingUserNames = useRoomStore(useShallow(state => {
     return Array.from(typingUsers)
       .map(id => state.participants.find(p => p.id === id)?.nickname)
-      .filter(Boolean);
+      .filter((name): name is string => Boolean(name));
   }));
 
   if (typingUserNames.length === 0) return null;

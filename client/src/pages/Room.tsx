@@ -80,12 +80,10 @@ export default function Room() {
   const prevHasControl = useRef(hasControl);
 
   // Show errorToast from Zustand (set by useSocket) as an in-app notification
-  useEffect(() => {
-    if (errorToast) {
-      setToastMessage(errorToast);
-      setErrorToast(null);
-    }
-  }, [errorToast, setErrorToast]);
+  if (errorToast) {
+    setToastMessage(errorToast);
+    setErrorToast(null);
+  }
 
   useEffect(() => {
     const handleViewportResize = () => {

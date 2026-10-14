@@ -328,6 +328,7 @@ export default function WaitingRoom() {
                       try {
                         // @ts-ignore
                         const dirHandle = await window.showDirectoryPicker();
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const handles: any[] = [];
                         // @ts-ignore
                         for await (const entry of dirHandle.values()) {
@@ -353,8 +354,8 @@ export default function WaitingRoom() {
                         const firstFile = await handles[0].getFile();
                         verifyFile(firstFile);
                         
-                      } catch (err: any) {
-                        if (err.name !== 'AbortError') {
+                      } catch (err: unknown) {
+                        if (err instanceof Error && err.name !== 'AbortError') {
                            console.error('Folder selection failed:', err);
                            setErrorToast("Failed to read folder contents. Please try again.");
                         }
