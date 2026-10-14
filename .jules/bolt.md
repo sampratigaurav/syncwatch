@@ -13,3 +13,6 @@
 **Learning:** Selecting an entire array object (e.g., `state.participants`) in a Zustand store selector causes subscribed components to re-render whenever any property within any array element updates (such as peer `latencyMs` from 10s websocket pings), even when wrapped in `useShallow`.
 **Action:** Extract specific primitive properties (such as `hostName` via `.find()` or `participantCount` via `.length`) directly inside the Zustand selector instead of selecting the full array and computing primitives locally in component code.
 
+## 2026-10-25 - Localizing Component Subscriptions
+**Learning:** Returning large, frequently-updating array structures (like `state.participants`) in the main `useShallow` hook of a heavy component (like `Chat.tsx`) causes the entire layout to re-render, even if the array is only used for a small subset of the UI (like mapping typing indicators).
+**Action:** Extract localized UI elements (e.g., `TypingUserText`) into separate sub-components. Subscribe to the global store within the sub-component using a scalar/primitive derived selector. This prevents the parent layout from needlessly re-rendering during periodic background state updates.
