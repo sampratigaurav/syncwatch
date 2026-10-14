@@ -326,10 +326,12 @@ export default function WaitingRoom() {
                   <button 
                     onClick={async () => {
                       try {
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         const dirHandle = await window.showDirectoryPicker();
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const handles: any[] = [];
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         for await (const entry of dirHandle.values()) {
                           if (entry.kind === 'file') {
