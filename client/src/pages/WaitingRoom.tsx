@@ -326,7 +326,7 @@ export default function WaitingRoom() {
                   <button 
                     onClick={async () => {
                       try {
-                        // @ts-ignore
+                        // @ts-expect-error Types for showDirectoryPicker are incomplete
                         const dirHandle = await window.showDirectoryPicker();
                         const handles: any[] = [];
                         // @ts-ignore
