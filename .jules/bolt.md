@@ -13,3 +13,7 @@
 **Learning:** Selecting an entire array object (e.g., `state.participants`) in a Zustand store selector causes subscribed components to re-render whenever any property within any array element updates (such as peer `latencyMs` from 10s websocket pings), even when wrapped in `useShallow`.
 **Action:** Extract specific primitive properties (such as `hostName` via `.find()` or `participantCount` via `.length`) directly inside the Zustand selector instead of selecting the full array and computing primitives locally in component code.
 
+
+## 2024-10-20 - Extracting Array Dependencies from Global Hooks
+**Learning:** In Zustand, subscribing to an entire array of objects (like `participants`) from a global store within a large component causes that entire component tree to re-render whenever *any* nested property within that array updates (like `latencyMs` updating every 10 seconds).
+**Action:** Extract localized UI elements that depend on these arrays (like `TypingNicknames`) into their own dedicated sub-components. Have the sub-component subscribe *only* to the specific derived data it needs (e.g. mapping the `participants` array down to an array of string nicknames using `useShallow`). This isolates the re-renders to just the small UI element.
