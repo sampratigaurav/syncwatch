@@ -16,3 +16,7 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+## 2026-10-20 - [Strict Object Validation in WebRTC Handlers]
+**Vulnerability:** Type Injection / Bypass via Arrays
+**Learning:** In JavaScript, `typeof [] === 'object'`. Socket.io payloads that simply check `typeof payload === 'object'` can be bypassed by sending arrays, leading to potential prototype pollution or unhandled errors. WebRTC endpoints lacked strict checks for arrays and large string sizes.
+**Prevention:** Always explicitly check `!Array.isArray(payload)` in addition to object checks. Extract explicit properties rather than spreading or broadcasting raw objects directly.
