@@ -16,3 +16,8 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+
+## 2024-05-24 - Unvalidated Socket.IO optional payload properties causing DoS
+**Vulnerability:** Socket.IO optional numeric payloads (like playbackRate) were verified only with a truthiness check (`!== undefined`) before assignment. WebRTC events didn't validate if payload.offer/answer were objects.
+**Learning:** Missing strict type/bound checking allows malicious clients to corrupt shared server state with invalid types (strings/objects/NaN instead of numbers), which can crash the room state or cause a DoS for all participants.
+**Prevention:** Always strictly validate type (e.g. typeof === 'number') and bounds (e.g. Number.isFinite) for all properties in Socket.IO payloads, including optional ones. Explicitly reject nulls for objects unless required by spec (like ICE candidate).
