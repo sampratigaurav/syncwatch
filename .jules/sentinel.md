@@ -16,3 +16,7 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+## 2024-07-21 - Unvalidated Optional Numeric Property in Socket Handlers
+**Vulnerability:** The `playbackRate` property in `EVENTS.PLAYBACK_EVENT` was checked for existence (`!== undefined`) but not type-checked or bound-checked before being assigned to the server state and broadcast to clients. A malicious client could send an object or a massive payload, leading to state corruption and DoS.
+**Learning:** When validating optional numeric properties in Socket.IO payloads, do not rely solely on existence checks. Always explicitly verify the type and bounds before assigning to server state.
+**Prevention:** Use explicit type checking (`typeof value === 'number'`) and bound validation (`Number.isFinite(value)`) for all optional numeric properties in socket handlers.
