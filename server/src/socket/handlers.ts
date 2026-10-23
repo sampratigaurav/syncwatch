@@ -445,7 +445,7 @@ export const setupSocketHandlers = (io: Server) => {
       room.playback.lastUpdatedAt = Date.now();
       room.playback.lastActionBy = socket.id;
       room.playback.lastActionNickname = participant.nickname;
-      if (payload.playbackRate !== undefined) {
+      if (typeof payload.playbackRate === 'number' && Number.isFinite(payload.playbackRate)) {
         room.playback.playbackRate = payload.playbackRate;
       }
 
