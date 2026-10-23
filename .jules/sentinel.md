@@ -16,3 +16,8 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+
+## 2026-07-18 - Missing Type Validation for playbackRate in PLAYBACK_EVENT
+**Vulnerability:** The `EVENTS.PLAYBACK_EVENT` handler checked if `payload.playbackRate !== undefined` but failed to validate its type. A malicious client could send non-numeric data types (like objects or arrays), leading to state corruption and potential application crashes.
+**Learning:** Always validate the strict type of optional numerical values before assigning them to state.
+**Prevention:** Explicitly verify `typeof value === 'number'` and `Number.isFinite(value)`.
