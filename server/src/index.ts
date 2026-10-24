@@ -188,7 +188,7 @@ app.get('/health', (req, res) => {
 let pubClient: ReturnType<typeof createClient>;
 let subClient: ReturnType<typeof createClient>;
 
-(async () => {
+void (async () => {
   if (process.env.REDIS_URL) {
     try {
       pubClient = createClient({ url: process.env.REDIS_URL });
@@ -236,5 +236,5 @@ const gracefulShutdown = async (signal: string) => {
   }
 };
 
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => { void gracefulShutdown('SIGTERM'); });
+process.on('SIGINT', () => { void gracefulShutdown('SIGINT'); });
