@@ -717,30 +717,54 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(EVENTS.WEBRTC_OFFER, async (payload: { offer: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
-      if (typeof payload.offer !== 'object' || payload.offer === null) return;
+      if (typeof payload.offer !== 'object' || payload.offer === null || Array.isArray(payload.offer)) return;
+      if (typeof payload.offer.sdp !== 'string' || payload.offer.sdp.length > 20000) return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
+
+      const safeOffer = {
+        type: payload.offer.type,
+        sdp: payload.offer.sdp
+      };
+
       io.to(payload.targetId).emit(EVENTS.WEBRTC_OFFER, {
-        offer: payload.offer,
+        offer: safeOffer,
         fromId: socket.id
       });
     });
 
     socket.on(EVENTS.WEBRTC_ANSWER, async (payload: { answer: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
-      if (typeof payload.answer !== 'object' || payload.answer === null) return;
+      if (typeof payload.answer !== 'object' || payload.answer === null || Array.isArray(payload.answer)) return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
+
+      const safeAnswer = {
+        type: payload.answer.type,
+        sdp: payload.answer.sdp
+      };
+
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ANSWER, {
-        answer: payload.answer,
+        answer: safeAnswer,
         fromId: socket.id
       });
     });
 
     socket.on(EVENTS.WEBRTC_ICE_CANDIDATE, async (payload: { candidate: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
-      if (payload.candidate !== null && typeof payload.candidate !== 'object') return;
+      if (payload.candidate !== null && (typeof payload.candidate !== 'object' || Array.isArray(payload.candidate))) return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
+
+      let safeCandidate = null;
+      if (payload.candidate !== null) {
+        safeCandidate = {
+          candidate: payload.candidate.candidate,
+          sdpMid: payload.candidate.sdpMid,
+          sdpMLineIndex: payload.candidate.sdpMLineIndex,
+          usernameFragment: payload.candidate.usernameFragment
+        };
+      }
+
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ICE_CANDIDATE, {
-        candidate: payload.candidate,
+        candidate: safeCandidate,
         fromId: socket.id
       });
     });
