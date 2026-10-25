@@ -18,10 +18,26 @@ const formatTime = (timestamp: number) => {
   return timeFormatter.format(new Date(timestamp));
 };
 
+function TypingUsersText({ typingUsers }: { typingUsers: Set<string> }) {
+  const typingNicknames = useRoomStore(state =>
+    Array.from(typingUsers)
+      .map(id => state.participants.find(p => p.id === id)?.nickname)
+      .filter(Boolean)
+      .join(', ')
+  );
+
+  if (!typingNicknames) return null;
+
+  return (
+    <>
+      {typingNicknames} {typingUsers.size > 1 ? 'are' : 'is'} typing...
+    </>
+  );
+}
+
 export default function Chat() {
-  const { chatMessages, participants } = useRoomStore(useShallow(state => ({
-    chatMessages: state.chatMessages,
-    participants: state.participants
+  const { chatMessages } = useRoomStore(useShallow(state => ({
+    chatMessages: state.chatMessages
   })));
   const [text, setText] = useState('');
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
@@ -170,11 +186,7 @@ export default function Chat() {
               </div>
             </div>
             <span className="text-[11px] font-medium text-zinc-500">
-               {Array.from(typingUsers)
-                  .map(id => participants.find(p => p.id === id)?.nickname)
-                  .filter(Boolean)
-                  .join(', ')}{' '}
-               {typingUsers.size > 1 ? 'are' : 'is'} typing...
+               <TypingUsersText typingUsers={typingUsers} />
             </span>
           </motion.div>
         )}
