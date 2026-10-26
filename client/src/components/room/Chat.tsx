@@ -18,10 +18,32 @@ const formatTime = (timestamp: number) => {
   return timeFormatter.format(new Date(timestamp));
 };
 
+// ⚡ Bolt: Extract TypingUsersText to avoid re-rendering entire chat
+// on latency ping updates from the participants array.
+function TypingUsersText({ typingUsers }: { typingUsers: Set<string> }) {
+  const count = typingUsers.size;
+
+  // Use a shallow selector to extract ONLY the specific typing names from the participants array.
+  // This maintains reactivity for nickname changes without triggering re-renders on every latency ping.
+  const names = useRoomStore(useShallow(state => {
+    return Array.from(typingUsers)
+      .map(id => state.participants.find(p => p.id === id)?.nickname)
+      .filter(Boolean)
+      .join(', ');
+  }));
+
+  if (count === 0) return null;
+
+  return (
+    <span className="text-[11px] font-medium text-zinc-500">
+      {names} {count > 1 ? 'are' : 'is'} typing...
+    </span>
+  );
+}
+
 export default function Chat() {
-  const { chatMessages, participants } = useRoomStore(useShallow(state => ({
-    chatMessages: state.chatMessages,
-    participants: state.participants
+  const { chatMessages } = useRoomStore(useShallow(state => ({
+    chatMessages: state.chatMessages
   })));
   const [text, setText] = useState('');
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
@@ -169,13 +191,7 @@ export default function Chat() {
                  <TypingIndicator />
               </div>
             </div>
-            <span className="text-[11px] font-medium text-zinc-500">
-               {Array.from(typingUsers)
-                  .map(id => participants.find(p => p.id === id)?.nickname)
-                  .filter(Boolean)
-                  .join(', ')}{' '}
-               {typingUsers.size > 1 ? 'are' : 'is'} typing...
-            </span>
+            <TypingUsersText typingUsers={typingUsers} />
           </motion.div>
         )}
         </AnimatePresence>
