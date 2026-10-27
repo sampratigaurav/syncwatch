@@ -271,7 +271,7 @@ export default function Room() {
                   </p>
                   
                   <div className="relative w-20 h-20 tablet:w-24 tablet:h-24 flex items-center justify-center mb-8">
-                    <svg className="absolute inset-0 w-full h-full -rotate-90">
+                    <svg className="absolute inset-0 w-full h-full -rotate-90" xmlns="http://www.w3.org/2000/svg">
                       <circle cx="50%" cy="50%" r="46%" className="stroke-zinc-800 fill-none" strokeWidth="6" />
                       <circle 
                         cx="50%" cy="50%" r="46%" 

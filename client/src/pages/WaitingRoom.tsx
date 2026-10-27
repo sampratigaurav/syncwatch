@@ -89,7 +89,7 @@ export default function WaitingRoom() {
     if (file) {
       if (role === 'host') {
         setIsSeeding(true);
-        import('../lib/torrentManager').then(({ torrentManager }) => {
+        void import('../lib/torrentManager').then(({ torrentManager }) => {
           // Verify host instantly so they can enter the room if they want
           const url = URL.createObjectURL(file);
           useRoomStore.getState().setLocalFileUrl(url);
@@ -103,7 +103,7 @@ export default function WaitingRoom() {
           verifyFile(file, true);
 
           // Let the torrent generation happen completely in the background
-          torrentManager.seed(file, (uri) => {
+          void torrentManager.seed(file, (uri) => {
             useRoomStore.getState().setMagnetURI(uri);
             useRoomStore.getState().setIsTorrent(true);
             socket.emit(EVENTS.SET_MAGNET_LINK, { magnetURI: uri });
@@ -113,6 +113,8 @@ export default function WaitingRoom() {
           }).catch(err => {
             console.error('Failed to seed', err);
           });
+        }).catch(err => {
+          console.error('Failed to import torrentManager', err);
         });
       } else {
         verifyFile(file);
@@ -326,10 +328,10 @@ export default function WaitingRoom() {
                   <button 
                     onClick={async () => {
                       try {
-                        // @ts-ignore
+                        // @ts-expect-error File System Access API types are not fully standardized
                         const dirHandle = await window.showDirectoryPicker();
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const handles: any[] = [];
-                        // @ts-ignore
                         for await (const entry of dirHandle.values()) {
                           if (entry.kind === 'file') {
                             const name = entry.name.toLowerCase();
@@ -353,8 +355,11 @@ export default function WaitingRoom() {
                         const firstFile = await handles[0].getFile();
                         verifyFile(firstFile);
                         
-                      } catch (err: any) {
-                        if (err.name !== 'AbortError') {
+                      } catch (err) {
+                        if (err instanceof Error && err.name !== 'AbortError') {
+                           console.error('Folder selection failed:', err);
+                           setErrorToast("Failed to read folder contents. Please try again.");
+                        } else if (!(err instanceof Error)) {
                            console.error('Folder selection failed:', err);
                            setErrorToast("Failed to read folder contents. Please try again.");
                         }
