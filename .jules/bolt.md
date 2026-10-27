@@ -13,3 +13,7 @@
 **Learning:** Selecting an entire array object (e.g., `state.participants`) in a Zustand store selector causes subscribed components to re-render whenever any property within any array element updates (such as peer `latencyMs` from 10s websocket pings), even when wrapped in `useShallow`.
 **Action:** Extract specific primitive properties (such as `hostName` via `.find()` or `participantCount` via `.length`) directly inside the Zustand selector instead of selecting the full array and computing primitives locally in component code.
 
+
+## 2026-10-25 - Extraneous Component Unmounting with AnimatePresence
+**Learning:** Moving conditional rendering logic (e.g. `if (size === 0) return null`) *inside* a component prevents Framer Motion's `<AnimatePresence>` from properly detecting when the component is unmounted from the tree, breaking exit animations.
+**Action:** Always maintain the conditional rendering block in the parent component (e.g. `{size > 0 && <Component />}`) when utilizing `<AnimatePresence>`.
