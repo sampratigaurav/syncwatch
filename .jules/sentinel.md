@@ -16,3 +16,14 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+## 2024-05-19 - Limit Express JSON parser
+
+**Vulnerability:** Unbounded JSON payload parser in Express.js.
+**Learning:** Calling `express.json()` without a configured limit creates a Denial-of-Service (DoS) vector where clients can upload infinitely large JSON requests, crashing the server due to OOM.
+**Prevention:** Always specify a limit (e.g. `express.json({ limit: '100kb' })`) when configuring the `express.json` middleware.
+
+## 2024-05-19 - Type injection & DoS in WebRTC event handlers
+
+**Vulnerability:** Weakly validated WebRTC socket inputs allow DoS attacks and type injection.
+**Learning:** `typeof payload.offer === 'object'` evaluates to true for an array. Also, without a length check on `sdp` or `candidate`, users can send huge strings to effectively DDoS the room over websockets.
+**Prevention:** Use `!Array.isArray(payload.offer)` to exclude arrays, and validate the string lengths of payload properties (e.g., `offer.sdp`, `answer.sdp`, `candidate.candidate`).
