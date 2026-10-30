@@ -16,3 +16,7 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+## 2024-05-18 - [Add Express Request Size Limit]
+**Vulnerability:** Unbounded Express JSON parsing
+**Learning:** By default, express.json() allows up to 100kb (or bounded parsing) but it can be more explicit and robust to define limit constraints. Unbounded parses can be leveraged in DoS vectors via resource exhaustion.
+**Prevention:** Always enforce a defined `limit` explicitly in Express middleware configs (e.g. `express.json({ limit: "500kb" })`).
