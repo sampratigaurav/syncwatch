@@ -188,7 +188,7 @@ app.get('/health', (req, res) => {
 let pubClient: ReturnType<typeof createClient>;
 let subClient: ReturnType<typeof createClient>;
 
-(async () => {
+void (async () => {
   if (process.env.REDIS_URL) {
     try {
       pubClient = createClient({ url: process.env.REDIS_URL });
