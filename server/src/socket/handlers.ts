@@ -383,7 +383,7 @@ export const setupSocketHandlers = (io: Server) => {
     });
 
     socket.on(EVENTS.PLAYBACK_EVENT, async (payload: PlaybackEvent) => {
-      if (!payload || typeof payload !== 'object') return;
+      if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return;
       const roomId = socketToRoom.get(socket.id);
       if (!roomId) return;
       const room = await getRoom(roomId);
@@ -403,7 +403,7 @@ export const setupSocketHandlers = (io: Server) => {
       if (payload.action === 'pause') room.playback.isPlaying = false;
 
       if (payload.action === 'subtitle_toggle' || payload.action === 'subtitle_track_change') {
-        if (payload.subtitleState && typeof payload.subtitleState === 'object') {
+        if (payload.subtitleState && typeof payload.subtitleState === 'object' && !Array.isArray(payload.subtitleState)) {
           if (typeof payload.subtitleState.isEnabled === 'boolean' && typeof payload.subtitleState.trackIndex === 'number') {
             room.subtitleState = {
               isEnabled: payload.subtitleState.isEnabled,
@@ -717,7 +717,7 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(EVENTS.WEBRTC_OFFER, async (payload: { offer: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
-      if (typeof payload.offer !== 'object' || payload.offer === null) return;
+      if (typeof payload.offer !== 'object' || payload.offer === null || Array.isArray(payload.offer)) return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_OFFER, {
         offer: payload.offer,
@@ -727,7 +727,7 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(EVENTS.WEBRTC_ANSWER, async (payload: { answer: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
-      if (typeof payload.answer !== 'object' || payload.answer === null) return;
+      if (typeof payload.answer !== 'object' || payload.answer === null || Array.isArray(payload.answer)) return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ANSWER, {
         answer: payload.answer,
@@ -737,7 +737,7 @@ export const setupSocketHandlers = (io: Server) => {
 
     socket.on(EVENTS.WEBRTC_ICE_CANDIDATE, async (payload: { candidate: any, targetId: string }) => {
       if (!payload || typeof payload.targetId !== 'string') return;
-      if (payload.candidate !== null && typeof payload.candidate !== 'object') return;
+      if (payload.candidate !== null && (typeof payload.candidate !== 'object' || Array.isArray(payload.candidate))) return;
       if (!await getSharedRoom(socket.id, payload.targetId)) return;
       io.to(payload.targetId).emit(EVENTS.WEBRTC_ICE_CANDIDATE, {
         candidate: payload.candidate,
