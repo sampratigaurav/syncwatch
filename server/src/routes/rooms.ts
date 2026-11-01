@@ -137,7 +137,7 @@ roomRouter.delete('/:id', requireAuth, async (req, res) => {
 roomRouter.patch('/:id/pin', requireAuth, async (req, res) => {
   const id = req.params.id as string;
   const user = (req as any).user;
-  const { password } = req.body;
+  const { password } = req.body || {};
   
   try {
     const docRef = db!.collection('roomTemplates').doc(id);
