@@ -25,9 +25,24 @@ function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
 
+function BufferingBanner() {
+  const bufferingParticipant = useRoomStore(useShallow(state => state.participants.find(p => p.status === 'buffering')));
+
+  if (!bufferingParticipant) return null;
+
+  return (
+    <div className="absolute inset-x-0 bottom-[-3rem] z-40 mx-auto w-max max-w-[90%] bg-amber-950/80 backdrop-blur-md border border-amber-500/40 text-amber-500 px-4 py-2 rounded-xl flex items-center shadow-xl animate-in fade-in slide-in-from-top-2">
+      <div className="w-3.5 h-3.5 tablet:w-4 tablet:h-4 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mr-2.5 tablet:mr-3 flex-shrink-0"></div>
+      <span className="text-xs tablet:text-sm font-medium tracking-wide">
+        {bufferingParticipant.id === socket.id ? "Catching up to host..." : `Waiting for ${bufferingParticipant.nickname}...`}
+      </span>
+    </div>
+  );
+}
+
 export default function Room() {
   const { 
-    roomId, nickname, localFileUrl, role, bufferingParticipant, 
+    roomId, nickname, localFileUrl, role,
     connectionStatus, reconnectAttempt, clearRoomState,
     subtitleBlobUrl, setSubtitleBlobUrl,
     subtitleEnabled, setSubtitleEnabled,
@@ -39,7 +54,6 @@ export default function Room() {
     nickname: state.nickname,
     localFileUrl: state.localFileUrl,
     role: state.role,
-    bufferingParticipant: state.participants.find(p => p.status === 'buffering'),
     connectionStatus: state.connectionStatus,
     reconnectAttempt: state.reconnectAttempt,
     clearRoomState: state.clearRoomState,
@@ -149,8 +163,6 @@ export default function Room() {
       socket.off(EVENTS.RESUME_ALLOWED, handleResumeAllowed);
     };
   }, [role]);
-
-  const showBuffering = !!bufferingParticipant;
 
   const handleGoHome = () => {
     clearRoomState();
@@ -337,14 +349,7 @@ export default function Room() {
               </button>
 
               {/* Responsive subtle Buffering Banner BELOW video content */}
-              {showBuffering && (
-                <div className="absolute inset-x-0 bottom-[-3rem] z-40 mx-auto w-max max-w-[90%] bg-amber-950/80 backdrop-blur-md border border-amber-500/40 text-amber-500 px-4 py-2 rounded-xl flex items-center shadow-xl animate-in fade-in slide-in-from-top-2">
-                  <div className="w-3.5 h-3.5 tablet:w-4 tablet:h-4 rounded-full border-2 border-amber-500 border-t-transparent animate-spin mr-2.5 tablet:mr-3 flex-shrink-0"></div>
-                  <span className="text-xs tablet:text-sm font-medium tracking-wide">
-                    {bufferingParticipant.id === socket.id ? "Catching up to host..." : `Waiting for ${bufferingParticipant.nickname}...`}
-                  </span>
-                </div>
-              )}
+              <BufferingBanner />
             </div>
           ) : (
             <div className="text-zinc-500 flex flex-col items-center">

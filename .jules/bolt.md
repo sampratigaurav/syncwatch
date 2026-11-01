@@ -13,3 +13,7 @@
 **Learning:** Selecting an entire array object (e.g., `state.participants`) in a Zustand store selector causes subscribed components to re-render whenever any property within any array element updates (such as peer `latencyMs` from 10s websocket pings), even when wrapped in `useShallow`.
 **Action:** Extract specific primitive properties (such as `hostName` via `.find()` or `participantCount` via `.length`) directly inside the Zustand selector instead of selecting the full array and computing primitives locally in component code.
 
+
+## 2026-10-25 - Framer Motion forwardRef and Exit Animations
+**Learning:** When conditionally rendering custom React components directly inside an `<AnimatePresence>` block, exit animations will silently fail if the custom component does not forward its `ref` using `forwardRef`. Furthermore, the conditional rendering logic (e.g. `if (!isVisible) return null;`) cannot exist *inside* the custom component; the component must be conditionally rendered by its parent (e.g. `{isVisible && <CustomComponent />}`).
+**Action:** Always wrap custom components with `forwardRef` and conditionally render them at the parent level when placing them inside `<AnimatePresence>` to ensure Framer Motion can track lifecycle changes and execute exit animations correctly.
