@@ -25,7 +25,8 @@ const getEdgeId = (uid1: string, uid2: string) => {
 
 friendRouter.post('/request', requireAuth, async (req, res) => {
   const user = (req as any).user;
-  const { friendCode } = req.body;
+  // Fallback to empty object to prevent DoS via unhandled promise rejection if body is missing
+  const { friendCode } = req.body || {};
 
   if (!friendCode || typeof friendCode !== 'string') {
     return res.status(400).json({ error: 'Friend code is required' });
@@ -106,7 +107,8 @@ friendRouter.post('/request', requireAuth, async (req, res) => {
 
 friendRouter.post('/accept', requireAuth, async (req, res) => {
   const user = (req as any).user;
-  const { targetUid } = req.body;
+  // Fallback to empty object to prevent DoS via unhandled promise rejection if body is missing
+  const { targetUid } = req.body || {};
 
   if (!targetUid) return res.status(400).json({ error: 'Target UID is required' });
 
