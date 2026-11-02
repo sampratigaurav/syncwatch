@@ -31,7 +31,8 @@ const generateFriendCode = () => {
 
 userRouter.post('/initialize', requireAuth, async (req, res) => {
   const user = (req as any).user;
-  const { displayName, photoURL, email } = req.body;
+  // Fallback to empty object to prevent DoS via unhandled promise rejection if body is missing
+  const { displayName, photoURL, email } = req.body || {};
 
   try {
     const userRef = db!.collection('users').doc(user.uid);
@@ -99,7 +100,8 @@ userRouter.post('/initialize', requireAuth, async (req, res) => {
 
 userRouter.patch('/profile', requireAuth, async (req: Request, res: Response) => {
   const user = (req as any).user;
-  const { displayName, avatarUrl } = req.body;
+  // Fallback to empty object to prevent DoS via unhandled promise rejection if body is missing
+  const { displayName, avatarUrl } = req.body || {};
 
   try {
     const userRef = db!.collection('users').doc(user.uid);
