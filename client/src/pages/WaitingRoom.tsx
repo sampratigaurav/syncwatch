@@ -14,9 +14,11 @@ import { EVENTS } from '../../../shared/socketEvents';
 import { useSoundEffects } from '../hooks/useSoundEffects';
 
 export default function WaitingRoom() {
-  const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast, magnetURI, setMagnetURI, setIsTorrent } = useRoomStore(useShallow(state => ({
+  const { roomId, allVerified, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast, magnetURI, setMagnetURI, setIsTorrent } = useRoomStore(useShallow(state => ({
     roomId: state.roomId,
-    participants: state.participants,
+    // ⚡ Bolt: Extract primitive boolean directly inside selector to prevent unnecessary
+    // re-renders of the entire WaitingRoom when peer latencyMs updates via socket ping
+    allVerified: state.participants.length > 0 && state.participants.every(p => p.status === 'ready'),
     role: state.role,
     fileVerifyStatus: state.fileVerifyStatus,
     connectionStatus: state.connectionStatus,
@@ -128,7 +130,6 @@ export default function WaitingRoom() {
     socket.emit(EVENTS.SET_MAGNET_LINK, { magnetURI: magnetInput });
   };
 
-  const allVerified = participants.length > 0 && participants.every(p => p.status === 'ready');
   const canStart = role === 'host' ? allVerified : fileVerifyStatus === 'verified';
 
   const handleGoHome = () => {
