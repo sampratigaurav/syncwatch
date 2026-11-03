@@ -16,3 +16,7 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+## 2026-06-12 - Missing Express request body fallback causing DoS
+**Vulnerability:** Several Express routes directly destructured `req.body` (e.g. `const { password } = req.body;`). If a client sent a request with no body, this caused a TypeError (`Cannot destructure property 'password' of 'req.body' as it is undefined.`), unhandled promise rejection, and subsequently a crash of the entire Node.js server.
+**Learning:** Destructuring `req.body` without a fallback in asynchronous Express route handlers leads to unhandled promise rejections, exposing the application to Denial of Service via a simple empty request.
+**Prevention:** Always use a fallback (e.g. `const { password } = req.body || {};`) when destructuring request bodies.
