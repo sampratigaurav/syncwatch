@@ -43,7 +43,7 @@ const createRoomLimiter = async (req: Request, res: Response, next: NextFunction
 };
 
 roomRouter.post('/', createRoomLimiter, async (req, res) => {
-  const { password } = req.body || {};
+  const { password } = req.body ?? {};
   let hash: string | null = null;
   let salt: string | null = null;
 
@@ -137,7 +137,10 @@ roomRouter.delete('/:id', requireAuth, async (req, res) => {
 roomRouter.patch('/:id/pin', requireAuth, async (req, res) => {
   const id = req.params.id as string;
   const user = (req as any).user;
-  const { password } = req.body;
+  const { password } = req.body ?? {};
+  if (password === undefined) {
+    return res.status(400).json({ error: 'Password is required. Use null to clear the PIN.' });
+  }
   
   try {
     const docRef = db!.collection('roomTemplates').doc(id);

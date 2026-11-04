@@ -31,7 +31,7 @@ const generateFriendCode = () => {
 
 userRouter.post('/initialize', requireAuth, async (req, res) => {
   const user = (req as any).user;
-  const { displayName, photoURL, email } = req.body;
+  const { displayName, photoURL, email } = req.body ?? {};
 
   try {
     const userRef = db!.collection('users').doc(user.uid);
@@ -99,7 +99,7 @@ userRouter.post('/initialize', requireAuth, async (req, res) => {
 
 userRouter.patch('/profile', requireAuth, async (req: Request, res: Response) => {
   const user = (req as any).user;
-  const { displayName, avatarUrl } = req.body;
+  const { displayName, avatarUrl } = req.body ?? {};
 
   try {
     const userRef = db!.collection('users').doc(user.uid);
