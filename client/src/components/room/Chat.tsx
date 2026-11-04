@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef } from 'react';
 import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { socket } from '../../hooks/useSocket';
@@ -18,10 +18,52 @@ const formatTime = (timestamp: number) => {
   return timeFormatter.format(new Date(timestamp));
 };
 
+// ⚡ Bolt: Isolate typing indicator to prevent chat re-renders when latencyMs updates.
+// The array mapping needs to happen outside of useShallow, because mapping
+// returns a new array reference every time. However, to extract specific primitives,
+// we can first fetch the participants array from getState() inside the render
+// (not recommended for reactivity) OR we can just fetch the primitive values from
+// the store if they are independent, OR we can avoid putting participants in
+// Chat's useShallow entirely.
+// Better yet, just use `useRoomStore.getState().participants` here since typing
+// only needs the current value when rendered (and we already re-render when typingUsers changes).
+const ActiveTypingIndicator = forwardRef<HTMLDivElement, { typingUsers: Set<string> }>(
+  ({ typingUsers }, ref) => {
+    // ⚡ Bolt: Fetch participants array from getState to avoid subscribing to it.
+    // The component will re-render whenever typingUsers changes from the parent anyway.
+    const participants = useRoomStore.getState().participants;
+
+    const typingNames = Array.from(typingUsers)
+      .map(id => participants.find(p => p.id === id)?.nickname)
+      .filter(Boolean) as string[];
+
+    return (
+      <motion.div
+        ref={ref}
+        layout
+        initial={{ opacity: 0, y: 10, scale: 0.95, originX: 0 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
+        className="flex items-center gap-3 px-2 py-2 mt-2"
+      >
+        <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center">
+          <div className="bg-zinc-800 text-zinc-200 rounded-2xl px-3 py-2 flex items-center gap-2">
+             <TypingIndicator />
+          </div>
+        </div>
+        <span className="text-[11px] font-medium text-zinc-500">
+           {typingNames.join(', ')}{' '}
+           {typingNames.length > 1 ? 'are' : 'is'} typing...
+        </span>
+      </motion.div>
+    );
+  }
+);
+ActiveTypingIndicator.displayName = 'ActiveTypingIndicator';
+
 export default function Chat() {
-  const { chatMessages, participants } = useRoomStore(useShallow(state => ({
-    chatMessages: state.chatMessages,
-    participants: state.participants
+  const { chatMessages } = useRoomStore(useShallow(state => ({
+    chatMessages: state.chatMessages
   })));
   const [text, setText] = useState('');
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
@@ -156,27 +198,7 @@ export default function Chat() {
           );
         })}
         {typingUsers.size > 0 && (
-          <motion.div 
-            key="typing-indicator"
-            layout
-            initial={{ opacity: 0, y: 10, scale: 0.95, originX: 0 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
-            className="flex items-center gap-3 px-2 py-2 mt-2"
-          >
-            <div className="flex-shrink-0 w-9 h-9 flex items-center justify-center">
-              <div className="bg-zinc-800 text-zinc-200 rounded-2xl px-3 py-2 flex items-center gap-2">
-                 <TypingIndicator />
-              </div>
-            </div>
-            <span className="text-[11px] font-medium text-zinc-500">
-               {Array.from(typingUsers)
-                  .map(id => participants.find(p => p.id === id)?.nickname)
-                  .filter(Boolean)
-                  .join(', ')}{' '}
-               {typingUsers.size > 1 ? 'are' : 'is'} typing...
-            </span>
-          </motion.div>
+          <ActiveTypingIndicator key="typing-indicator" typingUsers={typingUsers} />
         )}
         </AnimatePresence>
       </div>
