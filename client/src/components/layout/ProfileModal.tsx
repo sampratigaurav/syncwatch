@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react';
-import { m, AnimatePresence } from 'framer-motion';
-import { X, Trash2, Key, Check, Link2, ShieldCheck, User as UserIcon } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { m, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { X, Trash2, Key, Check, Link2, Ticket, Loader2, ArrowUpRight, RefreshCw } from 'lucide-react';
 import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../../lib/config';
 import { toast } from 'sonner';
 import { socket } from '../../hooks/useSocket';
+import './profile.css';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -14,18 +16,14 @@ interface ProfileModalProps {
 
 interface RoomTemplate {
   id: string;
-  hostId: string;
   createdAt: number;
-  controlPolicy: string;
   password?: string | null;
 }
 
-// 12 Curated DiceBear Seeds for bottts style
 const AVATAR_SEEDS = [
   'Felix', 'Aneka', 'Oliver', 'Scooter', 'Gizmo', 'Bandit',
   'Whiskers', 'Luna', 'Cleo', 'Buster', 'Tiger', 'Simba'
 ];
-
 const getAvatarUrl = (seed: string) => `https://api.dicebear.com/7.x/bottts/svg?seed=${seed}&backgroundColor=transparent`;
 
 export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
@@ -40,78 +38,108 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   })));
   const [rooms, setRooms] = useState<RoomTemplate[]>([]);
   const [isLoadingRooms, setIsLoadingRooms] = useState(true);
-  const [editName, setEditName] = useState(profileName || nickname || '');
+  const [roomsError, setRoomsError] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editAvatar, setEditAvatar] = useState<string | null>(null);
   const [isSavingIdentity, setIsSavingIdentity] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [showPinEdit, setShowPinEdit] = useState<string | null>(null);
   const [newPin, setNewPin] = useState('');
+  const [pendingRoom, setPendingRoom] = useState<string | null>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const reducedMotion = useReducedMotion();
+  const duration = reducedMotion ? 0 : 0.24;
+  const hasChanges = editName.trim() !== (profileName || nickname || '') || editAvatar !== avatarUrl;
 
-  useEffect(() => {
-    if (isOpen && firebaseUid) {
-      setEditName(profileName || nickname || '');
-      fetchRooms();
-    }
-  }, [isOpen, firebaseUid, profileName, nickname]);
-
-  const fetchRooms = async () => {
-    if (!firebaseUid) return;
+  const fetchRooms = useCallback(async (signal?: AbortSignal) => {
+    if (!firebaseUid || !authToken) return;
     setIsLoadingRooms(true);
+    setRoomsError(false);
     try {
       const res = await fetch(`${SERVER_URL}/api/rooms/my-rooms`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+        headers: { Authorization: `Bearer ${authToken}` },
+        signal
       });
       if (!res.ok) throw new Error('Failed to fetch rooms');
-      
       const data = await res.json();
-      const fetchedRooms: RoomTemplate[] = data.rooms;
-      
-      // Sort by newest first
-      fetchedRooms.sort((a, b) => b.createdAt - a.createdAt);
-      setRooms(fetchedRooms);
-    } catch (err) {
-      console.error('Failed to fetch rooms', err);
-      toast.error('Failed to load your rooms');
+      setRooms((data.rooms as RoomTemplate[]).sort((a, b) => b.createdAt - a.createdAt));
+    } catch {
+      if (!signal?.aborted) setRoomsError(true);
     } finally {
-      setIsLoadingRooms(false);
+      if (!signal?.aborted) setIsLoadingRooms(false);
     }
-  };
+  }, [firebaseUid, authToken]);
 
-  const handleSaveIdentity = async (newAvatarUrl?: string) => {
-    if (!firebaseUid) return;
+  useEffect(() => {
+    if (!isOpen) return;
+    const current = useRoomStore.getState();
+    setEditName(current.profileName || current.nickname || '');
+    setEditAvatar(current.avatarUrl);
+    setSaved(false);
+    setShowPinEdit(null);
+    setNewPin('');
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const controller = new AbortController();
+    void fetchRooms(controller.signal);
+    return () => controller.abort();
+  }, [isOpen, fetchRooms]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeRef.current?.focus();
+    const handleKeys = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
+      }
+      if (event.key !== 'Tab') return;
+      const controls = Array.from(panelRef.current?.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), input:not(:disabled), a[href], [tabindex="0"]'
+      ) || []).filter(control => control.getClientRects().length > 0);
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (!first || !last) return;
+      if (event.shiftKey && (document.activeElement === first || !panelRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !panelRef.current?.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeys, true);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeys, true);
+      previousFocus?.focus();
+    };
+  }, [isOpen, onClose]);
+
+  const handleSaveIdentity = async () => {
+    const targetName = editName.trim();
+    if (!firebaseUid || isSavingIdentity || !targetName) return;
     setIsSavingIdentity(true);
     try {
-      const targetName = editName.trim() || profileName || nickname;
-      const targetAvatar = newAvatarUrl !== undefined ? newAvatarUrl : avatarUrl;
-      
       const res = await fetch(`${SERVER_URL}/api/users/profile`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          displayName: targetName,
-          avatarUrl: targetAvatar
-        })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({ displayName: targetName, avatarUrl: editAvatar })
       });
-
       if (!res.ok) throw new Error('Failed to update profile');
-
       setProfileName(targetName);
-      setAvatarUrl(targetAvatar);
-      
-      // Sync to live rooms
-      socket.emit('profile_updated', {
-        displayName: targetName,
-        avatarUrl: targetAvatar
-      });
-      
-      if (newAvatarUrl === undefined) {
-        toast.success('Profile updated');
-      }
-    } catch (err) {
-      console.error('Failed to update profile', err);
+      setAvatarUrl(editAvatar);
+      socket.emit('profile_updated', { displayName: targetName, avatarUrl: editAvatar });
+      setSaved(true);
+      toast.success('Profile updated');
+    } catch {
       toast.error('Failed to update profile');
     } finally {
       setIsSavingIdentity(false);
@@ -119,225 +147,140 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   };
 
   const handleDeleteRoom = async (roomId: string) => {
-    if (!confirm(`Are you sure you want to delete ${roomId}? This will permanently remove the room and kick anyone inside.`)) return;
+    if (pendingRoom || !confirm(`Delete ${roomId}? This permanently removes the room and disconnects anyone inside.`)) return;
+    setPendingRoom(roomId);
     try {
-      const res = await fetch(`${SERVER_URL}/api/rooms/${roomId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+      const res = await fetch(`${SERVER_URL}/api/rooms/${encodeURIComponent(roomId)}`, {
+        method: 'DELETE', headers: { Authorization: `Bearer ${authToken}` }
       });
       if (!res.ok) throw new Error('Failed to delete room');
-      toast.success('Room deleted successfully');
-      setRooms(rooms.filter(r => r.id !== roomId));
-    } catch (err) {
+      setRooms(current => current.filter(room => room.id !== roomId));
+      toast.success('Room deleted');
+    } catch {
       toast.error('Failed to delete room');
+    } finally {
+      setPendingRoom(null);
     }
   };
 
   const handleUpdatePin = async (roomId: string) => {
+    if (pendingRoom) return;
     if (newPin && !/^[a-zA-Z0-9]{4,8}$/.test(newPin)) {
       toast.error('PIN must be 4-8 alphanumeric characters');
       return;
     }
+    setPendingRoom(roomId);
     try {
-      const res = await fetch(`${SERVER_URL}/api/rooms/${roomId}/pin`, {
+      const res = await fetch(`${SERVER_URL}/api/rooms/${encodeURIComponent(roomId)}/pin`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
         body: JSON.stringify({ password: newPin || null })
       });
       if (!res.ok) throw new Error('Failed to update PIN');
-      toast.success(newPin ? 'PIN updated securely' : 'PIN removed');
+      toast.success(newPin ? 'PIN updated' : 'PIN removed');
       setShowPinEdit(null);
       setNewPin('');
-      fetchRooms(); // refresh to get updated state (or just update local state)
-    } catch (err) {
+      void fetchRooms();
+    } catch {
       toast.error('Failed to update PIN');
+    } finally {
+      setPendingRoom(null);
     }
   };
 
-  const copyLink = (roomId: string) => {
-    const url = `${window.location.origin}/room/${roomId}/waiting`;
-    navigator.clipboard.writeText(url);
-    toast.success('Room link copied!');
+  const copyLink = async (roomId: string) => {
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/join/${encodeURIComponent(roomId)}`);
+      toast.success('Invite link copied');
+    } catch {
+      toast.error('Could not copy the link. Please try again.');
+    }
   };
 
-  if (!isOpen) return null;
-
-  return (
+  return createPortal(
     <AnimatePresence>
-      <m.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto"
-      >
-        <m.div
-          initial={{ scale: 0.95, opacity: 0, y: 20 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.95, opacity: 0, y: 20 }}
-          className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col max-h-[90vh]"
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-white/5">
-            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-              <UserIcon className="w-6 h-6 text-teal-400" aria-hidden="true" />
-              My Profile
-            </h2>
-            <button 
-              onClick={onClose} 
-              aria-label="Close profile modal"
-              className="p-2 text-zinc-400 hover:text-white rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
-            >
-              <X className="w-6 h-6" aria-hidden="true" />
-            </button>
-          </div>
-
-          <div className="p-6 overflow-y-auto custom-scrollbar flex flex-col md:flex-row gap-8">
-            
-            {/* Left Column: Identity */}
-            <div className="flex-1 space-y-6">
-              <h3 className="text-lg font-semibold text-white/90 mb-4">Identity</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-zinc-400 mb-1">Display Name</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 transition-all"
-                      placeholder="Your display name"
-                    />
-                    <button
-                      onClick={() => handleSaveIdentity()}
-                      disabled={isSavingIdentity || editName === nickname}
-                      className="px-6 bg-teal-500 hover:bg-teal-400 text-black font-semibold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
-                    >
-                      {isSavingIdentity ? 'Saving...' : 'Save'}
-                    </button>
+      {isOpen && (
+        <m.div className="profile-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration }}
+          onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
+          <m.div ref={panelRef} className="profile-panel" role="dialog" aria-modal="true" aria-labelledby="profile-title"
+            initial={reducedMotion ? false : { scale: 0.96, opacity: 0, y: 24 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: reducedMotion ? 1 : 0.98, opacity: 0, y: reducedMotion ? 0 : 12 }}
+            transition={{ duration, ease: [0.2, 0.8, 0.3, 1] }}>
+            <header className="profile-header">
+              <div><span className="profile-eyebrow"><Ticket size={14} aria-hidden="true" /> YOUR CLUB PASS</span><h2 id="profile-title">My Profile</h2></div>
+              <button ref={closeRef} onClick={onClose} aria-label="Close profile modal" className="profile-icon"><X size={20} /></button>
+            </header>
+            <div className="profile-body">
+              <section className="profile-identity" aria-labelledby="profile-identity-title">
+                <div className="profile-pass">
+                  <div className="profile-pass-avatar">
+                    {editAvatar ? <img src={editAvatar} alt="" /> : <span>{(editName.trim()[0] || '?').toUpperCase()}</span>}
                   </div>
+                  <div><span className="profile-eyebrow">ADMIT ONE GOOD FRIEND</span><strong>{editName.trim() || 'Your name here'}</strong><span className="profile-pass-note">Ready for movie night</span></div>
+                  <span className="profile-pass-star" aria-hidden="true">✦</span>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-zinc-400 mb-3">Choose Avatar</label>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-                    {AVATAR_SEEDS.map((seed) => {
-                      const url = getAvatarUrl(seed);
-                      const isSelected = avatarUrl === url;
-                      return (
-                        <button
-                          key={seed}
-                          onClick={() => handleSaveIdentity(url)}
-                          aria-label={`Select avatar ${seed}`}
-                          aria-pressed={isSelected}
-                          className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 ${
-                            isSelected ? 'border-teal-400 scale-105' : 'border-transparent bg-white/5 hover:bg-white/10'
-                          }`}
-                        >
-                          <img src={url} alt="" aria-hidden="true" className="w-full h-full object-cover p-2" />
-                          {isSelected && (
-                            <div className="absolute inset-0 bg-teal-500/20 flex items-center justify-center">
-                              <Check className="w-6 h-6 text-teal-400" aria-hidden="true" />
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="text-xs text-zinc-500 mt-3 text-center">Avatars generated by DiceBear</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Room Hub */}
-            <div className="flex-1 space-y-6">
-              <h3 className="text-lg font-semibold text-white/90 mb-4 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-indigo-400" aria-hidden="true" />
-                Permanent Rooms
-              </h3>
-              
-              <div className="space-y-3">
-                {isLoadingRooms ? (
-                  <div className="text-center py-8 text-zinc-500 animate-pulse">Loading rooms...</div>
-                ) : rooms.length === 0 ? (
-                  <div className="text-center py-12 bg-white/5 rounded-xl border border-white/5">
-                    <p className="text-zinc-400">You don't have any permanent rooms yet.</p>
-                  </div>
-                ) : (
-                  rooms.map((room) => (
-                    <div key={room.id} className="bg-black/40 border border-white/10 rounded-xl p-4 flex flex-col gap-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-mono text-teal-400 text-lg">{room.id}</h4>
-                          <p className="text-xs text-zinc-500">Created {new Date(room.createdAt).toLocaleDateString()}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => copyLink(room.id)}
-                            aria-label={`Copy link for room ${room.id}`}
-                            className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
-                            title="Copy Room Link"
-                          >
-                            <Link2 className="w-4 h-4" aria-hidden="true" />
+                <form onSubmit={event => { event.preventDefault(); void handleSaveIdentity(); }}>
+                  <h3 id="profile-identity-title">Make yourself at home</h3>
+                  <label htmlFor="profile-name">Display name</label>
+                  <input id="profile-name" value={editName} maxLength={50} required disabled={isSavingIdentity}
+                    onChange={event => { setEditName(event.target.value); setSaved(false); }} placeholder="What should your friends call you?" />
+                  <fieldset disabled={isSavingIdentity} className="profile-avatars">
+                    <legend>Pick your movie-night face</legend>
+                    <div className="profile-avatar-grid">
+                      {AVATAR_SEEDS.map(seed => {
+                        const url = getAvatarUrl(seed);
+                        return (
+                          <button key={seed} type="button" onClick={() => { setEditAvatar(url); setSaved(false); }}
+                            aria-label={`Select avatar ${seed}`} aria-pressed={editAvatar === url} className="profile-avatar" title={seed}>
+                            <img src={url} alt="" loading="lazy" />
+                            {editAvatar === url && <span className="profile-avatar-check"><Check size={12} aria-hidden="true" /></span>}
                           </button>
-                          <button
-                            onClick={() => setShowPinEdit(showPinEdit === room.id ? null : room.id)}
-                            aria-label={`Change PIN for room ${room.id}`}
-                            aria-expanded={showPinEdit === room.id}
-                            aria-controls={`pin-edit-${room.id}`}
-                            className="p-2 text-zinc-400 hover:text-indigo-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                            title="Change PIN"
-                          >
-                            <Key className="w-4 h-4" aria-hidden="true" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteRoom(room.id)}
-                            aria-label={`Delete room ${room.id}`}
-                            className="p-2 text-zinc-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                            title="Delete Room"
-                          >
-                            <Trash2 className="w-4 h-4" aria-hidden="true" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {showPinEdit === room.id && (
-                        <m.div
-                          id={`pin-edit-${room.id}`}
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          className="pt-3 border-t border-white/5 flex gap-2"
-                        >
-                          <input
-                            type="text"
-                            placeholder={room.password ? 'Enter new PIN...' : 'Add a PIN...'}
-                            value={newPin}
-                            onChange={(e) => setNewPin(e.target.value.replace(/[^a-zA-Z0-9]/g, ''))}
-                            maxLength={8}
-                            className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                          />
-                          <button
-                            onClick={() => handleUpdatePin(room.id)}
-                            className="px-4 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 font-medium rounded-lg text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                          >
-                            Save
-                          </button>
-                        </m.div>
-                      )}
+                        );
+                      })}
                     </div>
-                  ))
-                )}
-              </div>
+                    <p className="profile-credit">Avatars by DiceBear</p>
+                  </fieldset>
+                  <button type="submit" className="profile-save" disabled={isSavingIdentity || !hasChanges || !editName.trim()}>
+                    {isSavingIdentity ? <><Loader2 size={17} className="profile-spinner" /> Saving…</> : saved ? <><Check size={17} /> Saved</> : <>Save my profile <ArrowUpRight size={17} /></>}
+                  </button>
+                  <p className="profile-save-note">Name and avatar are saved together.</p>
+                </form>
+              </section>
+              <section className="profile-rooms" aria-labelledby="profile-rooms-title">
+                <div className="profile-rooms-heading"><h3 id="profile-rooms-title"><Ticket size={19} aria-hidden="true" /> Permanent rooms</h3><span>{isLoadingRooms || roomsError ? '—' : rooms.length}</span></div>
+                <p className="profile-room-intro">Your regular spots for watching together.</p>
+                <div className="profile-room-list" aria-busy={isLoadingRooms}>
+                  {isLoadingRooms ? <div className="profile-room-placeholder"><Loader2 className="profile-spinner" size={22} /><p>Finding your rooms…</p></div>
+                    : roomsError ? <div className="profile-room-placeholder"><p>Your rooms couldn’t be loaded.</p><button className="profile-retry" onClick={() => void fetchRooms()}><RefreshCw size={15} /> Try again</button></div>
+                    : rooms.length === 0 ? <div className="profile-room-placeholder"><Ticket size={38} /><p>No permanent rooms yet.</p><span>Create a room with a custom link to keep it here.</span></div>
+                    : rooms.map(room => (
+                      <article key={room.id} className="profile-room-ticket">
+                        <div className="profile-room-main"><span className="profile-eyebrow">YOUR ROOM</span><h4>{room.id}</h4><p>Created {new Date(room.createdAt).toLocaleDateString()}</p></div>
+                        <div className="profile-room-actions">
+                          <button className="profile-icon" onClick={() => void copyLink(room.id)} aria-label={`Copy link for room ${room.id}`} title="Copy invite"><Link2 size={16} /></button>
+                          <button className="profile-icon" disabled={!!pendingRoom} onClick={() => { setShowPinEdit(showPinEdit === room.id ? null : room.id); setNewPin(''); }}
+                            aria-label={`Change PIN for room ${room.id}`} aria-expanded={showPinEdit === room.id} aria-controls={`pin-edit-${room.id}`} title="Change PIN"><Key size={16} /></button>
+                          <button className="profile-icon profile-delete" disabled={!!pendingRoom} onClick={() => void handleDeleteRoom(room.id)} aria-label={`Delete room ${room.id}`} title="Delete room"><Trash2 size={16} /></button>
+                        </div>
+                        <AnimatePresence initial={false}>
+                          {showPinEdit === room.id && (
+                            <m.form id={`pin-edit-${room.id}`} className="profile-pin-form"
+                              initial={{ opacity: 0, height: reducedMotion ? 'auto' : 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: reducedMotion ? 'auto' : 0 }} transition={{ duration }}
+                              onSubmit={event => { event.preventDefault(); void handleUpdatePin(room.id); }}>
+                              <label htmlFor={`room-pin-${room.id}`}>New PIN <span>Leave empty to remove the PIN.</span></label>
+                              <div><input id={`room-pin-${room.id}`} type="password" maxLength={8} disabled={!!pendingRoom} value={newPin} onChange={event => setNewPin(event.target.value.replace(/[^a-zA-Z0-9]/g, ''))} placeholder="4–8 letters or numbers" /><button disabled={!!pendingRoom} type="submit">{pendingRoom === room.id ? 'Saving…' : 'Save PIN'}</button></div>
+                            </m.form>
+                          )}
+                        </AnimatePresence>
+                      </article>
+                    ))}
+                </div>
+              </section>
             </div>
-
-          </div>
+          </m.div>
         </m.div>
-      </m.div>
-    </AnimatePresence>
+      )}
+    </AnimatePresence>, document.body
   );
 }
