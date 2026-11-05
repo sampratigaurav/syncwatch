@@ -1,9 +1,12 @@
 import { create } from 'zustand';
+import { flushSync } from 'react-dom';
+import './theme-transition.css';
 
 export type Theme = 'dark' | 'light';
 
 interface ThemeStore {
   theme: Theme;
+  isTransitioning: boolean;
   /** Toggles theme, applies html class, persists to localStorage. */
   toggleTheme: (originX?: number, originY?: number) => void;
   /** Called once on app init to hydrate from localStorage / system pref. */
@@ -20,57 +23,13 @@ function applyTheme(theme: Theme) {
   // Update the meta theme-color for mobile browsers
   const metaTheme = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   if (metaTheme) {
-    metaTheme.setAttribute('content', theme === 'light' ? '#f5f5f4' : '#050505');
+    metaTheme.setAttribute('content', theme === 'light' ? '#fff8eb' : '#151319');
   }
-}
-
-/**
- * Runs the cinematic iris-wipe transition before committing the theme change.
- * Creates a full-screen overlay that expands from the click origin, waits for it
- * to fully cover the viewport, flips the theme class, then removes the overlay.
- */
-function runIrisTransition(nextTheme: Theme, originX: number, originY: number): Promise<void> {
-  return new Promise((resolve) => {
-    const overlay = document.createElement('div');
-
-    const bgColor = nextTheme === 'light' ? '#f5f5f4' : '#050505';
-
-    Object.assign(overlay.style, {
-      position: 'fixed',
-      inset: '0',
-      zIndex: '99999',
-      background: bgColor,
-      pointerEvents: 'none',
-      clipPath: `circle(0% at ${originX}px ${originY}px)`,
-      transition: 'clip-path 420ms cubic-bezier(0.4, 0, 0.2, 1)',
-    });
-
-    document.body.appendChild(overlay);
-
-    // Force reflow so the initial clip-path is applied before transition starts
-    overlay.getBoundingClientRect();
-
-    // Expand to cover everything — 150% radius covers all corners
-    overlay.style.clipPath = `circle(150% at ${originX}px ${originY}px)`;
-
-    // After expansion, flip the theme and fade the overlay out
-    overlay.addEventListener('transitionend', () => {
-      applyTheme(nextTheme);
-
-      // Brief pause so the painted page underneath is ready, then shrink away
-      overlay.style.transition = 'opacity 120ms ease-out';
-      overlay.style.opacity = '0';
-
-      setTimeout(() => {
-        overlay.remove();
-        resolve();
-      }, 140);
-    }, { once: true });
-  });
 }
 
 export const useThemeStore = create<ThemeStore>((set, get) => ({
   theme: 'dark',
+  isTransitioning: false,
 
   initTheme: () => {
     const stored = localStorage.getItem('sw-theme') as Theme | null;
@@ -81,12 +40,57 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
   },
 
   toggleTheme: async (originX = window.innerWidth / 2, originY = window.innerHeight / 2) => {
-    const current = get().theme;
-    const next: Theme = current === 'dark' ? 'light' : 'dark';
+    if (get().isTransitioning) return;
+    const next: Theme = get().theme === 'dark' ? 'light' : 'dark';
+    const commit = () => {
+      applyTheme(next);
+      set({ theme: next });
+      localStorage.setItem('sw-theme', next);
+    };
 
-    await runIrisTransition(next, originX, originY);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !document.startViewTransition) {
+      commit();
+      return;
+    }
 
-    localStorage.setItem('sw-theme', next);
-    set({ theme: next });
+    const html = document.documentElement;
+    const x = Math.max(0, Math.min(originX, window.innerWidth));
+    const y = Math.max(0, Math.min(originY, window.innerHeight));
+    const radius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+    set({ isTransitioning: true });
+    html.dataset.themeTransition = 'active';
+    let committed = false;
+
+    try {
+      const transition = document.startViewTransition(() => {
+        flushSync(commit);
+        committed = true;
+      });
+      // A transition can be skipped if the page loses visibility.
+      void transition.finished.catch(() => undefined);
+      await transition.ready;
+      await html.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${Math.ceil(radius) + 2}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 720,
+          easing: 'cubic-bezier(0.22, 0.68, 0.15, 1)',
+          pseudoElement: '::view-transition-new(root)',
+        }
+      ).finished;
+      await transition.finished;
+    } catch {
+      if (!committed) commit();
+    } finally {
+      delete html.dataset.themeTransition;
+      set({ isTransitioning: false });
+    }
   },
 }));

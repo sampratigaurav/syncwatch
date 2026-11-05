@@ -1,3 +1,4 @@
+import './cinema.css';
 import { useEffect, useState } from 'react';
 import { SEO } from '../components/layout/SEO';
 import { useRoomStore } from '../store/roomStore';
@@ -176,10 +177,9 @@ export default function WaitingRoom() {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="min-h-screen p-4 tablet:p-8 flex flex-col items-center pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-x-hidden relative selection:bg-teal-500/30"
+      className="cinema-lobby min-h-screen p-4 tablet:p-8 flex flex-col items-center pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-x-hidden relative selection:bg-teal-500/30"
     >
       
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[800px] h-[600px] bg-teal-500/5 blur-[120px] pointer-events-none -z-10" />
       {connectionStatus === 'reconnecting' && (
         <div className="absolute top-0 left-0 right-0 z-[90] bg-black/80 backdrop-blur-lg border-b border-white/10 flex flex-col items-center justify-center py-3 shadow-2xl animate-in slide-in-from-top-full duration-300">
           <div className="flex items-center gap-3">
@@ -198,12 +198,16 @@ export default function WaitingRoom() {
         </div>
       )}
 
+      <div className="w-full max-w-5xl mt-8 mb-4">
+        <p className="cinema-kicker"><span aria-hidden="true">✦</span> BEFORE THE SHOW</p>
+        <h1 className="text-4xl tablet:text-6xl font-bold tracking-tight">The lobby</h1>
+      </div>
       <div className="w-full max-w-5xl mx-auto grid grid-cols-1 tablet:grid-cols-12 gap-6 tablet:gap-8 mt-4 font-sans">
         
         <div className="tablet:col-span-7 space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 tablet:p-10 shadow-xl">
-            <h1 className="text-2xl tablet:text-3xl font-bold text-white mb-1 tablet:mb-2 tracking-tight">Waiting Room</h1>
-            <p className="text-sm tablet:text-base text-zinc-400 mb-6 tablet:mb-8">Select the video file you want to watch.</p>
+          <div className="cinema-lobby-panel border rounded-2xl p-5 tablet:p-10 shadow-xl">
+            <h2 className="text-2xl tablet:text-3xl font-bold mb-1 tablet:mb-2 tracking-tight">Pick your video</h2>
+            <p className="text-sm tablet:text-base mb-6 tablet:mb-8" style={{ color: 'var(--cinema-muted)' }}>Everyone selects their own copy before the show starts.</p>
             
             {fileVerifyStatus === 'computing' ? (
               <div className="bg-zinc-950/50 border border-teal-900/50 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
@@ -399,15 +403,11 @@ export default function WaitingRoom() {
         </div>
 
         <div className="tablet:col-span-5 space-y-6">
-          <div className="bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800 rounded-2xl p-6 relative overflow-hidden shadow-2xl flex flex-col items-center text-center">
-            {/* Ticket Notches */}
-            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#09090b] rounded-full border-r border-zinc-800" />
-            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-[#09090b] rounded-full border-l border-zinc-800" />
-            
-            <Ticket className="w-6 h-6 text-teal-500/50 mb-3" />
-            <span className="text-zinc-400 text-sm font-medium uppercase tracking-widest mb-1">Room Code</span>
+          <div className="cinema-invite rounded-2xl p-6 relative overflow-hidden shadow-xl flex flex-col items-center text-center">
+            <Ticket className="w-6 h-6 mb-3" aria-hidden="true" />
+            <span className="text-sm font-bold uppercase tracking-widest mb-1">Room ticket</span>
             <div className="flex items-center gap-3 mb-6 mt-2">
-              <div className="text-4xl tablet:text-5xl font-mono font-bold tracking-[0.2em] text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400 drop-shadow-[0_0_15px_rgba(20,184,166,0.2)] ml-2">
+              <div className="text-4xl tablet:text-5xl font-mono font-bold tracking-[0.2em] break-all">
                 {roomId}
               </div>
               {useRoomStore.getState().roomHasPassword && <Lock size={20} className="text-zinc-500 -ml-1" />}
@@ -420,7 +420,7 @@ export default function WaitingRoom() {
                 title="Copy Code"
               >
                 {copiedType === 'code' ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                <span className="text-xs">Copy Code</span>
+                <span className="text-xs">{copiedType === 'code' ? 'Copied!' : 'Copy code'}</span>
               </button>
               <button 
                 onClick={() => handleCopy('link')} 
@@ -428,7 +428,7 @@ export default function WaitingRoom() {
                 title="Copy Link"
               >
                 {copiedType === 'link' ? <Check className="w-4 h-4 text-emerald-500" /> : <Link2 className="w-4 h-4" />}
-                <span className="text-xs">Copy Link</span>
+                <span className="text-xs">{copiedType === 'link' ? 'Copied!' : 'Copy invite'}</span>
               </button>
             </div>
           </div>

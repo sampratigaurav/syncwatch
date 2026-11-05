@@ -1,0 +1,10 @@
+/* The new page expands above a still snapshot of the previous theme. */
+html[data-theme-transition='active']::view-transition-old(root),
+html[data-theme-transition='active']::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+html[data-theme-transition='active']::view-transition-old(root) { z-index: 1; }
+html[data-theme-transition='active']::view-transition-new(root) { z-index: 2; }
+html[data-theme-transition='active']::view-transition-group(root) { animation-duration: 0s; }
+html[data-theme-transition='active'] * { transition: none !important; }

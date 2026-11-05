@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { User, Github, Sun, Moon, Star } from 'lucide-react';
-import { m, AnimatePresence, LazyMotion, domAnimation } from 'framer-motion';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { User, Github, Sun, Moon, Star, Menu, X, Clapperboard, Film, CircleHelp, BookOpen } from 'lucide-react';
+import { m, AnimatePresence, LazyMotion, domAnimation, useReducedMotion } from 'framer-motion';
 import { toast } from 'sonner';
 import { useRoomStore } from '../../store/roomStore';
 import { useThemeStore } from '../../store/themeStore';
 import { useShallow } from 'zustand/react/shallow';
 import ProfileModal from './ProfileModal';
+import './header.css';
 
 // ─── Cinematic theme toggle ───────────────────────────────────────────────────
 const ThemeToggle = () => {
-  const { theme, toggleTheme } = useThemeStore();
+  const { theme, toggleTheme, isTransitioning } = useThemeStore();
+  const reducedMotion = useReducedMotion();
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const handleClick = () => {
@@ -32,30 +34,34 @@ const ThemeToggle = () => {
       onClick={handleClick}
       aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
       title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
-      className="theme-toggle-btn group"
+      className="cinema-nav-icon cinema-theme-toggle"
+      data-theme={theme}
+      disabled={isTransitioning}
+      aria-busy={isTransitioning}
     >
+      <span className="cinema-theme-orbit" aria-hidden="true"><i /><i /></span>
       <AnimatePresence mode="wait" initial={false}>
         {isLight ? (
           <m.span
             key="moon"
-            initial={{ opacity: 0, rotate: -90, scale: 0.4 }}
+            initial={reducedMotion ? false : { opacity: 0, rotate: -90, scale: 0.4 }}
             animate={{ opacity: 1, rotate: 0, scale: 1 }}
             exit={{ opacity: 0, rotate: 90, scale: 0.4 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
-            className="flex items-center justify-center"
+            transition={{ duration: reducedMotion ? 0 : 0.25, ease: 'easeOut' }}
+            className="cinema-theme-glyph"
           >
-            <Moon size={16} className="text-[#0d9488] transition-transform duration-700 ease-in-out group-hover:animate-[spin_4s_linear_infinite]" aria-hidden="true" />
+            <Moon size={16} className="cinema-theme-moon" aria-hidden="true" />
           </m.span>
         ) : (
           <m.span
             key="sun"
-            initial={{ opacity: 0, rotate: 90, scale: 0.4 }}
+            initial={reducedMotion ? false : { opacity: 0, rotate: 90, scale: 0.4 }}
             animate={{ opacity: 1, rotate: 0, scale: 1 }}
             exit={{ opacity: 0, rotate: -90, scale: 0.4 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
-            className="flex items-center justify-center"
+            transition={{ duration: reducedMotion ? 0 : 0.25, ease: 'easeOut' }}
+            className="cinema-theme-glyph"
           >
-            <Sun size={16} className="text-amber-400 transition-transform duration-700 ease-in-out group-hover:animate-[spin_4s_linear_infinite]" aria-hidden="true" />
+            <Sun size={16} className="cinema-theme-sun" aria-hidden="true" />
           </m.span>
         )}
       </AnimatePresence>
@@ -65,16 +71,19 @@ const ThemeToggle = () => {
 
 export const Header = () => {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [hoveredNav, setHoveredNav] = useState<string | null>(null);
+  const [isNavOpen, setIsNavOpen] = useState(false);
+  const navToggle = useRef<HTMLButtonElement>(null);
 
   const scrollToSection = (id: string) => {
+    setIsNavOpen(false);
     const isHome = window.location.pathname === '/';
     const scroll = () => {
       const el = document.getElementById(id);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        el.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
       }
     };
     if (isHome) {
@@ -144,106 +153,26 @@ export const Header = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsProfileDropdownOpen(false);
+        if (isNavOpen) {
+          setIsNavOpen(false);
+          navToggle.current?.focus();
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isNavOpen]);
 
   return (
     <LazyMotion features={domAnimation}>
-      <header
-        className="sticky top-0 w-full z-50 font-sans border-b"
-        style={{ backgroundColor: 'var(--sw-bg-header)', borderColor: 'var(--sw-border)' }}
-      >
-        <div className="max-w-7xl mx-auto flex items-center justify-between px-6 sm:px-10 h-[60px]">
-
-          {/* Left: Brand logomark + Wordmark */}
-          <Link
-            to="/"
-            className="flex items-center gap-2.5 group shrink-0 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] p-1 -m-1 cursor-pointer"
-          >
-            <img
-              src="/logo.png"
-              alt="SyncWatch logo"
-              width={34}
-              height={34}
-              className="shrink-0 rounded-[6px] transition-opacity duration-150 group-hover:opacity-90"
-            />
-            <span className="text-[16px] font-semibold tracking-[0.01em] leading-none transition-colors duration-150 group-hover:text-[var(--sw-text-primary)]" style={{ color: 'var(--sw-text-primary)' }}>
-              SyncWatch
-            </span>
+      <header className="cinema-header sticky top-0 z-50 font-sans" data-home={pathname === '/'}>
+        <div className="cinema-nav-shell">
+          <Link to="/" className="cinema-nav-brand" onClick={() => setIsNavOpen(false)}>
+            <span className="cinema-nav-logo" aria-hidden="true"><svg viewBox="0 0 32 32" width="26" height="26"><path d="M7 6v19l14-9.5z" fill="#a28bea" /><path d="M13 7v19l14-9.5z" fill="#e2fa87" /></svg></span>
+            <span>SyncWatch</span>
           </Link>
 
-          {/* Center: Navigation links with subtle hover pill */}
-          <nav
-            className="hidden tablet:flex items-center gap-1"
-            onMouseLeave={() => setHoveredNav(null)}
-            aria-label="Main navigation"
-          >
-            {([
-              { id: 'features-btn',    label: 'Features',     action: () => scrollToSection('features') },
-              { id: 'howitworks-btn',  label: 'How it works', action: () => scrollToSection('how-it-works') },
-              { id: 'faq-btn',         label: 'FAQ',           action: () => scrollToSection('faq') },
-            ] as const).map(({ id, label, action }) => (
-              <div
-                key={id}
-                className="relative"
-                onMouseEnter={() => setHoveredNav(id)}
-              >
-                {hoveredNav === id && (
-                  <m.div
-                    layoutId="nav-hover-bg"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 rounded-lg border"
-                    style={{ background: 'var(--sw-surface-hover)', borderColor: 'var(--sw-border-hover)' }}
-                    transition={{ duration: 0.15 }}
-                  />
-                )}
-                <button
-                  onClick={action}
-                  onFocus={() => setHoveredNav(id)}
-                  onBlur={() => setHoveredNav(null)}
-                  className="relative z-10 px-3.5 py-1.5 text-[14px] font-medium transition-colors duration-150 hover:text-[var(--sw-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] rounded-lg cursor-pointer"
-                  style={{ color: 'var(--sw-nav-text)' }}
-                >
-                  {label}
-                </button>
-              </div>
-            ))}
-
-            {/* Docs — router link, same hover treatment */}
-            <div
-              className="relative"
-              onMouseEnter={() => setHoveredNav('docs-btn')}
-            >
-              {hoveredNav === 'docs-btn' && (
-                <m.div
-                  layoutId="nav-hover-bg"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 rounded-lg border"
-                  style={{ background: 'var(--sw-surface-hover)', borderColor: 'var(--sw-border-hover)' }}
-                  transition={{ duration: 0.15 }}
-                />
-              )}
-              <Link
-                to="/docs"
-                onFocus={() => setHoveredNav('docs-btn')}
-                onBlur={() => setHoveredNav(null)}
-                className="relative z-10 block px-3.5 py-1.5 text-[14px] font-medium transition-colors duration-150 hover:text-[var(--sw-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5] rounded-lg cursor-pointer"
-                style={{ color: 'var(--sw-nav-text)' }}
-              >
-                Docs
-              </Link>
-            </div>
-          </nav>
-
-          {/* Right: Theme toggle + GitHub + Sign in */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="cinema-nav-tools">
             {/* Cinematic theme toggle */}
             <ThemeToggle />
 
@@ -253,12 +182,7 @@ export const Header = () => {
               target="_blank"
               rel="noreferrer"
               aria-label="Star SyncWatch repository on GitHub"
-              className="github-star-btn group flex items-center gap-2 px-3.5 py-1.5 rounded-full border transition-colors duration-150 cursor-pointer hover:border-[var(--sw-border-hover)] hover:bg-[var(--sw-surface-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
-              style={{
-                borderColor: 'var(--sw-border)',
-                background: 'var(--sw-surface)',
-                color: 'var(--sw-text-secondary)',
-              }}
+              className="github-star-btn cinema-nav-icon cinema-nav-star"
             >
               {/* Icon: Github → Star on hover, housed in a fixed-size box so layout never shifts */}
               <span className="relative w-4 h-4 shrink-0" aria-hidden="true">
@@ -267,11 +191,10 @@ export const Header = () => {
                 {/* Star icon — fades/scales in on hover, amber gold */}
                 <Star className="github-star-btn__star absolute inset-0 w-4 h-4 fill-current" style={{ color: '#f59e0b' }} />
               </span>
-              <span className="hidden sm:block text-[13px] font-medium tracking-wide" style={{ color: 'inherit' }}>Star</span>
             </a>
 
             {isAuthLoading ? (
-              <div className="w-36 h-9 animate-pulse rounded-full" style={{ background: 'var(--sw-surface)' }} aria-busy="true" aria-label="Loading authentication status" />
+              <div className="cinema-nav-loading motion-safe:animate-pulse rounded-full" style={{ background: 'var(--sw-surface)' }} aria-busy="true" aria-label="Loading authentication status" />
             ) : firebaseUid ? (
               <div className="relative">
                 <button
@@ -280,7 +203,7 @@ export const Header = () => {
                   aria-haspopup="menu"
                   aria-controls="profile-menu"
                   aria-label="User profile options menu"
-                  className="flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-medium transition-colors duration-150 cursor-pointer hover:border-[var(--sw-border-hover)] hover:bg-[var(--sw-surface-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
+                  className="cinema-nav-auth"
                   style={{
                     borderColor: 'var(--sw-border)',
                     background: 'var(--sw-surface)',
@@ -339,12 +262,7 @@ export const Header = () => {
               <button
                 onClick={handleLogin}
                 aria-label="Sign in with Google"
-                className="group flex items-center gap-2.5 px-4 py-1.5 rounded-full border text-[13.5px] font-medium transition-colors duration-150 cursor-pointer hover:border-[var(--sw-border-hover)] hover:bg-[var(--sw-surface-hover)] hover:text-[var(--sw-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#22d3a5]"
-                style={{
-                  borderColor: 'var(--sw-border)',
-                  background: 'var(--sw-surface)',
-                  color: 'var(--sw-text-primary)',
-                }}
+                className="cinema-nav-auth cinema-nav-signin"
               >
                 {/* Google G logo */}
                 <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -356,7 +274,36 @@ export const Header = () => {
                 <span>Sign in</span>
               </button>
             )}
+            <button
+              ref={navToggle}
+              type="button"
+              className="cinema-nav-icon cinema-nav-toggle"
+              aria-label={isNavOpen ? 'Close navigation' : 'Open navigation'}
+              aria-expanded={isNavOpen}
+              aria-controls="cinema-navigation"
+              onClick={() => { setIsProfileDropdownOpen(false); setIsNavOpen(open => !open); }}
+            >
+              {isNavOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+            </button>
           </div>
+
+          <nav id="cinema-navigation" className="cinema-navigation" data-open={isNavOpen} aria-label="Main navigation">
+            {[
+              { id: 'features', label: 'Features', icon: Film },
+              { id: 'how-it-works', label: 'How it works', icon: Clapperboard },
+              { id: 'faq', label: 'FAQ', icon: CircleHelp },
+            ].map(({ id, label, icon: Icon }) => (
+              <button key={id} type="button" onClick={() => scrollToSection(id)} className="cinema-nav-link">
+                <Icon size={15} aria-hidden="true" /> {label}
+              </button>
+            ))}
+            <NavLink to="/docs" onClick={() => setIsNavOpen(false)} className="cinema-nav-link">
+              <BookOpen size={15} aria-hidden="true" /> Docs
+            </NavLink>
+            <a className="cinema-nav-link cinema-nav-mobile-star" href="https://github.com/sampratigaurav/syncwatch" target="_blank" rel="noreferrer">
+              <Github size={15} aria-hidden="true" /> Star on GitHub
+            </a>
+          </nav>
 
         </div>
       </header>

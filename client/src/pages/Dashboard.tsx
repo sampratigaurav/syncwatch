@@ -1,70 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { SEO } from '../components/layout/SEO';
-import { Link2, Lock, Unlock, Eye, EyeOff } from 'lucide-react';
+import { Link2, Lock, Unlock, Eye, EyeOff, ArrowUpRight, Ticket, Loader2 } from 'lucide-react';
 import { useRoomStore } from '../store/roomStore';
-import { useThemeStore } from '../store/themeStore';
 import { useShallow } from 'zustand/react/shallow';
 import { SERVER_URL } from '../lib/config';
 import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { m, LazyMotion, domAnimation, AnimatePresence } from 'framer-motion';
+import { m, LazyMotion, domAnimation, AnimatePresence, useReducedMotion } from 'framer-motion';
+import './cinema.css';
+import './counter.css';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
 
-// ─── Theme-aware Ambient Background ──────────────────────────────────────────
-const AmbientBackground = () => {
-  const { theme } = useThemeStore();
-  const isLight = theme === 'light';
-
-  return (
-    <div
-      className="fixed inset-0 pointer-events-none z-0 overflow-hidden"
-      style={{ backgroundColor: 'var(--sw-bg)' }}
-    >
-      {/* Dot Matrix */}
-      <div
-        className="absolute inset-0"
-        style={{
-          opacity: 'var(--sw-dot-opacity)',
-          backgroundImage: `radial-gradient(circle at center, var(--sw-dot-color) 1.5px, transparent 1.5px)`,
-          backgroundSize: '32px 32px',
-          WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 50%, transparent 100%)',
-          maskImage: 'linear-gradient(to bottom, black 0%, black 50%, transparent 100%)',
-        }}
-      />
-      {/* Orb 1 */}
-      <div
-        className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] max-w-[800px] max-h-[800px] rounded-full animate-orb-1"
-        style={{
-          background: `radial-gradient(circle, var(--sw-orb-1), transparent 70%)`,
-          filter: isLight ? 'blur(80px)' : 'blur(120px)',
-          mixBlendMode: isLight ? 'multiply' : 'screen',
-        }}
-      />
-      {/* Orb 2 */}
-      <div
-        className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] max-w-[700px] max-h-[700px] rounded-full animate-orb-2"
-        style={{
-          background: `radial-gradient(circle, var(--sw-orb-2), transparent 70%)`,
-          filter: isLight ? 'blur(100px)' : 'blur(150px)',
-          mixBlendMode: isLight ? 'multiply' : 'screen',
-        }}
-      />
-    </div>
-  );
-};
-
 export default function Dashboard() {
-  const { theme } = useThemeStore();
-  const isLight = theme === 'light';
 
   const navigate = useNavigate();
+  const reducedMotion = useReducedMotion();
   const { roomId: urlRoomId } = useParams();
+  const [searchParams] = useSearchParams();
+  const mode = urlRoomId ? 'join' : searchParams.get('mode');
   const { setRoomId, nickname: authNickname, profileName, avatarUrl } = useRoomStore(useShallow(state => ({
     setRoomId: state.setRoomId,
     nickname: state.nickname,
@@ -323,19 +282,15 @@ export default function Dashboard() {
     }
   };
 
-  // ─── Shared widget style ───────────────────────────────────────────────────
   const widgetBase: React.CSSProperties = {
-    background: 'var(--sw-card-bg)',
-    borderColor: 'var(--sw-border)',
-    backdropFilter: 'blur(24px)',
-    WebkitBackdropFilter: 'blur(24px)',
+    background: 'var(--cinema-panel)',
+    borderColor: 'var(--cinema-line)',
   };
 
-  // ─── Input style ──────────────────────────────────────────────────────────
   const inputBase: React.CSSProperties = {
-    background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(0,0,0,0.4)',
-    borderColor: 'var(--sw-border)',
-    color: 'var(--sw-text-primary)',
+    background: 'var(--counter-input)',
+    borderColor: 'var(--cinema-line)',
+    color: 'var(--cinema-ink)',
   };
 
   return (
@@ -346,18 +301,29 @@ export default function Dashboard() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="opacity-0 relative flex flex-col items-center justify-center min-h-screen overflow-x-hidden selection:bg-teal-500/30 p-4"
-          style={{ backgroundColor: 'var(--sw-bg)' }}
+          transition={{ duration: reducedMotion ? 0 : 0.35, ease: "easeOut" }}
+          className="cinema-counter opacity-0 relative flex flex-col items-center min-h-screen overflow-x-hidden selection:bg-teal-500/30 p-4"
         >
-          <AmbientBackground />
+          <div className="counter-heading">
+            <p className="cinema-kicker"><Ticket size={15} aria-hidden="true" /> THE TICKET COUNTER</p>
+            <h1>
+              {mode === 'join' ? 'Join the party' : mode === 'create' ? 'Host movie night' : 'Your next movie night'}
+            </h1>
+            <p className="counter-intro">{mode === 'join' ? 'Your friends have the room. Bring your name and the invite.' : 'Set up your room, send an invite, and settle in.'}</p>
+            {!urlRoomId && (
+              <nav className="counter-mode-switch" aria-label="Room actions">
+                <Link to="/dashboard?mode=create" className={cn('cinema-button', mode === 'create' ? 'cinema-button-primary' : 'cinema-button-secondary')} aria-current={mode === 'create' ? 'page' : undefined}>Create a room</Link>
+                <Link to="/dashboard?mode=join" className={cn('cinema-button', mode === 'join' ? 'cinema-button-primary' : 'cinema-button-secondary')} aria-current={mode === 'join' ? 'page' : undefined}>Join with a code</Link>
+              </nav>
+            )}
+          </div>
 
-          <div className="w-full max-w-5xl mx-auto mt-24 tablet:mt-32 pb-12 grid grid-cols-1 tablet:grid-cols-3 tablet:grid-rows-2 gap-4 tablet:gap-6 relative z-10 px-4">
+          <div className="counter-grid">
 
             {/* ── Widget 1: Profile & Identity ─────────────────────────── */}
             <div
               className={cn(
-                "col-span-1 rounded-3xl border p-6 relative overflow-hidden group order-2 tablet:order-1 transition-all duration-300",
+                "cinema-counter-panel counter-identity col-span-1 rounded-3xl border p-6 relative overflow-hidden group order-1 transition-all duration-300",
                 missingIdentity ? "animate-[shake_0.5s_ease-in-out]" : ""
               )}
               style={{
@@ -365,23 +331,25 @@ export default function Dashboard() {
                 boxShadow: missingIdentity
                   ? '0 0 20px rgba(239,68,68,0.25), inset 0 0 0 1px rgba(239,68,68,0.4)'
                   : '0 0 30px rgba(0,0,0,0.18)',
-                borderColor: missingIdentity ? 'rgba(239,68,68,0.45)' : 'var(--sw-border)',
+                borderColor: missingIdentity ? '#f28787' : 'var(--cinema-line)',
               }}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none rounded-3xl" />
-              <h3 className="text-sm font-semibold uppercase tracking-wider mb-4" style={{ color: 'var(--sw-text-muted)' }}>Your Identity</h3>
+              <div className="counter-identity-heading"><span>01 / YOUR SEAT</span><Ticket size={20} aria-hidden="true" /></div>
+              <h2 className="counter-card-title">What should we call you?</h2>
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-4">
                   {avatarUrl ? (
                     <img src={avatarUrl} alt="Avatar" className="w-12 h-12 rounded-full border" style={{ borderColor: 'var(--sw-border)' }} />
                   ) : (
-                    <div className="w-12 h-12 rounded-full bg-teal-500/10 border border-teal-500/20 flex items-center justify-center">
-                      <span className="text-teal-500 font-bold text-lg">{nickname ? nickname[0].toUpperCase() : '?'}</span>
+                    <div className="w-12 h-12 rounded-full counter-avatar border flex items-center justify-center">
+                      <span className="font-bold text-lg">{nickname ? nickname[0].toUpperCase() : '?'}</span>
                     </div>
                   )}
                   <div className="flex-1">
                     <input
                       id="nickname"
+                      aria-label="Your nickname"
                       type="text"
                       value={nickname}
                       onChange={e => {
@@ -396,22 +364,26 @@ export default function Dashboard() {
                     <div className="h-[1px] w-full mt-1" style={{ background: 'var(--sw-border-hover)' }} />
                   </div>
                 </div>
-                <p className="text-xs" style={{ color: 'var(--sw-text-muted)' }}>This name will be visible to others in the room.</p>
+                <p className="text-xs" style={{ color: 'var(--sw-text-muted)' }}>Your friends will see this name in the room.</p>
               </div>
             </div>
 
             {/* ── Widget 2: Host Room ───────────────────────────────────── */}
-            {!urlRoomId && (
+            {mode !== 'join' && (
               <div
-                className="col-span-1 tablet:col-span-2 rounded-3xl border p-6 relative overflow-hidden group order-3 tablet:order-2 transition-colors duration-300 flex flex-col"
+                data-counter="create"
+                className="cinema-counter-panel col-span-1 tablet:col-span-2 rounded-3xl border p-6 relative overflow-hidden group order-3 tablet:order-2 transition-colors duration-300 flex flex-col"
                 style={{ ...widgetBase, boxShadow: '0 0 30px rgba(0,0,0,0.18)' }}
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none rounded-3xl" />
-                <h3 className="text-sm font-semibold uppercase tracking-wider mb-6" style={{ color: 'var(--sw-text-muted)' }}>Host a Watch Party</h3>
+                <div className="counter-card-banner">
+                  <div><span>02 / HOST A WATCH PARTY</span><h2>Your room. Your crew.</h2><p>Create a room, then share the invite.</p></div>
+                  <div className="counter-mascot cinema-object cinema-object-projector" aria-hidden="true"><i /><i /><i /></div>
+                </div>
 
                 <div className="flex-1 flex flex-col gap-5">
                   {/* Lock with PIN toggle */}
-                  <div className="flex items-center justify-between">
+                  <div className="counter-option flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {lockRoom
                         ? <Lock size={16} className="text-teal-500" />
@@ -453,10 +425,12 @@ export default function Dashboard() {
                             }}
                             className="w-full h-12 border rounded-xl pl-4 pr-12 font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all shadow-inner"
                             style={{ ...inputBase, caretColor: 'var(--sw-accent)' }}
+                            aria-label="Room PIN"
                             placeholder="4-8 char PIN"
                           />
                           <button
                             type="button"
+                            aria-label={showPin ? 'Hide PIN' : 'Show PIN'}
                             onClick={() => setShowPin(!showPin)}
                             className="absolute right-3 top-1/2 -translate-y-1/2 p-1 transition-colors"
                             style={{ color: 'var(--sw-text-muted)' }}
@@ -532,38 +506,37 @@ export default function Dashboard() {
                   <button
                     onClick={() => { handleCreateRoom(); }}
                     disabled={isLoading}
-                    className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98] flex items-center justify-center text-base disabled:opacity-50"
-                    style={{
-                      background: isLight ? '#111111' : '#ffffff',
-                      color: isLight ? '#f4f4f5' : '#0a0a0a',
-                      boxShadow: isLight
-                        ? '0 0 20px rgba(0,0,0,0.18)'
-                        : '0 0 20px rgba(255,255,255,0.2)',
-                    }}
+                    className="counter-submit"
                   >
-                    Start New Room
+                    {isLoading ? <><Loader2 size={18} className="counter-loading" aria-hidden="true" /> Creating room…</> : <>Create my room <ArrowUpRight size={18} aria-hidden="true" /></>}
                   </button>
                 </div>
               </div>
             )}
 
             {/* ── Widget 3: Quick Join ──────────────────────────────────── */}
+            {mode !== 'create' && (
             <div
+              data-counter="join"
               className={cn(
-                "rounded-3xl border p-6 relative overflow-hidden group transition-colors duration-300 flex flex-col",
-                urlRoomId ? "col-span-1 tablet:col-span-2 order-1" : "col-span-1 tablet:col-span-2 order-4 tablet:order-4"
+                "cinema-counter-panel rounded-3xl border p-6 relative overflow-hidden group transition-colors duration-300 flex flex-col",
+                urlRoomId ? "col-span-1 tablet:col-span-2 order-2" : "col-span-1 tablet:col-span-2 order-4 tablet:order-4"
               )}
               style={{ ...widgetBase, boxShadow: '0 0 30px rgba(0,0,0,0.18)' }}
             >
               <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none rounded-3xl" />
-              <h3 className="text-sm font-semibold uppercase tracking-wider mb-6" style={{ color: 'var(--sw-text-muted)' }}>
-                {urlRoomId ? "You've been invited!" : "Quick Join"}
-              </h3>
+              <div className="counter-card-banner">
+                <div><span>02 / JOIN A WATCH PARTY</span><h2>{urlRoomId ? "You're invited." : 'Your seat is waiting.'}</h2><p>Paste the link or room code your friend shared.</p></div>
+                <div className="counter-mascot cinema-object cinema-object-screens" aria-hidden="true"><i /><i /><i /></div>
+              </div>
 
               <div className="flex-1 flex flex-col justify-center gap-4">
+                <label className="counter-field-label" htmlFor="invite-code">Invite link or room code</label>
                 <div className="relative">
                   <input
                     type="text"
+                    id="invite-code"
+                    aria-label="Invite link or room code"
                     placeholder="Paste Invite Link or Code"
                     value={inputRoomId}
                     onChange={handleRoomIdChange}
@@ -599,11 +572,13 @@ export default function Dashboard() {
                           autoFocus
                           className="w-full h-12 border rounded-xl pl-4 pr-12 font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all shadow-inner"
                           style={{ ...inputBase, caretColor: 'var(--sw-accent)' }}
+                          aria-label="Room PIN"
                           placeholder="Enter PIN"
                         />
                         <button
                           type="button"
-                          onClick={() => setShowPin(!showPin)}
+                          aria-label={showPin ? 'Hide PIN' : 'Show PIN'}
+                            onClick={() => setShowPin(!showPin)}
                           className="absolute right-3 top-1/2 -translate-y-1/2 p-1 transition-colors"
                           style={{ color: 'var(--sw-text-muted)' }}
                         >
@@ -625,53 +600,18 @@ export default function Dashboard() {
                 <button
                   onClick={() => { handleJoinRoom(); }}
                   disabled={isLoading}
-                  className="w-full h-12 rounded-xl font-semibold transition-all duration-300 active:scale-[0.98] flex items-center justify-center text-base disabled:opacity-50 border"
-                  style={{
-                    background: 'var(--sw-surface-hover)',
-                    borderColor: 'var(--sw-border-hover)',
-                    color: 'var(--sw-text-primary)',
-                  }}
+                  className="counter-submit"
                 >
-                  Join Room
+                  {isLoading ? <><Loader2 size={18} className="counter-loading" aria-hidden="true" /> Joining room…</> : <>Join the room <ArrowUpRight size={18} aria-hidden="true" /></>}
                 </button>
               </div>
             </div>
+            )}
 
-            {/* ── Widget 4: Network Status ──────────────────────────────── */}
-            <div
-              className="col-span-1 rounded-3xl border p-6 relative overflow-hidden group order-5 tablet:order-3 flex flex-col justify-between transition-colors duration-300"
-              style={{ ...widgetBase, boxShadow: '0 0 30px rgba(0,0,0,0.18)' }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none rounded-3xl" />
-              <h3 className="text-sm font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--sw-text-muted)' }}>Systems</h3>
-
-              <div>
-                <div className="flex items-center gap-3 mb-1">
-                  <div className={cn("w-3 h-3 rounded-full relative", isConnected ? "bg-green-500" : "bg-amber-500")}>
-                    <div className={cn("absolute inset-0 rounded-full animate-ping opacity-75", isConnected ? "bg-green-400" : "bg-amber-400")} />
-                  </div>
-                  <span
-                    className="text-xl font-bold tracking-tight"
-                    style={{ color: isConnected ? 'var(--sw-text-primary)' : '#fef3c7' }}
-                  >
-                    {isConnected ? "Online" : "Connecting..."}
-                  </span>
-                </div>
-                <p className="text-sm" style={{ color: 'var(--sw-text-muted)' }}>
-                  {isConnected
-                    ? "WebRTC signaling server active. Global routing operational."
-                    : "Establishing secure socket connection to signaling server..."}
-                </p>
-              </div>
-
-              <div className="mt-6 pt-4" style={{ borderTop: '1px solid var(--sw-border)' }}>
-                <div className="flex justify-between items-center text-xs font-mono" style={{ color: 'var(--sw-text-muted)' }}>
-                  <span>LATENCY</span>
-                  <span className={isConnected ? "text-teal-500" : "text-amber-400"}>
-                    {isConnected ? "< 50ms" : "---"}
-                  </span>
-                </div>
-              </div>
+            <div className="counter-connection" role="status">
+              <span className="counter-connection-dot" data-connected={isConnected} aria-hidden="true" />
+              <span>{isConnected ? 'Connected and ready' : 'Connecting to SyncWatch…'}</span>
+              <span className="counter-connection-hint">{isConnected ? 'Invite your friends when your room is ready.' : 'Room connection will be ready when the server responds.'}</span>
             </div>
 
           </div>

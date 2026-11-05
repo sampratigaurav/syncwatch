@@ -1,0 +1,105 @@
+.cinema-counter {
+  --counter-input: #18151e;
+  --sw-text-primary: var(--cinema-ink);
+  --sw-text-secondary: var(--cinema-ink);
+  --sw-text-muted: var(--cinema-muted);
+  background: var(--cinema-ground);
+}
+.light .cinema-counter { --counter-input: #fffdf9; }
+.counter-heading { width: 100%; max-width: 58rem; padding-top: clamp(1.5rem, 4vw, 3rem); }
+.counter-heading .cinema-kicker { display: flex; gap: .5rem; align-items: center; margin-bottom: .6rem; }
+.counter-heading h1 { font-size: clamp(2.3rem, 5vw, 3.75rem); font-weight: 750; letter-spacing: -.06em; line-height: 1.1; }
+.counter-intro { color: var(--cinema-muted); margin-top: .7rem; max-width: 42ch; }
+.counter-mode-switch { display: inline-flex; flex-wrap: wrap; gap: .3rem; padding: .3rem; margin-top: 1.4rem; border: 1px solid var(--cinema-line); border-radius: .85rem; background: var(--cinema-panel); }
+.counter-mode-switch .cinema-button { border-radius: .6rem; font-size: .85rem; border-color: transparent; min-height: 42px; }
+.counter-mode-switch .cinema-button-secondary { background: transparent; }
+.counter-grid { width: 100%; max-width: 58rem; margin: 1.6rem auto 3rem; display: grid; gap: 1rem; grid-template-columns: minmax(0, .85fr) minmax(0, 1.55fr); align-items: start; }
+.counter-grid > .cinema-counter-panel {
+  grid-column: auto;
+  padding: 1.3rem;
+  border: 1px solid var(--cinema-line);
+  border-radius: 1rem;
+  min-width: 0;
+  transition: border-color 200ms ease, translate 200ms ease;
+}
+.counter-grid > [data-counter] { grid-column: 2; }
+.counter-grid > .counter-identity { border-top: 3px solid #c5b3ff; }
+.counter-grid > [data-counter='create'] { border-top: 3px solid #ffb19e; }
+.counter-grid > [data-counter='join'] { border-top: 3px solid #e2fa87; }
+.counter-identity-heading { display: flex; align-items: center; justify-content: space-between; color: var(--cinema-muted); margin-bottom: 1.2rem; font: 700 .65rem/1.4 ui-monospace, monospace; letter-spacing: .06em; }
+.counter-identity-heading svg { color: #a286d0; transform: rotate(-12deg); transition: transform 220ms ease; }
+.counter-card-title { font-size: 1.3rem; font-weight: 750; line-height: 1.25; letter-spacing: -.035em; margin-bottom: 1.2rem; }
+.counter-avatar { color: #302540; background: #c5b3ff; border-color: #eadfff; box-shadow: 0 3px 0 #8269ae; flex-shrink: 0; transform: rotate(-5deg); transition: transform 220ms ease; }
+.counter-grid input { min-width: 0; }
+.counter-identity input:focus-visible { outline: 2px solid #a88acb; outline-offset: 5px; border-radius: .25rem; }
+.counter-identity .flex-1 { min-width: 0; }
+.counter-card-banner {
+  --counter-banner: #ffb19e;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .5rem;
+  padding: 1.15rem;
+  border-radius: .65rem;
+  background: linear-gradient(135deg, #ffffff40, transparent), var(--counter-banner);
+  color: #30233b;
+  margin-bottom: 1.3rem;
+}
+[data-counter='join'] .counter-card-banner { --counter-banner: #e2fa87; }
+.counter-card-banner span { font: 700 .62rem/1.5 ui-monospace, monospace; letter-spacing: .055em; }
+.counter-card-banner h2 { font-size: clamp(1.25rem, 2.4vw, 1.65rem); font-weight: 750; letter-spacing: -.04em; line-height: 1.2; margin-top: .4rem; }
+.counter-card-banner p { font-size: .77rem; margin-top: .35rem; max-width: 26ch; color: #4c3b4b; }
+.counter-mascot.cinema-object { flex: 0 0 5rem; width: 5rem; height: 5rem; margin: 0; transition: transform 350ms cubic-bezier(.2,.8,.3,1.3); }
+.counter-option { min-height: 44px; gap: 1rem; }
+.counter-option [role='switch'] { flex-shrink: 0; }
+.counter-field-label { font-size: .78rem; font-weight: 700; color: var(--cinema-muted); }
+.counter-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+  min-height: 48px;
+  padding: .6rem 1rem;
+  border: 1px solid #eadfff;
+  border-radius: .6rem;
+  background: #c5b3ff;
+  color: #302540;
+  box-shadow: 0 3px 0 #8269ae;
+  font-weight: 750;
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+[data-counter='join'] .counter-submit { background: #e2fa87; border-color: #f1ffd0; box-shadow: 0 3px 0 #768748; }
+.counter-submit svg { transition: transform 180ms ease; }
+.counter-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 0 #8269ae; }
+[data-counter='join'] .counter-submit:hover:not(:disabled) { box-shadow: 0 5px 0 #768748; }
+.counter-submit:hover:not(:disabled) svg { transform: translate(2px, -2px); }
+.counter-submit:disabled { opacity: .65; cursor: wait; }
+.counter-submit:focus-visible { outline: 2px solid #a88acb; outline-offset: 4px; }
+.counter-submit:active:not(:disabled) { transform: translateY(0); }
+.counter-loading { animation: counter-spin 900ms linear infinite; }
+@keyframes counter-spin { to { rotate: 360deg; } }
+.counter-connection { grid-column: 1 / -1; order: 5; display: flex; flex-wrap: wrap; align-items: center; gap: .45rem; padding: .65rem .1rem; color: var(--cinema-muted); font-size: .75rem; }
+.counter-connection-dot { width: 7px; height: 7px; background: #dcaa54; border-radius: 50%; }
+.counter-connection-dot[data-connected='true'] { background: #70b49a; }
+.counter-connection-hint { margin-left: auto; font-size: .7rem; }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .counter-grid > .cinema-counter-panel:hover { border-color: #a88acb; translate: 0 -2px; }
+  .counter-identity:hover .counter-avatar { transform: rotate(5deg); }
+  .counter-identity:hover .counter-identity-heading svg { transform: rotate(10deg); }
+  [data-counter]:hover .counter-mascot { transform: translateY(-4px) rotate(5deg); }
+}
+@media (max-width: 680px) {
+  .counter-grid { grid-template-columns: 1fr; }
+  .counter-grid > [data-counter] { grid-column: 1; }
+  .counter-connection-hint { margin-left: 0; flex-basis: 100%; padding-left: .9rem; }
+}
+@media (max-width: 360px) {
+  .counter-mode-switch { display: flex; }
+  .counter-mode-switch .cinema-button { flex: 1; padding-inline: .5rem; font-size: .78rem; }
+  .counter-mascot.cinema-object { flex-basis: 3.8rem; width: 3.8rem; height: 3.8rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cinema-counter .counter-grid *, .counter-mode-switch * { transition: none; }
+}

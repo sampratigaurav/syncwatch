@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { SEO } from '../components/layout/SEO';
-import { 
-  ArrowLeft, FileVideo, ShieldCheck, HelpCircle, 
+import {
+  ArrowUpRight, BookOpen, FileVideo, ShieldCheck, HelpCircle,
   Keyboard, Play, ChevronDown, Monitor, CheckCircle2,
   Lock, MessageSquare
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import './cinema.css';
+import './docs.css';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -64,91 +66,75 @@ export default function Docs() {
     const el = document.getElementById(id);
     if (el) {
       const y = el.getBoundingClientRect().top + window.scrollY - 100;
-      window.scrollTo({ top: y, behavior: 'smooth' });
+      window.scrollTo({ top: y, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      window.history.replaceState(null, '', '#' + id);
     }
   };
 
   return (
     <>
       <SEO title="Documentation | SyncWatch" />
-      <div 
-        className="min-h-screen font-sans selection:bg-teal-500/30 transition-colors duration-200"
-        style={{ backgroundColor: 'var(--sw-bg)', color: 'var(--sw-text-primary)' }}
-      >
-        {/* Header */}
-      <div 
-        className="fixed top-0 left-0 right-0 z-50 flex items-center p-4 backdrop-blur-md border-b"
-        style={{ backgroundColor: 'var(--sw-bg-header)', borderColor: 'var(--sw-border)' }}
-      >
-        <Link to="/" className="flex items-center gap-2 transition-colors hover:text-[var(--sw-text-primary)]" style={{ color: 'var(--sw-text-secondary)' }}>
-          <ArrowLeft size={20} />
-          <span className="font-medium">Back to Home</span>
-        </Link>
-      </div>
-      
-      {/* Background Glow */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-[500px] bg-teal-500/5 blur-[120px] pointer-events-none -z-10" />
-
-      <div className="max-w-[1200px] mx-auto pt-28 pb-20 px-6 animate-in fade-in slide-in-from-bottom-8 duration-700 flex flex-col tablet:flex-row gap-12">
-        
-        {/* Left Sidebar */}
-        <div className="hidden tablet:block w-[280px] shrink-0">
-          <div className="sticky top-28">
-            <h3 className="text-sm font-bold tracking-wider uppercase mb-6 px-3" style={{ color: 'var(--sw-text-muted)' }}>Documentation</h3>
-            <nav className="flex flex-col gap-1">
-              {SECTIONS.map((sec) => (
-                <button
-                  key={sec.id}
-                  onClick={() => scrollToSection(sec.id)}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 text-left w-full",
-                    activeSection === sec.id 
-                      ? "text-teal-400" 
-                      : "hover:text-[var(--sw-text-primary)]"
-                  )}
-                  style={{
-                    backgroundColor: activeSection === sec.id ? 'var(--sw-accent-glow)' : 'transparent',
-                    color: activeSection === sec.id ? 'var(--sw-accent)' : 'var(--sw-text-secondary)'
-                  }}
-                >
-                  <sec.icon size={16} className={cn("transition-colors", activeSection === sec.id ? "" : "")} 
-                    style={{ color: activeSection === sec.id ? 'var(--sw-accent)' : 'var(--sw-text-muted)' }} 
-                  />
-                  {sec.label}
-                </button>
+      <div className="cinema-docs min-h-screen font-sans">
+      <div className="docs-layout">
+        <aside className="docs-sidebar">
+          <div className="docs-sidebar-inner">
+            <p className="docs-sidebar-caption"><BookOpen size={15} aria-hidden="true" /> THE WATCH GUIDE</p>
+            <nav aria-label="Documentation topics">
+              {SECTIONS.map((sec, index) => (
+                <a key={sec.id} href={`#${sec.id}`}
+                  onClick={event => { event.preventDefault(); scrollToSection(sec.id); }}
+                  aria-current={activeSection === sec.id ? 'location' : undefined}
+                  className="docs-topic">
+                  <sec.icon size={17} aria-hidden="true" />
+                  <span>{sec.label}</span>
+                  <span className="docs-topic-number" aria-hidden="true">0{index + 1}</span>
+                </a>
               ))}
             </nav>
+            <Link to="/dashboard?mode=create" className="docs-sidebar-ticket">
+              <span>Ready for the opening scene?</span>
+              <strong>Create a room <ArrowUpRight size={17} aria-hidden="true" /></strong>
+            </Link>
           </div>
-        </div>
+        </aside>
 
         {/* Main Content */}
-        <div className="flex-1 max-w-3xl">
-          <h1 className="text-4xl tablet:text-5xl font-bold mb-4 tracking-tight" style={{ color: 'var(--sw-text-primary)' }}>
-            SyncWatch Docs
-          </h1>
-          <p className="text-lg mb-16 leading-relaxed" style={{ color: 'var(--sw-text-secondary)' }}>
-            Everything you need to know about setting up rooms, formatting files, and enjoying a perfectly synced watch party.
-          </p>
-          
-          <div className="space-y-24">
-            
+        <main className="docs-content">
+          <header className="docs-intro">
+            <div>
+              <p className="docs-eyebrow">SYNCWATCH / FIELD GUIDE</p>
+              <h1>Good company.<br />Great movie nights.</h1>
+              <p>Your guide to rooms, video files, and watching together.</p>
+            </div>
+            <div className="docs-book" aria-hidden="true"><span>SW<br /><b>PLAY<br />TOGETHER</b></span><BookOpen size={30} /></div>
+          </header>
+          <nav className="docs-quick-links" aria-label="Quick start">
+            <a href="#getting-started" onClick={event => { event.preventDefault(); scrollToSection('getting-started'); }}>
+              <Play size={21} aria-hidden="true" /><span>First movie night?<strong>Start here</strong></span><ArrowUpRight size={18} aria-hidden="true" />
+            </a>
+            <a href="#supported-formats" onClick={event => { event.preventDefault(); scrollToSection('supported-formats'); }}>
+              <FileVideo size={21} aria-hidden="true" /><span>Before you press play<strong>Check your files</strong></span><ArrowUpRight size={18} aria-hidden="true" />
+            </a>
+          </nav>
+          <div className="docs-sections">
+
             {/* Getting Started */}
-            <section id="getting-started" className="scroll-mt-28">
-              <div className="flex items-center gap-3 mb-8">
+            <section id="getting-started" className="docs-section" aria-labelledby="docs-heading-getting-started">
+              <div className="docs-section-title">
                 <div className="p-2 rounded-lg bg-teal-500/10 text-teal-600 dark:text-teal-400">
                   <Play size={24} />
                 </div>
-                <h2 className="text-2xl tablet:text-3xl font-bold tracking-tight" style={{ color: 'var(--sw-text-primary)' }}>Getting Started</h2>
+                <h2 id="docs-heading-getting-started" className="docs-section-heading"><span aria-hidden="true">01</span>Getting Started</h2>
               </div>
-              
-              <div className="border rounded-2xl p-6 tablet:p-8" style={{ backgroundColor: 'var(--sw-card-bg)', borderColor: 'var(--sw-border)' }}>
+
+              <div className="docs-paper border rounded-2xl p-6 tablet:p-8" style={{ backgroundColor: 'var(--sw-card-bg)', borderColor: 'var(--sw-border)' }}>
                 <div className="relative">
                   {/* Timeline Line */}
                   <div className="absolute left-[15px] top-4 bottom-4 w-px" style={{ backgroundColor: 'var(--sw-border)' }} />
-                  
+
                   <div className="space-y-8">
                     {/* Step 1 */}
-                    <div className="relative flex gap-6">
+                    <div className="docs-timeline-row relative flex gap-6">
                       <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 font-bold text-sm shadow-[0_0_10px_rgba(20,184,166,0.2)] z-10"
                         style={{ backgroundColor: 'var(--sw-bg)', borderColor: 'var(--sw-accent-glow)', color: 'var(--sw-accent)' }}>1</div>
                       <div>
@@ -158,7 +144,7 @@ export default function Docs() {
                     </div>
 
                     {/* Step 2 */}
-                    <div className="relative flex gap-6">
+                    <div className="docs-timeline-row relative flex gap-6">
                       <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 font-bold text-sm shadow-[0_0_10px_rgba(20,184,166,0.2)] z-10"
                         style={{ backgroundColor: 'var(--sw-bg)', borderColor: 'var(--sw-accent-glow)', color: 'var(--sw-accent)' }}>2</div>
                       <div>
@@ -170,7 +156,7 @@ export default function Docs() {
                     </div>
 
                     {/* Step 3 */}
-                    <div className="relative flex gap-6">
+                    <div className="docs-timeline-row relative flex gap-6">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 z-10 shadow-[0_0_15px_rgba(20,184,166,0.4)]"
                         style={{ backgroundColor: 'var(--sw-accent)', color: 'var(--sw-bg)' }}>
                         <CheckCircle2 size={18} className="stroke-[3]" />
@@ -186,47 +172,47 @@ export default function Docs() {
             </section>
 
             {/* Supported Formats */}
-            <section id="supported-formats" className="scroll-mt-28">
-              <div className="flex items-center gap-3 mb-8">
+            <section id="supported-formats" className="docs-section" aria-labelledby="docs-heading-supported-formats">
+              <div className="docs-section-title">
                 <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
                   <FileVideo size={24} />
                 </div>
-                <h2 className="text-2xl tablet:text-3xl font-bold tracking-tight" style={{ color: 'var(--sw-text-primary)' }}>Supported Formats</h2>
+                <h2 id="docs-heading-supported-formats" className="docs-section-heading"><span aria-hidden="true">02</span>Supported Formats</h2>
               </div>
-              
-              <div className="border rounded-2xl p-6 tablet:p-8 space-y-6" style={{ backgroundColor: 'var(--sw-card-bg)', borderColor: 'var(--sw-border)' }}>
+
+              <div className="docs-paper border rounded-2xl p-6 tablet:p-8 space-y-6" style={{ backgroundColor: 'var(--sw-card-bg)', borderColor: 'var(--sw-border)' }}>
                 <p className="leading-relaxed" style={{ color: 'var(--sw-text-secondary)' }}>Because SyncWatch relies on your browser's native video player, format support depends on the browser you are using (Chrome, Firefox, Safari, Edge).</p>
-                
+
                 <div className="grid gap-4">
-                  <div className="flex gap-4 p-4 rounded-xl border" style={{ backgroundColor: 'var(--sw-surface)', borderColor: 'var(--sw-border)' }}>
+                  <div className="docs-format-card flex gap-4 p-4 rounded-xl border" style={{ backgroundColor: 'var(--sw-surface)', borderColor: 'var(--sw-border)' }}>
                     <Monitor size={20} className="shrink-0 mt-0.5" style={{ color: 'var(--sw-text-muted)' }} />
                     <div>
                       <h4 className="font-medium mb-1" style={{ color: 'var(--sw-text-primary)' }}>Recommended Video</h4>
                       <p className="text-sm leading-relaxed" style={{ color: 'var(--sw-text-secondary)' }}>
-                        <code className="px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-mono text-[13px] border border-indigo-500/20 mr-1">.mp4</code> and 
+                        <code className="px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-mono text-[13px] border border-indigo-500/20 mr-1">.mp4</code> and
                         <code className="px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-mono text-[13px] border border-indigo-500/20 ml-1">.webm</code> are widely supported across all modern browsers.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex gap-4 p-4 rounded-xl border" style={{ backgroundColor: 'var(--sw-surface)', borderColor: 'var(--sw-border)' }}>
+                  <div className="docs-format-card flex gap-4 p-4 rounded-xl border" style={{ backgroundColor: 'var(--sw-surface)', borderColor: 'var(--sw-border)' }}>
                     <FileVideo size={20} className="shrink-0 mt-0.5" style={{ color: 'var(--sw-text-muted)' }} />
                     <div>
                       <h4 className="font-medium mb-1" style={{ color: 'var(--sw-text-primary)' }}>Other Video Formats</h4>
                       <p className="text-sm leading-relaxed" style={{ color: 'var(--sw-text-secondary)' }}>
-                        <code className="px-1.5 py-0.5 rounded-md font-mono text-[13px] border mr-1" style={{ backgroundColor: 'var(--sw-code-bg)', color: 'var(--sw-text-primary)', borderColor: 'var(--sw-border)' }}>.mkv</code> or 
+                        <code className="px-1.5 py-0.5 rounded-md font-mono text-[13px] border mr-1" style={{ backgroundColor: 'var(--sw-code-bg)', color: 'var(--sw-text-primary)', borderColor: 'var(--sw-border)' }}>.mkv</code> or
                         <code className="px-1.5 py-0.5 rounded-md font-mono text-[13px] border ml-1" style={{ backgroundColor: 'var(--sw-code-bg)', color: 'var(--sw-text-primary)', borderColor: 'var(--sw-border)' }}>.avi</code> might only play audio or fail completely, depending on the browser. If possible, convert your files to MP4.
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex gap-4 p-4 rounded-xl border" style={{ backgroundColor: 'var(--sw-surface)', borderColor: 'var(--sw-border)' }}>
+                  <div className="docs-format-card flex gap-4 p-4 rounded-xl border" style={{ backgroundColor: 'var(--sw-surface)', borderColor: 'var(--sw-border)' }}>
                     <MessageSquare size={20} className="shrink-0 mt-0.5" style={{ color: 'var(--sw-text-muted)' }} />
                     <div>
                       <h4 className="font-medium mb-1" style={{ color: 'var(--sw-text-primary)' }}>Subtitles</h4>
                       <p className="text-sm leading-relaxed" style={{ color: 'var(--sw-text-secondary)' }}>
-                        You can load local subtitle files like 
-                        <code className="px-1.5 py-0.5 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 font-mono text-[13px] border border-teal-500/20 mx-1">.vtt</code> or 
+                        You can load local subtitle files like
+                        <code className="px-1.5 py-0.5 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 font-mono text-[13px] border border-teal-500/20 mx-1">.vtt</code> or
                         <code className="px-1.5 py-0.5 rounded-md bg-teal-500/10 text-teal-600 dark:text-teal-400 font-mono text-[13px] border border-teal-500/20 mx-1">.srt</code> directly into the player once you are in the room.
                       </p>
                     </div>
@@ -236,20 +222,20 @@ export default function Docs() {
             </section>
 
             {/* Privacy & Security */}
-            <section id="privacy" className="scroll-mt-28">
-              <div className="flex items-center gap-3 mb-8">
+            <section id="privacy" className="docs-section" aria-labelledby="docs-heading-privacy">
+              <div className="docs-section-title">
                 <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                   <ShieldCheck size={24} />
                 </div>
-                <h2 className="text-2xl tablet:text-3xl font-bold tracking-tight" style={{ color: 'var(--sw-text-primary)' }}>Privacy & Security</h2>
+                <h2 id="docs-heading-privacy" className="docs-section-heading"><span aria-hidden="true">03</span>Privacy & Security</h2>
               </div>
-              
-              <div className="border rounded-2xl p-6 tablet:p-8" style={{ backgroundColor: 'var(--sw-card-bg)', borderColor: 'var(--sw-border)' }}>
+
+              <div className="docs-paper border rounded-2xl p-6 tablet:p-8" style={{ backgroundColor: 'var(--sw-card-bg)', borderColor: 'var(--sw-border)' }}>
                 <div className="flex flex-col gap-6">
                   <p className="text-lg leading-relaxed" style={{ color: 'var(--sw-text-primary)' }}>
                     <strong className="text-emerald-600 dark:text-emerald-400">Your files never leave your device.</strong> SyncWatch is a "bring your own file" platform. When you select a video, it is read entirely locally by your browser.
                   </p>
-                  
+
                   <div>
                     <p className="mb-4 font-medium" style={{ color: 'var(--sw-text-secondary)' }}>The only data sent to our server is:</p>
                     <ul className="space-y-3">
@@ -270,14 +256,14 @@ export default function Docs() {
                 </div>
               </div>
             </section>
-            
+
             {/* Keyboard Shortcuts */}
-            <section id="shortcuts" className="scroll-mt-28">
-              <div className="flex items-center gap-3 mb-8">
+            <section id="shortcuts" className="docs-section" aria-labelledby="docs-heading-shortcuts">
+              <div className="docs-section-title">
                 <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
                   <Keyboard size={24} />
                 </div>
-                <h2 className="text-2xl tablet:text-3xl font-bold tracking-tight" style={{ color: 'var(--sw-text-primary)' }}>Keyboard Shortcuts</h2>
+                <h2 id="docs-heading-shortcuts" className="docs-section-heading"><span aria-hidden="true">04</span>Keyboard Shortcuts</h2>
               </div>
 
               {/* Mac Style Window */}
@@ -328,53 +314,58 @@ export default function Docs() {
             </section>
 
             {/* Troubleshooting */}
-            <section id="troubleshooting" className="scroll-mt-28">
-              <div className="flex items-center gap-3 mb-8">
+            <section id="troubleshooting" className="docs-section" aria-labelledby="docs-heading-troubleshooting">
+              <div className="docs-section-title">
                 <div className="p-2 rounded-lg bg-pink-500/10 text-pink-600 dark:text-pink-400">
                   <HelpCircle size={24} />
                 </div>
-                <h2 className="text-2xl tablet:text-3xl font-bold tracking-tight" style={{ color: 'var(--sw-text-primary)' }}>Troubleshooting</h2>
+                <h2 id="docs-heading-troubleshooting" className="docs-section-heading"><span aria-hidden="true">05</span>Troubleshooting</h2>
               </div>
-              
+
               <div className="space-y-4">
                 {FAQS.map((faq, index) => {
                   const isOpen = openFaq === index;
                   return (
-                    <div 
-                      key={index} 
-                      className="rounded-2xl border transition-colors duration-200"
-                      style={{ 
-                        backgroundColor: isOpen ? 'var(--sw-faq-bg-open)' : 'var(--sw-faq-bg)', 
+                    <div
+                      key={index}
+                      className="docs-help-item rounded-2xl border transition-colors duration-200"
+                      data-open={isOpen}
+                      style={{
+                        backgroundColor: isOpen ? 'var(--sw-faq-bg-open)' : 'var(--sw-faq-bg)',
                         borderColor: isOpen ? 'var(--sw-border-hover)' : 'var(--sw-border)'
                       }}
                     >
-                      <button
+                      <h3><button
+                        id={`docs-faq-question-${index}`}
+                        type="button"
                         onClick={() => setOpenFaq(isOpen ? null : index)}
                         aria-expanded={isOpen}
                         aria-controls={`docs-faq-answer-${index}`}
                         className="flex items-center justify-between w-full p-5 tablet:p-6 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded-2xl hover:bg-[var(--sw-surface-hover)]"
                       >
                         <span className="font-medium pr-8" style={{ color: 'var(--sw-text-primary)' }}>{faq.q}</span>
-                        <ChevronDown 
-                          size={20} 
+                        <ChevronDown
+                          size={20}
                           aria-hidden="true"
                           className={cn(
                             "transition-transform duration-300 shrink-0",
                             isOpen ? "rotate-180" : ""
-                          )} 
+                          )}
                           style={{ color: isOpen ? 'var(--sw-text-primary)' : 'var(--sw-text-muted)' }}
                         />
-                      </button>
-                      <div 
+                      </button></h3>
+                      <div
                         id={`docs-faq-answer-${index}`}
-                        className={cn(
-                          "overflow-hidden transition-all duration-300 ease-in-out",
-                          isOpen ? "max-h-[300px] opacity-100" : "max-h-0 opacity-0"
-                        )}
+                        role="region"
+                        aria-labelledby={`docs-faq-question-${index}`}
+                        aria-hidden={!isOpen}
+                        className="docs-help-answer"
                       >
+                        <div className="docs-help-answer-inner">
                         <div className="p-5 tablet:p-6 pt-0 leading-relaxed border-t mt-2"
                           style={{ color: 'var(--sw-text-secondary)', borderColor: 'var(--sw-border)' }}>
                           {faq.a}
+                        </div>
                         </div>
                       </div>
                     </div>
@@ -384,7 +375,7 @@ export default function Docs() {
             </section>
 
           </div>
-        </div>
+        </main>
       </div>
     </div>
     </>

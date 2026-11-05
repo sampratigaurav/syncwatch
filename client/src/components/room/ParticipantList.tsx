@@ -25,75 +25,13 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
     <div className="p-4 text-center text-sm text-zinc-500">It's quiet in here...</div>
   );
 
-  const horizontalChips = isWaitingRoom && (
-    <div className="flex tablet:hidden overflow-x-auto gap-3 py-4 px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-      {emptyState}
-      <AnimatePresence mode="popLayout">
-      {participants.map(p => {
-         const isHost = p.role === 'host';
-         let hasControl = false;
-         if (controlPolicy === 'everyone') hasControl = true;
-         if (controlPolicy === 'selected') hasControl = isHost || controllerIds.includes(p.id);
-         if (controlPolicy === 'host_only') hasControl = isHost;
-         const vp = voiceParticipantsMap.get(p.id);
-
-         return (
-           <motion.div 
-             layout
-             initial={{ opacity: 0, scale: 0.8 }}
-             animate={{ opacity: 1, scale: 1 }}
-             exit={{ opacity: 0, scale: 0.8 }}
-             key={`chip-${p.id}`} 
-             className="flex-shrink-0 flex items-center bg-[#141414] rounded-full pr-4 pl-1.5 py-1.5 border border-white/5 shadow-sm relative"
-           >
-             <div className="relative">
-               {p.avatarUrl ? (
-                 <img 
-                   src={p.avatarUrl} 
-                   alt={p.nickname} 
-                   className={cn(
-                     "w-8 h-8 rounded-full object-cover transition-all",
-                     vp?.isSpeaking ? "ring-2 ring-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.5)]" : ""
-                   )} 
-                 />
-               ) : (
-                 <div className={cn(
-                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white uppercase transition-all shadow-inner",
-                   getGradient(p.nickname),
-                   vp?.isSpeaking ? "ring-2 ring-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.5)]" : ""
-                 )}>
-                   {p.nickname.substring(0,1).toUpperCase()}
-                 </div>
-               )}
-               <div className={cn(
-                 "absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-zinc-950",
-                 p.status === 'ready' ? 'bg-emerald-500' :
-                 p.status === 'buffering' ? 'bg-amber-500' : 
-                 p.status === 'disconnected' ? 'bg-red-500' : 'bg-zinc-500'
-               )} />
-             </div>
-             <span className="ml-2.5 text-[13px] font-medium text-zinc-200 max-w-[80px] truncate tracking-wide">
-               {p.nickname.length > 8 ? p.nickname.substring(0, 8) + '…' : p.nickname}
-             </span>
-             {hasControl && (
-               <span className="absolute -top-1 -right-1 text-teal-400 bg-zinc-900 rounded-full p-0.5 shadow-md">
-                 {isHost ? <Crown className="w-3 h-3" /> : <Gamepad2 className="w-3 h-3" />}
-               </span>
-              )}
-            </motion.div>
-          );
-       })}
-       </AnimatePresence>
-    </div>
-  );
-
   return (
     <div className={cn(
       "w-full flex flex-col",
-      isWaitingRoom ? "max-w-full p-4 bg-[#0a0a0a] border border-white/5 rounded-2xl shadow-xl" : "overflow-hidden"
+      isWaitingRoom ? "cinema-lobby-panel max-w-full p-4 border rounded-2xl shadow-xl" : "overflow-hidden"
     )}>
-      <div className={cn("px-4 py-3 flex justify-between items-center", isWaitingRoom && "hidden")}>
-        <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest">In this room</h3>
+      <div className={cn("px-4 py-3 flex justify-between items-center", isWaitingRoom && "px-2")}>
+        <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest">{isWaitingRoom ? 'Your crew' : 'In this room'}</h3>
         {isTorrent && (
           <div 
             className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-wider bg-[#141414] px-2 py-1 rounded-md border border-white/5"
@@ -108,8 +46,7 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
           </div>
         )}
       </div>
-      {horizontalChips}
-      <div className={cn("px-2 space-y-0.5", isWaitingRoom && "hidden tablet:block")}>
+      <div className={cn("px-2", isWaitingRoom ? "space-y-2" : "space-y-0.5")}>
         {emptyState}
         <AnimatePresence mode="popLayout">
         {participants.map((p) => {
@@ -130,7 +67,7 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 10 }}
               key={p.id} 
-              className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-transparent hover:bg-white/[0.03] transition-colors cursor-default group"
+              className={cn("flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg transition-colors cursor-default group", isWaitingRoom ? "cinema-seat" : "bg-transparent hover:bg-white/[0.03]")}
             >
               <div className="flex items-center space-x-3">
                 <div className="relative">
@@ -160,7 +97,7 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
                   )} />
                 </div>
                 <div>
-                  <p className="text-[13px] font-semibold text-zinc-200 flex items-center">
+                  <p className="cinema-seat-name text-[13px] font-semibold text-zinc-200 flex items-center flex-wrap">
                     {p.nickname} {isMe && <span className="bg-white/10 text-zinc-300 text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded ml-2 uppercase">You</span>}
                     {hasControl && (
                        <span className="ml-2 text-teal-500 flex items-center justify-center bg-teal-500/10 p-0.5 rounded" title="Has playback control">
@@ -178,18 +115,18 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
                       </div>
                     )}
                   </p>
-                  <p className="text-[11px] text-zinc-500 font-medium capitalize mt-0.5">{p.role}</p>
+                  <p className="cinema-seat-meta text-[11px] text-zinc-500 font-medium capitalize mt-0.5">{p.role}</p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-3 pl-2">
+              <div className="flex shrink-0 items-center gap-3 pl-2">
                 {isWaitingRoom && (
                   p.status === 'ready' ? (
-                    <span className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                    <span className="cinema-seat-ready flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
                       <Check className="w-3 h-3" /> Ready
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1.5 bg-white/5 text-zinc-400 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md border border-white/5">
+                    <span className="cinema-seat-meta flex items-center gap-1.5 bg-white/5 text-zinc-400 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md border border-white/5">
                       <Loader2 className="w-3 h-3 animate-spin" /> Waiting
                     </span>
                   )
