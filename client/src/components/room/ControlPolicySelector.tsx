@@ -40,6 +40,7 @@ export default function ControlPolicySelector() {
       {/* Mobile Select */}
       <div className="block tablet:hidden relative w-full mb-2">
         <select
+          aria-label="Playback control policy"
           value={controlPolicy}
           onChange={(e) => handlePolicyChange(e.target.value as ControlPolicy)}
           className="w-full h-12 bg-zinc-900/80 border border-zinc-700 text-white rounded-xl px-4 appearance-none focus:outline-none focus:border-teal-500 font-medium tracking-wide shadow-lg"
@@ -54,10 +55,11 @@ export default function ControlPolicySelector() {
       </div>
 
       {/* Tablet/Desktop Grid */}
-      <div className="hidden tablet:grid grid-cols-3 gap-3">
+      <div className="control-policy-options hidden tablet:grid grid-cols-3 gap-3">
         
         {/* Host Only */}
         <button
+          aria-pressed={controlPolicy === 'host_only'}
           onClick={() => handlePolicyChange('host_only')}
           className={cn(
             "flex flex-col items-center p-4 rounded-xl border transition-all duration-300",
@@ -73,6 +75,7 @@ export default function ControlPolicySelector() {
 
         {/* Everyone */}
         <button
+          aria-pressed={controlPolicy === 'everyone'}
           onClick={() => handlePolicyChange('everyone')}
           className={cn(
             "flex flex-col items-center p-4 rounded-xl border transition-all duration-300",
@@ -88,6 +91,7 @@ export default function ControlPolicySelector() {
 
         {/* Selected */}
         <button
+          aria-pressed={controlPolicy === 'selected'}
           onClick={() => handlePolicyChange('selected')}
           className={cn(
             "flex flex-col items-center p-4 rounded-xl border transition-all duration-300",
@@ -104,7 +108,7 @@ export default function ControlPolicySelector() {
 
       {/* Participant Selection List */}
       {controlPolicy === 'selected' && (
-        <div className="mt-2 flex flex-col gap-2 p-4 bg-zinc-900/30 rounded-xl border border-zinc-800/50">
+        <div className="control-policy-people mt-2 flex flex-col gap-2 p-4 bg-zinc-900/30 rounded-xl border border-zinc-800/50">
           <p className="text-xs text-zinc-500 font-medium mb-1">Select participants to grant control:</p>
           
           {/* Host representation */}

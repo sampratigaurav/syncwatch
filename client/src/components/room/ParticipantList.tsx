@@ -2,10 +2,10 @@ import { useMemo } from 'react';
 import { useRoomStore } from '../../store/roomStore';
 import { useShallow } from 'zustand/react/shallow';
 import { socket } from '../../hooks/useSocket';
-import { Wifi, WifiOff, Gamepad2, Crown, MicOff, Check, Loader2, Share2 } from 'lucide-react';
+import { Wifi, WifiOff, Gamepad2, Crown, MicOff, Check, Share2 } from 'lucide-react';
 import { useWebRTC } from '../../hooks/useWebRTC';
 import { cn, getGradient } from '../../lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 export default function ParticipantList({ variant = 'default' }: { variant?: 'default' | 'waiting-room' }) {
   const { participants, controlPolicy, controllerIds, isTorrent, torrentHealth } = useRoomStore(useShallow(state => ({
@@ -20,6 +20,8 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
   const voiceParticipantsMap = useMemo(() => new Map(voiceParticipants.map(v => [v.id, v])), [voiceParticipants]);
 
   const isWaitingRoom = variant === 'waiting-room';
+  const reducedMotion = useReducedMotion();
+  const readyCount = participants.filter(participant => participant.status === 'ready').length;
 
   const emptyState = participants.length === 0 && (
     <div className="p-4 text-center text-sm text-zinc-500">It's quiet in here...</div>
@@ -28,10 +30,11 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
   return (
     <div className={cn(
       "w-full flex flex-col",
-      isWaitingRoom ? "cinema-lobby-panel max-w-full p-4 border rounded-2xl shadow-xl" : "overflow-hidden"
+      isWaitingRoom ? "cinema-lobby-panel lobby-crew-panel max-w-full p-4 border rounded-2xl shadow-xl" : "overflow-hidden"
     )}>
-      <div className={cn("px-4 py-3 flex justify-between items-center", isWaitingRoom && "px-2")}>
+      <div className={isWaitingRoom ? "lobby-crew-heading" : "px-4 py-3 flex justify-between items-center"}>
         <h3 className="text-zinc-500 text-xs font-bold uppercase tracking-widest">{isWaitingRoom ? 'Your crew' : 'In this room'}</h3>
+        {isWaitingRoom && <span>{readyCount}/{participants.length} ready</span>}
         {isTorrent && (
           <div 
             className="flex items-center gap-2 text-[10px] uppercase font-bold tracking-wider bg-[#141414] px-2 py-1 rounded-md border border-white/5"
@@ -46,7 +49,7 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
           </div>
         )}
       </div>
-      <div className={cn("px-2", isWaitingRoom ? "space-y-2" : "space-y-0.5")}>
+      <div className={cn("px-2", isWaitingRoom ? "lobby-crew-list" : "space-y-0.5")}>
         {emptyState}
         <AnimatePresence mode="popLayout">
         {participants.map((p) => {
@@ -63,14 +66,15 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
           return (
             <motion.div 
               layout
-              initial={{ opacity: 0, x: -10 }}
+              initial={reducedMotion ? false : { opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
+              exit={{ opacity: 0, x: reducedMotion ? 0 : 10 }}
+              transition={{ duration: reducedMotion ? 0 : 0.22 }}
               key={p.id} 
               className={cn("flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg transition-colors cursor-default group", isWaitingRoom ? "cinema-seat" : "bg-transparent hover:bg-white/[0.03]")}
             >
-              <div className="flex items-center space-x-3">
-                <div className="relative">
+              <div className="flex min-w-0 items-center space-x-3">
+                <div className="relative shrink-0">
                   {p.avatarUrl ? (
                     <img 
                       src={p.avatarUrl} 
@@ -89,12 +93,11 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
                       {p.nickname.substring(0,1)}
                     </div>
                   )}
-                  <div className={cn(
-                    "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0a0a0a] group-hover:border-[#101010] transition-colors",
-                    p.status === 'ready' ? 'bg-emerald-500' :
-                    p.status === 'buffering' ? 'bg-amber-500' : 
-                    p.status === 'disconnected' ? 'bg-red-500' : 'bg-zinc-500'
-                  )} />
+                  {!isWaitingRoom && <div className={cn(
+                    "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-[#0a0a0a]",
+                    p.status === 'ready' ? 'bg-emerald-500' : p.status === 'buffering' ? 'bg-amber-500' : 'bg-red-500'
+                  )} />}
+
                 </div>
                 <div>
                   <p className="cinema-seat-name text-[13px] font-semibold text-zinc-200 flex items-center flex-wrap">
@@ -121,17 +124,11 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
               
               <div className="flex shrink-0 items-center gap-3 pl-2">
                 {isWaitingRoom && (
-                  p.status === 'ready' ? (
-                    <span className="cinema-seat-ready flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
-                      <Check className="w-3 h-3" /> Ready
-                    </span>
-                  ) : (
-                    <span className="cinema-seat-meta flex items-center gap-1.5 bg-white/5 text-zinc-400 text-[10px] font-semibold uppercase tracking-wider px-2 py-1 rounded-md border border-white/5">
-                      <Loader2 className="w-3 h-3 animate-spin" /> Waiting
-                    </span>
-                  )
+                  <span className="lobby-seat-status" data-ready={p.status === 'ready'}>
+                    {p.status === 'ready' ? <><Check className="w-3 h-3 inline mr-1" aria-hidden="true" />Ready</> : p.status === 'buffering' ? 'Buffering' : p.fileHash ? 'Waiting' : 'Needs a video'}
+                  </span>
                 )}
-                <div className="flex flex-col items-end">
+                {!isWaitingRoom && <div className="flex flex-col items-end">
                   {p.status === 'disconnected' ? (
                     <WifiOff className="w-4 h-4 text-red-500 opacity-80" />
                   ) : (
@@ -140,7 +137,7 @@ export default function ParticipantList({ variant = 'default' }: { variant?: 'de
                       {p.latencyMs}ms
                     </div>
                   )}
-                </div>
+                </div>}
               </div>
             </motion.div>
           );

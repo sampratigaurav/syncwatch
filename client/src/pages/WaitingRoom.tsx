@@ -1,4 +1,5 @@
 import './cinema.css';
+import './lobby.css';
 import { useEffect, useState } from 'react';
 import { SEO } from '../components/layout/SEO';
 import { useRoomStore } from '../store/roomStore';
@@ -8,17 +9,18 @@ import { useFileVerify } from '../hooks/useFileVerify';
 import { useNavigate, useParams } from 'react-router-dom';
 import ParticipantList from '../components/room/ParticipantList';
 import ControlPolicySelector from '../components/room/ControlPolicySelector';
-import { Copy, Check, AlertTriangle, Loader2, WifiOff, Lock, Link2, UploadCloud, Ticket, Link as LinkIcon } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Copy, Check, AlertTriangle, Loader2, WifiOff, Lock, Link2, FileVideo, FolderOpen, ArrowLeft, Play, Ticket, Link as LinkIcon } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { socket } from '../hooks/useSocket';
 import { EVENTS } from '../../../shared/socketEvents';
 import { useSoundEffects } from '../hooks/useSoundEffects';
 
 export default function WaitingRoom() {
-  const { roomId, participants, role, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast, magnetURI, setMagnetURI, setIsTorrent } = useRoomStore(useShallow(state => ({
+  const { roomId, participants, role, roomHasPassword, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast, magnetURI, setMagnetURI, setIsTorrent } = useRoomStore(useShallow(state => ({
     roomId: state.roomId,
     participants: state.participants,
     role: state.role,
+    roomHasPassword: state.roomHasPassword,
     fileVerifyStatus: state.fileVerifyStatus,
     connectionStatus: state.connectionStatus,
     reconnectAttempt: state.reconnectAttempt,
@@ -31,6 +33,7 @@ export default function WaitingRoom() {
   })));
   const { roomId: urlId } = useParams();
   const navigate = useNavigate();
+  const reducedMotion = useReducedMotion();
   useSocket(navigate);
   const { verifyFile, mismatchError, forceAccept } = useFileVerify();
   const fileName = useRoomStore(state => state.fileName);
@@ -53,7 +56,7 @@ export default function WaitingRoom() {
   useEffect(() => {
     if (!roomId) {
       if (urlId) {
-        navigate(`/room/${urlId}`);
+        navigate(`/join/${encodeURIComponent(urlId)}`);
       } else {
         navigate('/');
       }
@@ -61,7 +64,7 @@ export default function WaitingRoom() {
   }, [roomId, urlId, navigate]);
 
   const handleCopy = (type: 'link' | 'code') => {
-    const text = type === 'link' ? `${window.location.origin}/room/${roomId}` : (roomId || '');
+    const text = type === 'link' ? `${window.location.origin}/join/${encodeURIComponent(roomId || '')}` : (roomId || '');
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(() => {
         setCopiedType(type);
@@ -129,7 +132,8 @@ export default function WaitingRoom() {
     socket.emit(EVENTS.SET_MAGNET_LINK, { magnetURI: magnetInput });
   };
 
-  const allVerified = participants.length > 0 && participants.every(p => p.status === 'ready');
+  const readyCount = participants.filter(participant => participant.status === 'ready').length;
+  const allVerified = participants.length > 0 && readyCount === participants.length;
   const canStart = role === 'host' ? allVerified : fileVerifyStatus === 'verified';
 
   const handleGoHome = () => {
@@ -173,11 +177,11 @@ export default function WaitingRoom() {
     <>
       <SEO title="Waiting Room | SyncWatch" />
       <motion.div 
-        initial={{ opacity: 0, y: 15 }}
+        initial={reducedMotion ? false : { opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -15 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="cinema-lobby min-h-screen p-4 tablet:p-8 flex flex-col items-center pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-x-hidden relative selection:bg-teal-500/30"
+      exit={{ opacity: 0, y: reducedMotion ? 0 : -15 }}
+      transition={{ duration: reducedMotion ? 0 : 0.4, ease: "easeOut" }}
+      className="cinema-lobby lobby-page min-h-screen"
     >
       
       {connectionStatus === 'reconnecting' && (
@@ -198,27 +202,32 @@ export default function WaitingRoom() {
         </div>
       )}
 
-      <div className="w-full max-w-5xl mt-8 mb-4">
-        <p className="cinema-kicker"><span aria-hidden="true">✦</span> BEFORE THE SHOW</p>
-        <h1 className="text-4xl tablet:text-6xl font-bold tracking-tight">The lobby</h1>
-      </div>
-      <div className="w-full max-w-5xl mx-auto grid grid-cols-1 tablet:grid-cols-12 gap-6 tablet:gap-8 mt-4 font-sans">
-        
-        <div className="tablet:col-span-7 space-y-6">
-          <div className="cinema-lobby-panel border rounded-2xl p-5 tablet:p-10 shadow-xl">
-            <h2 className="text-2xl tablet:text-3xl font-bold mb-1 tablet:mb-2 tracking-tight">Pick your video</h2>
-            <p className="text-sm tablet:text-base mb-6 tablet:mb-8" style={{ color: 'var(--cinema-muted)' }}>Everyone selects their own copy before the show starts.</p>
-            
+      <header className="lobby-header">
+        <button onClick={handleGoHome} className="lobby-back"><ArrowLeft size={16} aria-hidden="true" /> Back to home</button>
+        <div className="lobby-title-row">
+          <div><p className="cinema-kicker">BEFORE THE OPENING SCENE</p><h1>Take your seat.</h1><p>Invite your friends and get your video ready.</p></div>
+          <span className="lobby-ready-count"><span aria-hidden="true">✦</span> {readyCount} of {participants.length} ready</span>
+        </div>
+      </header>
+      <div className="lobby-grid">
+        <div className="lobby-main">
+          <div className="cinema-lobby-panel lobby-file-panel">
+            <div className="lobby-panel-heading">
+              <span className="lobby-step-label">01 / YOUR VIDEO</span>
+              <h2>{fileVerifyStatus === 'verified' ? 'You’re ready for the show.' : 'Bring your own movie.'}</h2>
+              <p>Everyone opens a copy on their own device.</p>
+            </div>
+
             {fileVerifyStatus === 'computing' ? (
-              <div className="bg-zinc-950/50 border border-teal-900/50 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+              <div className="lobby-file-state">
                 <div className="w-16 h-16 bg-teal-900/30 rounded-full flex items-center justify-center mb-4 border border-teal-500/20">
                   <Loader2 className="w-8 h-8 text-teal-500 animate-spin" />
                 </div>
                 <span className="text-xl font-medium text-white mb-2">Verifying File...</span>
-                <span className="text-sm text-zinc-400">Computing checksum to ensure sync</span>
+                <span className="text-sm text-zinc-400">Comparing your video’s audio with the room</span>
               </div>
             ) : fileVerifyStatus === 'mismatch' ? (
-              <div className="bg-red-950/30 border border-red-900/50 rounded-2xl p-6 tablet:p-8 flex flex-col items-center justify-center text-center">
+              <div className="lobby-file-state lobby-file-error">
                 <div className="w-16 h-16 bg-red-900/30 rounded-full flex items-center justify-center mb-4 border border-red-500/20">
                   <AlertTriangle className="w-8 h-8 text-red-500" />
                 </div>
@@ -255,52 +264,44 @@ export default function WaitingRoom() {
                 </div>
               </div>
             ) : fileVerifyStatus === 'verified' ? (
-               <div className="bg-zinc-950/50 border border-teal-900/50 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+               <div className="lobby-file-state">
                 <div className="w-16 h-16 bg-teal-900/30 rounded-full flex items-center justify-center mb-4 border border-teal-500/20">
                   <Check className="w-8 h-8 text-teal-500" />
                 </div>
-                <span className="text-xl font-medium text-white mb-2">Verified ✓</span>
+                <span className="lobby-verified-title">Video ready <span aria-hidden="true">✓</span></span>
+                {fileName && <p className="lobby-filename">{fileName}</p>}
                  <span className="text-sm text-zinc-400 mb-6">
                    {magnetURI ? 'Connected to peer swarm via WebTorrent.' : 'Your file matches the room.'}
                  </span>
                 
                 {role === 'host' && (
-                  <div className="w-full text-left mb-6 tablet:mb-8 pb-6 tablet:pb-8 border-b border-zinc-800/50 border-t pt-6 tablet:pt-8">
+                  <div className="lobby-policy w-full text-left mb-6 pb-6 border-b border-t pt-6">
                      <ControlPolicySelector />
                   </div>
                 )}
 
-                <div className="fixed bottom-0 left-0 right-0 z-50 tablet:static tablet:mt-6 bg-zinc-950/90 tablet:bg-transparent backdrop-blur-lg tablet:backdrop-blur-none border-t border-white/5 tablet:border-none">
-                  {role === 'host' && !canStart && (
-                    <p className="text-xs text-amber-500 text-center mt-3 mb-2 tablet:mt-0 tablet:mb-4 animate-pulse font-medium">Waiting for all participants to verify files...</p>
-                  )}
-                  <button
-                    onClick={() => {
-                      initAudio();
-                      navigate(`/room/${roomId}/watch`);
-                    }}
-                    disabled={!canStart}
-                    className="w-full h-[56px] tablet:h-auto tablet:w-auto bg-teal-600 hover:bg-teal-500 disabled:bg-zinc-900 tablet:disabled:bg-zinc-800 disabled:text-zinc-500 text-white font-semibold tablet:font-medium tablet:rounded-lg tablet:px-8 tablet:py-3 transition-colors shadow-[0_-4px_20px_rgba(0,0,0,0.4)] tablet:shadow-lg flex items-center justify-center text-[17px] tablet:text-base uppercase tracking-wider tablet:normal-case tablet:tracking-normal active:bg-teal-700 disabled:opacity-90"
-                  >
-                    {role === 'host' ? 'Start Watching' : 'Enter Room'}
+                <div className="lobby-start">
+                  {role === 'host' && !canStart && <p>Waiting for everyone to get their video ready.</p>}
+                  <button onClick={() => { initAudio(); navigate(`/room/${roomId}/watch`); }}
+                    disabled={!canStart} className="lobby-start-button">
+                    <Play size={17} fill="currentColor" aria-hidden="true" /> {role === 'host' ? 'Start watching' : 'Enter room'}
                   </button>
-                  <div className="h-[env(safe-area-inset-bottom)] bg-zinc-900 tablet:hidden w-full"></div>
                 </div>
-                {/* mobile spacer */}
-                <div className="h-[90px] tablet:hidden w-full"></div>
 
               </div>
             ) : (
               <div className="flex flex-col gap-4">
                 {role === 'host' && (
-                  <div className="flex bg-zinc-900/50 p-1 rounded-xl mb-2 border border-zinc-800">
+                  <div className="lobby-source-tabs" role="group" aria-label="Video source">
                     <button
+                      aria-pressed={activeTab === 'local'}
                       onClick={() => setActiveTab('local')}
                       className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'local' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
                     >
                       Local File
                     </button>
                     <button
+                      aria-pressed={activeTab === 'magnet'}
                       onClick={() => setActiveTab('magnet')}
                       className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'magnet' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'}`}
                     >
@@ -311,22 +312,18 @@ export default function WaitingRoom() {
 
                 {activeTab === 'local' ? (
                   <>
-                    <div className="relative border-2 border-dashed border-teal-500/30 hover:border-teal-500/70 rounded-2xl h-48 tablet:h-auto tablet:p-20 flex flex-col items-center justify-center text-center bg-zinc-900/40 backdrop-blur-sm hover:bg-teal-500/5 transition-all duration-300 cursor-pointer group shadow-xl overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-b from-teal-500/0 via-teal-500/0 to-teal-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <input type="file" accept="video/*" onChange={onFileSelect} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="Select Video" />
-                      
-                      <div className="relative w-16 h-16 tablet:w-20 tablet:h-20 bg-zinc-950 border border-zinc-800 rounded-2xl flex items-center justify-center mb-5 transition-transform duration-300 group-hover:-translate-y-2 group-hover:shadow-[0_0_20px_rgba(20,184,166,0.2)] group-hover:border-teal-500/30">
-                        {isSeeding ? <Loader2 className="w-8 h-8 tablet:w-10 tablet:h-10 text-teal-500 animate-spin" /> : <UploadCloud className="w-8 h-8 tablet:w-10 tablet:h-10 text-teal-500" />}
+                    <label className="lobby-dropzone">
+                      <input type="file" accept="video/*" onChange={onFileSelect} disabled={isSeeding} aria-label="Select your video file" />
+                      <div className="lobby-file-art" aria-hidden="true">
+                        <span><FileVideo size={28} /><b>4K</b></span>
+                        <span><FileVideo size={28} /><b>MP4</b></span>
                       </div>
-                      
-                      <span className="block text-xl tablet:text-2xl font-bold text-white px-4 mb-2 tracking-tight group-hover:text-teal-50">
-                        {isSeeding ? 'Generating Torrent...' : 'Select your video file'}
-                      </span>
-                      <span className="hidden tablet:block text-sm text-zinc-400 font-medium">
-                        {isSeeding ? 'Creating WebRTC seeders for your room' : 'Drag and drop or click to browse. Supports .mp4, .webm'}
-                      </span>
-                    </div>
-                
+                      <strong>{isSeeding ? 'Getting your video ready…' : 'Pick tonight’s feature'}</strong>
+                      <span className="lobby-dropzone-note">Choose a video from your device</span>
+                      <span className="lobby-browse">{isSeeding ? <Loader2 size={16} className="animate-spin" /> : <FolderOpen size={16} />} Browse files</span>
+                      <span className="lobby-format-note">MP4 & WebM work best · Files stay on your device</span>
+                    </label>
+
                 {'showDirectoryPicker' in window && (
                   <button 
                     onClick={async () => {
@@ -365,15 +362,14 @@ export default function WaitingRoom() {
                         }
                       }
                     }}
-                    className="w-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800 text-zinc-300 font-medium rounded-xl py-4 transition-all flex flex-col items-center justify-center gap-1 active:scale-[0.98]"
+                    className="lobby-folder"
                   >
-                    <span className="text-white">Binge-Watcher Mode</span>
-                    <span className="text-xs text-zinc-500">Select an entire TV show folder for auto-play</span>
+                    <FolderOpen size={22} aria-hidden="true" /><span><strong>Planning a series night?</strong><small>Pick a folder to play episodes in order</small></span>
                   </button>
                 )}
                 </>
                 ) : (
-                  <form onSubmit={handleMagnetSubmit} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 flex flex-col items-center text-center shadow-xl">
+                  <form onSubmit={handleMagnetSubmit} className="lobby-magnet">
                     <LinkIcon className="w-10 h-10 text-teal-500 mb-4" />
                     <h3 className="text-xl font-bold text-white mb-2">Paste Magnet Link</h3>
                     <p className="text-sm text-zinc-400 mb-6 leading-relaxed">
@@ -382,6 +378,7 @@ export default function WaitingRoom() {
                     </p>
                     <input
                       type="text"
+                      aria-label="Magnet link"
                       placeholder="magnet:?xt=urn:btih:..."
                       value={magnetInput}
                       onChange={(e) => setMagnetInput(e.target.value)}
@@ -402,39 +399,20 @@ export default function WaitingRoom() {
           </div>
         </div>
 
-        <div className="tablet:col-span-5 space-y-6">
-          <div className="cinema-invite rounded-2xl p-6 relative overflow-hidden shadow-xl flex flex-col items-center text-center">
-            <Ticket className="w-6 h-6 mb-3" aria-hidden="true" />
-            <span className="text-sm font-bold uppercase tracking-widest mb-1">Room ticket</span>
-            <div className="flex items-center gap-3 mb-6 mt-2">
-              <div className="text-4xl tablet:text-5xl font-mono font-bold tracking-[0.2em] break-all">
-                {roomId}
-              </div>
-              {useRoomStore.getState().roomHasPassword && <Lock size={20} className="text-zinc-500 -ml-1" />}
+        <aside className="lobby-sidebar" aria-label="Room invitation and participants">
+          <div className="lobby-invite">
+            <div className="lobby-invite-top"><span>02 / INVITE YOUR CREW</span><Ticket size={22} aria-hidden="true" /></div>
+            <h2>Room ticket</h2>
+            <p className="lobby-room-code">{roomId} {roomHasPassword && <Lock size={16} aria-label="PIN protected" />}</p>
+            <p className="lobby-invite-note">Send the invite. Save them a seat.</p>
+            <div className="lobby-invite-actions">
+              <button onClick={() => handleCopy('code')} title="Copy code">{copiedType === 'code' ? <Check size={16} /> : <Copy size={16} />} {copiedType === 'code' ? 'Copied!' : 'Copy code'}</button>
+              <button onClick={() => handleCopy('link')} title="Copy invite">{copiedType === 'link' ? <Check size={16} /> : <Link2 size={16} />} {copiedType === 'link' ? 'Copied!' : 'Copy invite'}</button>
             </div>
-            
-            <div className="flex items-center gap-3 w-full max-w-[260px]">
-              <button 
-                onClick={() => handleCopy('code')} 
-                className="flex-1 py-2.5 bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700 rounded-xl text-zinc-300 font-medium transition-all active:scale-95 flex items-center justify-center gap-2"
-                title="Copy Code"
-              >
-                {copiedType === 'code' ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
-                <span className="text-xs">{copiedType === 'code' ? 'Copied!' : 'Copy code'}</span>
-              </button>
-              <button 
-                onClick={() => handleCopy('link')} 
-                className="flex-1 py-2.5 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 text-teal-400 rounded-xl font-medium transition-all active:scale-95 flex items-center justify-center gap-2"
-                title="Copy Link"
-              >
-                {copiedType === 'link' ? <Check className="w-4 h-4 text-emerald-500" /> : <Link2 className="w-4 h-4" />}
-                <span className="text-xs">{copiedType === 'link' ? 'Copied!' : 'Copy invite'}</span>
-              </button>
-            </div>
+            <div className="lobby-invite-stub" aria-hidden="true"><span>ADMIT YOUR FRIENDS</span><span>✦ ✦ ✦</span></div>
           </div>
-          
           <ParticipantList variant="waiting-room" />
-        </div>
+        </aside>
       </div>
     </motion.div>
     </>
