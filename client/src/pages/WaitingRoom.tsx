@@ -16,9 +16,10 @@ import { EVENTS } from '../../../shared/socketEvents';
 import { useSoundEffects } from '../hooks/useSoundEffects';
 
 export default function WaitingRoom() {
-  const { roomId, participants, role, roomHasPassword, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast, magnetURI, setMagnetURI, setIsTorrent } = useRoomStore(useShallow(state => ({
+  const { roomId, role, roomHasPassword, fileVerifyStatus, connectionStatus, reconnectAttempt, clearRoomState, errorToast, setErrorToast, magnetURI, setMagnetURI, setIsTorrent, readyCount, participantCount } = useRoomStore(useShallow(state => ({
     roomId: state.roomId,
-    participants: state.participants,
+    readyCount: state.participants.filter(participant => participant.status === 'ready').length,
+    participantCount: state.participants.length,
     role: state.role,
     roomHasPassword: state.roomHasPassword,
     fileVerifyStatus: state.fileVerifyStatus,
@@ -132,8 +133,7 @@ export default function WaitingRoom() {
     socket.emit(EVENTS.SET_MAGNET_LINK, { magnetURI: magnetInput });
   };
 
-  const readyCount = participants.filter(participant => participant.status === 'ready').length;
-  const allVerified = participants.length > 0 && readyCount === participants.length;
+  const allVerified = participantCount > 0 && readyCount === participantCount;
   const canStart = role === 'host' ? allVerified : fileVerifyStatus === 'verified';
 
   const handleGoHome = () => {
@@ -206,7 +206,7 @@ export default function WaitingRoom() {
         <button onClick={handleGoHome} className="lobby-back"><ArrowLeft size={16} aria-hidden="true" /> Back to home</button>
         <div className="lobby-title-row">
           <div><p className="cinema-kicker">BEFORE THE OPENING SCENE</p><h1>Take your seat.</h1><p>Invite your friends and get your video ready.</p></div>
-          <span className="lobby-ready-count"><span aria-hidden="true">✦</span> {readyCount} of {participants.length} ready</span>
+          <span className="lobby-ready-count"><span aria-hidden="true">✦</span> {readyCount} of {participantCount} ready</span>
         </div>
       </header>
       <div className="lobby-grid">
