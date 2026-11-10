@@ -16,3 +16,8 @@
 **Vulnerability:** In `server/src/socket/handlers.ts`, the `EVENTS.PLAYBACK_EVENT` handler blindly broadcasted the incoming `payload` object directly via `...payload`. A malicious client could attach arbitrarily large or maliciously crafted properties, which would be reflected to all connected clients. Furthermore, it lacked strict type checking on `payload.action` and `payload.subtitleState`.
 **Learning:** Never spread unvalidated socket payloads when broadcasting data. Not only does it invite type injection attacks that pollute internal state, but it enables Reflection DoS, turning the server into an amplifier.
 **Prevention:** Always explicitly construct outbound payload objects from strict, type-checked local variables. Never broadcast `...payload` received directly from a client.
+
+## 2026-11-10 - Prevent Type Injection Bypasses in Socket Payloads
+**Vulnerability:** Socket payload validation checking `typeof payload === 'object'` allowed clients to pass arrays, since `typeof []` is `'object'` in JavaScript. This bypassed validation logic intended specifically for JS Objects and permitted Type Injection into internal server routines (like WebRTC signaling and playback control).
+**Learning:** In JavaScript, arrays are considered objects. Therefore, validation checks designed strictly for standard objects must explicitly reject arrays.
+**Prevention:** Whenever validating that an external payload or property is an object using `typeof x === 'object'`, append `&& !Array.isArray(x)` to ensure arrays cannot bypass object validation.
