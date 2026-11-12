@@ -13,3 +13,7 @@
 **Learning:** Selecting an entire array object (e.g., `state.participants`) in a Zustand store selector causes subscribed components to re-render whenever any property within any array element updates (such as peer `latencyMs` from 10s websocket pings), even when wrapped in `useShallow`.
 **Action:** Extract specific primitive properties (such as `hostName` via `.find()` or `participantCount` via `.length`) directly inside the Zustand selector instead of selecting the full array and computing primitives locally in component code.
 
+## 2026-10-25 - Extracted Zustand Array Selectors\n**Learning:** Selecting objects or full arrays from a Zustand store (like ) within a  hook does not prevent re-renders when properties deep inside those objects (like ) update.\n**Action:** Always extract the specific primitives you need (e.g.  and ) or explicitly drill down to specific object properties to maintain strict render purity and avoid global cascading re-renders.
+## 2026-10-25 - Extracted Zustand Array Selectors
+**Learning:** Selecting objects or full arrays from a Zustand store (like `participants`) within a `useShallow` hook does not prevent re-renders when properties deep inside those objects (like `latencyMs`) update.
+**Action:** Always extract the specific primitives you need (e.g. `participantCount` and `readyCount`) or explicitly drill down to specific object properties to maintain strict render purity and avoid global cascading re-renders.
